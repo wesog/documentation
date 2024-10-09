@@ -37,20 +37,16 @@
     {
       "group": "Get Started",
       "pages": [
-        "documentation/introduction",
-        "documentation/quickstart",
-        "documentation/development"
+        "documentation/intro",
+        "documentation/feats"
       ]
     },
     {
       "group": "Manage your content",
       "pages": [
-        "documentation/markdown",
-        "documentation/code",
-        "documentation/images",
-        "documentation/settings",
-        "documentation/navigation",
-        "documentation/reusable-snippets"
+        "documentation/manage-upload",
+        "documentation/manage-update",
+        "documentation/manage-delete"
       ]
     },
     {
