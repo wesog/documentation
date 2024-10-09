@@ -37,20 +37,26 @@
     {
       "group": "Get Started",
       "pages": [
-        "introduction",
-        "quickstart",
-        "development"
+        "documentation/introduction",
+        "documentation/quickstart",
+        "documentation/development"
       ]
     },
     {
-      "group": "Essentials",
+      "group": "Manage your content",
       "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
+        "documentation/markdown",
+        "documentation/code",
+        "documentation/images",
+        "documentation/settings",
+        "documentation/navigation",
+        "documentation/reusable-snippets"
+      ]
+    },
+    {
+      "group": "Search your content",
+      "pages": [
+        "documentation/search",
       ]
     },
     {

@@ -1,0 +1,48 @@
+---
+title: 'Search endpoint'
+description: 'Description of search endpoint'
+icon: 'magnifying-glass'
+---
+
+## Introduction
+
+The search endpoint `GET /imgs` is the most powerful API endpoint, allowing the creation of complex queries using a custom syntax. This page explains how to use the Wesog Search API to construct advanced search queries.
+
+
+### Input: Request Parameters
+
+The search endpoint (`HTTP GET /imgs`) has the following URL parameters:
+
+- `q`: Query Filtering Formula
+- `sort`: Sorting options (default: `id`)
+- `page`: The page number (starting from 1) (default: `1`)
+- `size`: The number of images per page (default: `50`)
+- `fields`: The returning image fields (comma-separated) (default: `id`)
+- `lang`: The language used the text filters search (default: `en`)
+
+
+### Output: Returned Response
+
+The response is a JSON object containing the found images (`images`) and additional information such as the total number of images found and the time taken. The `images` field is a list of image objects containing the specified `fields`.
+
+
+
+### Example request:
+
+```
+HTTP GET /imgs?q=t:us elections 2024&fields=id,headline
+```
+
+### Example response:
+
+```json
+{
+  "images": [
+    {"id": 323, "headline": "Joe Biden drops his candidacy for president of the United States"},
+    {"id": 324, "headline": "Donald Trump getting shot in the ear"}
+  ],
+  "total": 2,
+  "time_taken": "0.02s"
+}
+```
+
