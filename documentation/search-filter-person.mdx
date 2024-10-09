@@ -4,9 +4,75 @@ description: 'Filter by type of image: Photography, digital illustraion, oil pai
 icon: user
 ---
 
-## Filter `p:___`
 
-Celebrity name or `anyone`
+## Introduction
+
+The person filter is one of the most complete filters in Wesog Search.
+It allows users to filter celebrities by entering their name or uploading an image of their face.
+Additionally, it can be refined by specifying various attributes such as age, emotion, clothing, nationality, etc.
+
+The syntax for the person filter is as follows:
+
+```
+p:<name or face or anyone>[ <subfilters such as age, emotion, clothes, ...> ]
+```
+
+> ### `anyone`
+>
+> Note that apart from searching a celebrity by their name or face, `anyone` can be used as the main filter value to add custom subfilter attributes. This is very useful for performing "multi-celebrity" searches, such as photographs containing Spanish actresses aged between 20 and 30:
+>
+> ```
+> p:anyone[g:woman & n:spain & j:actor & age>=20 & age<=30]
+> ```
+>
+> This specifies the subfilters: gender `:g`, nationality `:n`, job occupation `:j` and age `:a`
+
+
+## Filter by celebrity name
+
+To search for a specific celebrity, the name must be specified.
+Here are several examples of celebrity names:
+
+- `p:Taylor Swift`
+- `p:Barack Obama`
+- `p:John F. Kennedy`
+
+
+## Filter by celebrity face
+
+In addition to the celebrity name, celebrities can also be searched by the face from an uploaded query image (or an existing image).
+
+The first step is to upload an image using the `/query_files` endpoint. If an image with 3 faces is uploaded, the `/query_files` response will look something like this:
+
+```json
+{
+  "img_ref": 10405030202,
+  "faces": [
+    [0.4, 0.2, 0.8, 0.4], // face 1
+    [0.1, 0.2, 0.3, 0.4], // face 2
+    [0.1, 0.2, 0.3, 0.4], // face 3
+  ]
+}
+```
+
+The response includes both the image reference and the list of face positions sorted from largest to smallest. The face position is an array of 4 numbers specifying the top-left and bottom-right points of the face rectangle.
+
+To use the faces from uploaded images as a person filter, the syntax is as follows:
+
+
+```
+p:<image reference>_<face number>
+p:<image reference>_<face number>[ <optional subfilters> ]
+```
+
+- `p:10405030202_1` Filter images that contains the face 1 of image 10405030202
+- `p:10405030202_2` Filter images that contains the face 1 of image 10405030202
+- `p:10405030202_3` Filter images that contains the face 1 of image 10405030202
+- `p:10405030202_1 & p:10405030202_3` Filter images that contains both face 1 and 3 of image 10405030202
+- `p:10405030202_1 & p:123456789_4` Filter images that contains both faces of different uploaded images.
+
+
+
 
 ## Subfilters `p:___[___]`
 
@@ -17,7 +83,7 @@ Celebrity name or `anyone`
 
 
 ### Gender
-`g:male` or `g:female`
+`g:man` or `g:woman`
 
 
 ### Emotion
@@ -68,4 +134,19 @@ Be creatitive with many more!
 
 
 ## Examples
+
+- `p:Emma Watson & s:full length` Search for full-length photos of Emma Watson.
+- `p:Virat Kohli[g:man & a:>30 & t:wearing sports gear]` Find photos of Virat Kohli, a man over 30, in sports gear.
+- `p:anyone[n:china & j:director & g:woman]` Search for photos of female Chinese directors.
+- `p:Chris Hemsworth[e:happy]` Find photos where Chris Hemsworth appears happy.
+- `p:Rihanna & p:Lady Gaga & s:waist up` Search for waist-up photos featuring both Rihanna and Lady Gaga.
+- `p:Daniel Craig[j:actor & s:three quarter length]` Find three-quarter length photos of Daniel Craig identified as an actor.
+- `p:anyone[t:wearing a traditional dress & n:india]` Search for anyone wearing a traditional Indian dress.
+- `p:Serena Williams[a:>=35 & t:playing tennis]` Find photos of Serena Williams, aged 35 or older, playing tennis.
+- `p:Shakira[e:dancing]` Search for photos of Shakira dancing.
+- `p:Jackie Chan[t:performing a stunt]` Find photos of Jackie Chan performing a stunt.
+```
+
+
+
 
