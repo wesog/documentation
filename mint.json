@@ -58,7 +58,9 @@
           "group": "Available filters",
           "pages": [
             "documentation/search-filter-author",
-            "documentation/search-filter-color"
+            "documentation/search-filter-color",
+            "documentation/search-filter-date",
+            "documentation/search-filter-face"
           ]
         }
       ]
