@@ -1,0 +1,45 @@
+---
+title: 'Date'
+description: 'Filter by year, month, day, hour, minute, or second'
+icon: calendar-days
+---
+
+Dates are defined by the ISO 8601 format. For example September 27, 2022 at 6 p.m. is represented as `2022-09-27 18:00:00.000`
+
+> ### ISO 8601
+>
+> The ISO 8601 format provides a unique string represtantion of dates and times:
+>
+> | ISO 8601 Example            | Description                                         |
+> |-----------------------------|-----------------------------------------------------|
+> | `2024`                      | **Year only**                                       |
+> | `2024-01`                   | **Year-Month**                                      |
+> | `2024-01-01`                | **Year-Month-Day**                                  |
+> | `2024-01-02 15`             | **Year-Month-Day Hour (Local Time)**                |
+> | `2024-01-02 15Z`            | **Year-Month-Day Hour (UTC)**                       |
+> | `2024-01-01 10:30`          | **Year-Month-Day Hour:Minute (Local Time)**         |
+> | `2024-01-01 10:30Z`         | **Year-Month-Day Hour:Minute (UTC)**                |
+> | `2024-01-01 10:30:15`       | **Year-Month-Day Hour:Minute:Second (Local Time)**  |
+> | `2024-01-01 10:30:15Z`      | **Year-Month-Day Hour:Minute:Second (UTC)**         |
+> | `2024-01-01 10:30:15+05:00` | **Year-Month-Day Hour:Minute:Second (Timezone +5)** |
+> | `2024-01-02 15:45:30-07:00` | **Year-Month-Day Hour:Minute:Second (Timezone -7)** |
+
+
+Dates filter can define excat dates, also ranges using the following operators:
+
+- `>` greater than
+- `<` less than
+- `>=` greater than or equal to
+- `<=` less than or equal to
+
+## Examples
+
+- `d:2020-02-08` Only Febraury 8th of 2020
+- `!d:2020-02-08` Any day except Febraury 8th of 2020
+- `d:<2020-02-08` Lees than Febraury 8th of 2020
+- `d:>2020-02-08` Greater than Febraury 8th of 2020
+- `d:<=2020-02-08` Lees than or equal to Febraury 8th of 2020
+- `d:>=2020-02-08` Greater than or equal to Febraury 8th of 2020
+- `!d:<2020-02-08` Greater than or equal to Febraury 8th of 2020 (filter by the negative complement)
+- `d:>=2020-02-08 & d:<=2024-02-08` Inclusive range
+- `d:>2020-02-08 & d:<2024-02-08` Exclusive range
