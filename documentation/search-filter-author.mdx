@@ -1,0 +1,19 @@
+---
+title: 'Author filter'
+description: 'Author, artist, creator, photgrapher of the image'
+icon: info
+---
+
+Filter and subfilters values:
+
+- `a` (author): Name of the author or `anyone`
+  - `g` (gender): `man` or `woman`
+  - `n` (nationality): ISO 3166-1 alpha-2 `fr`, `gb`, `` 
+
+
+**Examples**:
+
+- `a:Vincent van Gogh` Filter artwotks painted by Vincent van Gogh.
+- `a:Steve McCurry` Filter photograhs taken by Steve McCurry.
+- `a:anyone[n:nl]` Filter by Dutch photographers/painters.
+- `a:anyone[g:woman]` Filter by female photographers/painters.

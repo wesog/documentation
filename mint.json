@@ -53,7 +53,14 @@
       "group": "Search your content",
       "pages": [
         "documentation/search",
-        "documentation/search-filters"
+        "documentation/search-filters",
+        {
+          "group": "Available filters",
+          "pages": [
+            "documentation/search-filter-author",
+            "documentation/search-filter-color"
+          ]
+        }
       ]
     },
     {
