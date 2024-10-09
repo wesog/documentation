@@ -7,18 +7,19 @@
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373",
+    "primary": "#007BFF",
+    "light": "#66B2FF",
+    "dark": "#0056B3",
     "anchors": {
-      "from": "#0D9373",
-      "to": "#07C983"
+      "from": "#007BFF",
+      "to": "#66B2FF"
     }
+}
   },
   "topbarLinks": [
     {
       "name": "Talk to Engineers",
-      "url": "javi@wesog.com"
+      "url": "mailto:javi@wesog.com"
     }
   ],
   "topbarCtaButton": {
