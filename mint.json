@@ -60,7 +60,9 @@
             "documentation/search-filter-author",
             "documentation/search-filter-color",
             "documentation/search-filter-date",
-            "documentation/search-filter-face"
+            "documentation/search-filter-face",
+            "documentation/search-filter-image",
+            "documentation/search-filter-keyword"
           ]
         }
       ]
