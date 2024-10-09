@@ -4,15 +4,28 @@ description: 'Text search. Both semantic or fulltext search.'
 icon: text-size
 ---
 
-## Text filter `t:___`
-
 It has searching 2 modes 
 
 1. Text without quotes: It performs semantic search. (AI search).
-2. Text between quotes: It performs fulltext search. (Traditional search). This is literal (lexical) search where it try to find corresponces (literal matches) with the text of the image. The text of the image includes:
-  - Headline (text provided by the client)
-  - Caption (text provided by the client)
-  - Detected text in the image itself (OCR)
+2. Text between quotes: It performs fulltext search. (Traditional search).
+
+## Semantic search
+
+<Warning>Semantic Search only works in **English**. More languages will be supported in future realeases of Wesog Search</Warning>
+
+AI search. Wesos Search understand the query description and it will retrive simantic-similar results.
+
+In semantic search, unlike traditional search, the longer and more descriptive the query, the better.
+
+
+## Fulltext search
+
+<Warning>This filter mode is not ready yet. It will be available in future realeases of Wesog Search</Warning>
+
+Literal search where it try to find exact corresponces (literal matches) with the text of the image. The text of the image includes:
+- Headline (text provided by the client)
+- Caption (text provided by the client)
+- Detected text in the image itself (OCR)
 
 > Note of fulltext search:
 > - capital letters are considered as lowercased. Searching for "USA" will match with "usa"

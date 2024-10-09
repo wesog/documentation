@@ -1,28 +1,33 @@
 ---
 title: 'Keyword'
-description: 'Filter by manually anntated or automatic detected keywords.'
+description: 'Filter by manually annotated or automatic detected keywords.'
 icon: tag
 ---
 
+## Client provided keywords
+
 Keyowors search of filtering by the Keywords provided by the client.
+
+<Note>Note that client provided keywords can contains **typos** or **duplicates**. In future versions of Wesog Search, it will be offered a "cleaning keyword process" to solve this issue.</Note>
+
+
+## Automatic keywords
+
+<Warning>This filter capability is not ready yet. It will be available in future realeases of Wesog Search.</Warning>
+
+Perfom automatic keyword extraction of the following categories
+
+### Topics
+`Automotive`, `Animals & Wildlife`, `Business`, `Conflict`, `Disaster`, `Education`, `Entertainment`, `Environment`, `Fashion`, `Finance`, `Food & Drink`, `Health`, `Oddly`, `Politics`, `Real Estate`, `Religion`, `Sci-Tech`, `Society`, `Sport`, `Top Pictures`, `Travel`
+
+### Weather
+`Sunny`, `Rainy`, `Snowy`, `Cloudy`, `Indoor`
+
+And many more!
+
 
 ## Examples
 
 - `k:dogs` Images containig the keyword dogs
 - `k:dogs & k:cats` Images with the keywords dogs and cats
 - `k:dogs | k:cats` Images with the keywords dogs or cats
-
-
-> ## Automatic keywords
->
-> In future realises, of Wesog Wearch will perfom automatic keyword extraction of the following categories
->
-> ### Topics:
->
-> `Automotive`, `Animals & Wildlife`, `Business`, `Conflict`, `Disaster`, `Education`, `Entertainment`, `Environment`, `Fashion`, `Finance`, `Food & Drink`, `Health`, `Oddly`, `Politics`, `Real Estate`, `Religion`, `Sci-Tech`, `Society`, `Sport`, `Top Pictures`, `Travel`
->
-> ### Weather:
->
-> `Sunny`, `Rainy`, `Snowy`, `Cloudy`, `Indoor`
->
-> And many more!
