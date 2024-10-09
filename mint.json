@@ -62,7 +62,14 @@
             "documentation/search-filter-date",
             "documentation/search-filter-face",
             "documentation/search-filter-image",
-            "documentation/search-filter-keyword"
+            "documentation/search-filter-keyword",
+            "documentation/search-filter-location",
+            "documentation/search-filter-medium",
+            "documentation/search-filter-num-people",
+            "documentation/search-filter-person",
+            "documentation/search-filter-ratio",
+            "documentation/search-filter-shot",
+            "documentation/search-filter-text"
           ]
         }
       ]

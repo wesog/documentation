@@ -1,0 +1,24 @@
+---
+title: 'Text'
+description: 'Text search. Both semantic or fulltext search.'
+icon: text-size
+---
+
+## Text filter `t:___`
+
+It has searching 2 modes 
+
+1. Text without quotes: It performs semantic search. (AI search).
+2. Text between quotes: It performs fulltext search. (Traditional search). This is literal (lexical) search where it try to find corresponces (literal matches) with the text of the image. The text of the image includes:
+  - Headline (text provided by the client)
+  - Caption (text provided by the client)
+  - Detected text in the image itself (OCR)
+
+> Note of fulltext search:
+> - capital letters are considered as lowercased. Searching for "USA" will match with "usa"
+> - Only saves the root of the words (lemmas). Searching for "meditate" will match with "meditates", "meditation", etc. 
+
+## Examples
+
+- `t:"us elections"`: Traditional Search
+- `t:us elections`: AI Search
