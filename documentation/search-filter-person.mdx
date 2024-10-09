@@ -10,68 +10,62 @@ Celebrity name or `anyone`
 
 ## Subfilters `p:___[___]`
 
-### Shot `s:` 
-- Close-up / headshot   (1/4)
-- Medium shot / waistup (2/4)
-- Three quarter length  (3/4)
-- Full length           (4/4)
-- No face
+### Age
+- **Exact number**: `a:18`, `a:43`, ...
+- **Number range**: `a:>18`, `a:>=20`, `a:>=20 & a:<=40`, ...
+- **Shortcut, one of**: `a:baby`, `a:child`, `a:adult`, `a:senior`
 
-### Free text `t:` 
-- Eyes looking
-  - Looking elsewehere 👀
-  - Looking to camera 👁️
-  - Eyes close
-  - Winking eye 😉
-- Body Position
-  - Standing
-  - Sitting
-  - Walking 🚶🏻
-  - Lying Down
-  - Jumping
-  - Running
-  - Dancing
 
-### Veracity `v:`
+### Gender
+`g:male` or `g:female`
+
+
+### Emotion
+`e:angry`, `e:disgust`, `e:fear`, `e:happy`, `e:neutral`, `e:sad`, `e:surprised`
+
+> ### Other emotions
+> Note that if an emotion is missing, you can use the text subfilter. Examples:
+>
+> `t:calm`, `t:crying`, `t:excited`, `t:laughing`, `t:serious`, `t:smiling`, `t:thoughtful`
+
+
+### Job occupation
+`j:politician`, `j:singer`, `j:footballer`, ...
+
+
+### Nationality
+`n:brazil`, `n:canada`, `n:india`, `n:nigeria`, ...
+
+
+### Shot
+- `s:head shot`   (1/4)
+- `s:waist up` (2/4)
+- `s:three quarter length`  (3/4)
+- `s:full length`           (4/4)
+- `s:no face`
+
+
+### Free Text
+This feature offers extensive control over the appearance of individuals in photos. Below are some illustrative examples:
+
+**Clothing** (colors, patterns, accessories):
+`t:a red dress`, `t:wearing blue jeans and red sneakers`, `t:a striped slip dress`, ...
+
+**Eyes**:
+`t:looking to camera`, `t:closed eyes` or `t:blinking`, `t:winking`, ...
+
+**Action**:
+`t:standing`, `t:sitting`, `t:walking`, `t:lying down`, `t:jumping`, `t:running`, `t:dancing`, ...
+
+Be creatitive with many more!
+
+### Veracity
 - `v:real` The person was there when the photo was taken.
-- `f:fake` The person is not present. Usually a photo of a photo.
+- `v:fake` The person is not present. Usually a photo of a photo.
 
-### Emotion `e:`
-- `e:angry` <Icon icon="face-angry" iconType="regular" />
-- `e:fear`
-- `e:neutral`
-- `e:sad`
-- `e:disgust`
-- `e:happy`
-- `e:surprise`
-- Excited
-- Laughing
-- Happy / Smiling
-- Calm / candid / casual 
-- Serious
-- Sad
-- Angry
-- Crying
-- Surprised
-- Thoughtful 
+### Race
+`r:asian`, `r:black`, `r:white`, `r:latino`, `r:middle eastern`, `r:indian`
 
-### Age `a:`
-- Baby 👶
-- Infant/Child 🧒 👦 👧
-- Adult 🧑 👨 👩
-- Senior 🧓 👴 👵
-
-### Gender `g:`
-- Male 👨🏻
-- Female 👩🏻
-- Non-binary 🧑🏻
-
-### Race `r:`
-- Asian
-- Black/African
-- white/Caucasian
-- Hispanic/Latino
-- Middle Eastern
-- Indian
 
 ## Examples
+
