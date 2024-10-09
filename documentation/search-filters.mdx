@@ -1,0 +1,87 @@
+---
+title: 'Query Filtering Formula'
+description: 'Create a boolean formula combining serveral filters and subfilters.'
+icon: filter
+---
+
+The `q` url parameter of the search endpoint (`GET /imgs`) defines the **query filtering formula (QFF)**. This parameter uses a special syntax that allows various filter combinations using Boolean operators and supports subfilters for more granular searches.
+
+## Filter
+
+Filters are the basic block of the QFF, they are defined by a filter prefix followed by a colon `:`, and then the filter value:
+
+```
+<prefix>:<value>
+```
+
+> #### Filter prefixes
+> Wesog search supports several types of prefixes. The most common are `t:` for *textual filters*, `i:` for *reverse image search* and `p:` for *person (celebrity) search* 
+
+**Examples:**
+
+- Text filter `t:us elections` searches for images semantically similar to "us elections".
+- Text filter `t:"us elections"` perfoms a fulltext searches for images containing "us elections" in their title, headline or caption.
+- Keyword filter `k:us elections` searches for images tagged with the keyword "us elections".
+- Date filter `d:1998` searches for photographies taken in 1998.
+- Date filter `d:>2020-03-11` searches for photographies post pandemic.
+
+
+## Filter with subfilters
+
+Some filters (image `i:`, person `p:`, author `a:`) can have subfilters. Subfilter specifies further properties of a filter. Subfilters are defined after the the filter containg. the "subfilter query formula" between sqare brakets.
+
+**Examples:**
+
+- `p:taylor swift[a:20]` search for pictures of Talyor swift at the age of 20 years old.
+- `p:taylor swift[t:green dress and cowboy boots]` search for pictures of Talyor swift with that clothes.
+- `p:donald trump[k:smiling k:lookingToCamera]` search for pictures of Donald Trump smiling, looking to camera.
+- `p:anyone[a:>80]` search for pictures of any celebrity with more than 80 years old.
+- `a:anyone[g:woman & a:>70]` search for pictures done by women (women photographer or painters).
+- `i:1234[t:at winter]`. Considering 1234 the id of a previusly upluaded photo of the stockholm skyline at summer. Ssearch for pictures of Stockholm at Winter
+- ``
+
+
+## Combining Filters with Boolean Operators
+
+You can combine filters using the following Boolean operators:
+
+- `&`: Logical **AND**
+- `|`: Logical **OR**
+- `!`: Logical **NOT**
+
+Parentheses `()` can be used to group filters and control the order of operations.
+
+**Examples:**
+
+- `t:beach & c:blue` searches for images of beaches **and** the color blue.
+- `t:beach | t:mountain` searches for images of beaches **or** mountains.
+- `t:beach & !c:blue` searches for images of beaches **but not** the color blue.
+- `t:beach & (!c:blue | c:yellow)` searches for images of beaches with the colors blue or yellow.
+
+
+## Available Filters and Subfilters
+
+List of avaliable filters and subfilters along with their prefixes:
+
+- `a`: **a**uthor of the image
+  - `g`: **g**ender (male or female)
+  - `n`: **n**ationality
+- `c`: **c**olor
+- `d`: **d**ate
+- `f`: **f**ace
+- `i`: **i**mage - semantic search (without quotes) same search (with quotes).
+  - `t`: **t**ext modification (only for semantic)
+- `k`: **k**eyword
+- `l`: **l**ocation (country, city, coordinate + radius in kms, polygon of coordinates)
+- `m`: **m**edium / **m**edia type
+- `n`: **n**um of people
+- `p`: **p**erson (celebrity name or "anyone")
+  - `t`: **t**ext modification (for custom clothing, expresion, behaboior,...)
+  - `i`: **i**image modification (segemented or not) (for custom clothing, expresion, behaboior,...)
+  - `a`: **a**ge (a number, a range, a catergory like child, adult,...)
+  - `g`: **g**ender (male or female)
+  - `n`: **n**ationality
+  - `k`: **k**eyword (action / body position / looking to camera / ...)
+- `r`: aspect **r**atio / o**r**ientation
+- `s`: type of **s**hot
+- `t`: **t**ext - semantic search (without quotes) lexical search (with quotes)
