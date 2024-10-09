@@ -1,0 +1,805 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0
+  title: Wesog Search API
+  description: |
+    Welcome to the Wesog Search API documentation!
+    Unleash the full potential of your digital assets with Wesog Search,
+    a tool designed to revolutionize your search capabilities in ways you've never seen before.
+
+    # Getting Started
+
+    The Wesog Search API is organized into two main sections:
+
+    - **[Manage Your Images](/doc/#tag/manage-your-images)**: This section includes all endpoints
+      for uploading, modifying, and deleting your images within Wesog Search.
+      Enhance your visuals with our advanced AI semantics and Celebrity Recognition technology.
+    - **[Search Your Images](/doc/#tag/search-your-images)**: Here, you'll find all the endpoints
+      needed to create a custom search engine. Integrate it seamlessly into your applications
+      to elevate user experience and functionality.
+
+    Dive into our documentation to discover how Wesog Search can transform your image management and retrieval processes.
+  contact:
+    email: javi@wesog.com
+    name: Javier Abellán
+    url: ''
+servers:
+  - url: 'https://search.wesog.com/api'
+    description: Wesog Search server
+paths:
+  /imgs:
+    get:
+      tags:
+        - Search your images
+      summary: Search for images
+      description: 'Search for images with filters, sorting and pagination. Read more [](url)'
+      operationId: ''
+      parameters:
+        - name: q
+          in: query
+          description: Query filtering formula
+          required: true
+          schema:
+            type: string
+            default: ''
+        - name: sort
+          in: query
+          description: Order of the search results by specific criteria.
+          required: false
+          schema:
+            type: string
+            enum:
+              - id
+              - ai_similarity
+              - trad_txt
+            default: id
+        - name: page
+          in: query
+          description: Page number of the search results.
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: Number of search results per page.
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: OK - Successful request with response body
+          content:
+            application/json:
+              schema:
+                type: object
+                title: SearchForImagesOk
+                properties:
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        headline:
+                          type: string
+        '204':
+          description: No Content - Successful request with no response body
+        '400':
+          description: Bad Request - Invalid query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                title: SearchForImagesBadRequest
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_401'
+        '403':
+          description: Forbidden - Authenticated but not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_403'
+      security:
+        - API-WESOG-SEARCH: []
+      servers:
+        - url: 'https://search.wesog.com/api'
+          description: Wesog Search server
+    post:
+      tags:
+        - Manage your images
+      summary: Upload new images
+      description: |-
+        Upload a JSON list of new images. Each image is a JSON object with the following fields:
+        - `id`: *String*. Id of the image. **REQUIRED**
+        - `src`: *String*. URL of the source image. The image will be used for the AI processing. **REQUIRED**
+        - `headline`: *String*. Short text describing the image. **OPTIONAL** 
+        - `caption`: *String*. Long text describing the image. **OPTIONAL** 
+        - `keywords`: *List of strings*. List of tags **OPTIONAL**
+      operationId: uploadNewImages
+      parameters:
+        - name: mode
+          in: query
+          description: |-
+            Upload new images in synchronous or asynchronously mode.
+            - `sync` mode: The system will wait until the image upload is completed before sending a response.
+            - `async` mode: The system will immediately return a response with an operation id and continue the image upload in the background. The operation id can be used later for tracking the upload process.
+          required: false
+          schema:
+            type: string
+            enum:
+              - sync
+              - async
+            default: sync
+      requestBody:
+        description: 'List of image objects. For each image object, the `id` and `src` fields are required, while the other fields are optional.'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IMAGES_POST'
+      responses:
+        '201':
+          description: Created - Resource successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UploadNewImagesCreated
+                properties:
+                  data:
+                    type: object
+                  status:
+                    type: string
+                    enum:
+                      - success
+                    default: success
+                required:
+                  - data
+                  - status
+        '202':
+          description: Accepted - Request accepted for processing
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UploadNewImagesAccepted
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - Accepted
+                    default: Accepted
+                  status:
+                    type: string
+                    enum:
+                      - success
+                    default: success
+                required:
+                  - message
+                  - status
+        '400':
+          description: Bad Request - Invalid request body
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UploadNewImagesBadRequest
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_401'
+        '403':
+          description: Forbidden - Authenticated but not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_403'
+        '409':
+          description: Conflict - Resource already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UploadNewImagesConflict
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - Conflict
+                    default: Conflict
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '422':
+          description: Unprocessable Entity - Validation errors
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UploadNewImagesUnprocessableEntity
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - errors
+                  - message
+                  - status
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UploadNewImagesInternalServerError
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - Internal Server Error
+                    default: Internal Server Error
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+      security:
+        - API-WESOG-SEARCH: []
+      servers:
+        - url: 'https://search.wesog.com/api'
+          description: Wesog Search server
+    put:
+      tags:
+        - Manage your images
+      summary: Update existing images
+      operationId: updateExistingImages
+      parameters:
+        - name: newParam
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK - Resource successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UpdateExistingImagesOk
+                properties:
+                  data:
+                    type: object
+                  status:
+                    type: string
+                    enum:
+                      - success
+                    default: success
+                required:
+                  - data
+                  - status
+        '204':
+          description: No Content - Successful update with no response body
+        '400':
+          description: Bad Request - Invalid request body
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UpdateExistingImagesBadRequest
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_401'
+        '403':
+          description: Forbidden - Authenticated but not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_403'
+        '404':
+          description: Not Found - Resource doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_404'
+        '409':
+          description: Conflict - Version conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UpdateExistingImagesConflict
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - Conflict
+                    default: Conflict
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '422':
+          description: Unprocessable Entity - Validation errors
+          content:
+            application/json:
+              schema:
+                type: object
+                title: UpdateExistingImagesUnprocessableEntity
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - errors
+                  - message
+                  - status
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_500'
+      security:
+        - API-WESOG-SEARCH: []
+      servers:
+        - url: 'https://search.wesog.com/api'
+          description: Wesog Search server
+    delete:
+      tags:
+        - Manage your images
+      summary: Delete existing images
+      operationId: deleteExistingImages
+      responses:
+        '204':
+          description: No Content - Resource successfully deleted
+        '400':
+          description: Bad Request - Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                title: DeleteExistingImagesBadRequest
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_401'
+        '403':
+          description: Forbidden - Authenticated but not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_403'
+        '404':
+          description: Not Found - Resource doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_404'
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_500'
+      security:
+        - API-WESOG-SEARCH: []
+      servers:
+        - url: 'https://search.wesog.com/api'
+          description: Wesog Search server
+  /query_files:
+    post:
+      tags:
+        - Search your images
+      summary: Upload images for your query.
+      description: |
+        After uploading the image file into the HTTP body on request,
+        the response return both:
+        - `image_hash` an identifier for reference that image later in the `GET /imgs` to perform a reverse image search.
+        - `faces`: The faces coordinates detected on that photo.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  description: Image file to upload
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  img_hash:
+                    type: string
+                    example: '10405030202'
+                  faces:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: string
+                    example:
+                      - - 0.4
+                        - 0.2
+                        - 0.8
+                        - 0.4
+                      - - 0.1
+                        - 0.2
+                        - 0.3
+                        - 0.4
+        '400':
+          description: Error in file upload
+      security:
+        - API-WESOG-SEARCH: []
+      servers:
+        - url: 'https://search.wesog.com/api'
+          description: Wesog Search server
+  '/ops/{op_id}':
+    get:
+      tags:
+        - Manage your images
+      summary: Get status of an async operation
+      operationId: getStatusOfAnAsyncOperation
+      parameters:
+        - name: op_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK - Successful request with response body
+          content:
+            application/json:
+              schema:
+                type: object
+                title: GetStatusOfAnAsyncOperationOk
+                properties:
+                  data:
+                    type: object
+                  status:
+                    type: string
+                    enum:
+                      - success
+                    default: success
+                required:
+                  - data
+                  - status
+        '204':
+          description: No Content - Successful request with no response body
+        '400':
+          description: Bad Request - Invalid query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                title: GetStatusOfAnAsyncOperationBadRequest
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_401'
+        '403':
+          description: Forbidden - Authenticated but not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_403'
+        '404':
+          description: Not Found - Resource doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_404'
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_500'
+      security:
+        - API-WESOG-SEARCH: []
+      servers:
+        - url: 'https://search.wesog.com/api'
+          description: Wesog Search server
+tags:
+  - name: Manage your images
+    description: |
+      To start using Wesog Search, upload your images. You can also update or delete them.
+      - **Upload** new images: `POST /imgs`
+      - **Update** existing images: `PUT /imgs`
+      - **Delete** images: `DELETE /imgs`
+
+      All operations can be performed synchronously or asynchronously.
+      In asynchronous mode, you receive an operation ID immediately, and the process runs in the background.
+      - **Track async** operation status: `GET /ops/{op_id}`
+  - name: Search your images
+    description: |
+      After uploading images, you can start performing search queries. Wesog Search offers a single endpoint for all types of queries:
+      - **Search** for images with filters, sorting, and pagination: `GET /imgs`
+
+      To perform a reverse image search (using an external image as a query), upload the image first with the following endpoint:
+      - **Upload query files** (e.g., images): `POST /query_files`
+components:
+  securitySchemes:
+    API-WESOG-SEARCH:
+      type: apiKey
+      name: api-key
+      in: header
+  schemas:
+    RESP_401:
+      type: object
+      properties:
+        message:
+          type: string
+          enum:
+            - Unauthorized
+          default: Unauthorized
+        status:
+          type: string
+          enum:
+            - error
+          default: error
+      required:
+        - message
+        - status
+    RESP_403:
+      type: object
+      title: SearchForImagesForbidden
+      properties:
+        message:
+          type: string
+          enum:
+            - Forbidden
+          default: Forbidden
+        status:
+          type: string
+          enum:
+            - error
+          default: error
+      required:
+        - message
+        - status
+    IMAGES_POST:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            example: img001
+          src:
+            type: string
+            example: 'https://www.sample_server.com/sample_image.jpeg'
+          headline:
+            type: string
+            example: City skyline at night.
+          caption:
+            type: string
+            example: 'The city comes alive at night with its dazzling lights. The skyline is illuminated, showcasing the architectural marvels and vibrant energy.'
+          keywords:
+            type: array
+            items:
+              type: string
+            example:
+              - city
+              - skyline
+              - night
+              - lights
+              - architecture
+        required:
+          - id
+          - src
+    RESP_404:
+      type: object
+      properties:
+        message:
+          type: string
+          enum:
+            - Not Found
+          default: Not Found
+        status:
+          type: string
+          enum:
+            - error
+          default: error
+      required:
+        - message
+        - status
+    RESP_500:
+      type: object
+      properties:
+        message:
+          type: string
+          enum:
+            - Internal Server Error
+          default: Internal Server Error
+        status:
+          type: string
+          enum:
+            - error
+          default: error
+      required:
+        - message
+        - status
+security:
+  - API-WESOG-SEARCH: []
