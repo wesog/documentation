@@ -17,6 +17,7 @@
       "to": "#66B2FF"
     }
   },
+  "background": "grid",
   "topbarLinks": [
     {
       "name": "Talk to Engineers",
