@@ -4,44 +4,59 @@ description: 'Filter by year, month, day, hour, minute, or second'
 icon: calendar-days
 ---
 
-<Warning>This filter is not ready yet. It will be available in future realeases of Wesog Search.</Warning>
-
-Dates are defined by the ISO 8601 format. For example September 27, 2022 at 6 p.m. is represented as `2022-09-27 18:00:00.000`
-
-> ### ISO 8601
->
-> The ISO 8601 format provides a unique string represtantion of dates and times:
->
-> | ISO 8601 Example            | Description                                         |
-> |-----------------------------|-----------------------------------------------------|
-> | `2024`                      | **Year only**                                       |
-> | `2024-01`                   | **Year-Month**                                      |
-> | `2024-01-01`                | **Year-Month-Day**                                  |
-> | `2024-01-02 15`             | **Year-Month-Day Hour (Local Time)**                |
-> | `2024-01-02 15Z`            | **Year-Month-Day Hour (UTC)**                       |
-> | `2024-01-01 10:30`          | **Year-Month-Day Hour:Minute (Local Time)**         |
-> | `2024-01-01 10:30Z`         | **Year-Month-Day Hour:Minute (UTC)**                |
-> | `2024-01-01 10:30:15`       | **Year-Month-Day Hour:Minute:Second (Local Time)**  |
-> | `2024-01-01 10:30:15Z`      | **Year-Month-Day Hour:Minute:Second (UTC)**         |
-> | `2024-01-01 10:30:15+05:00` | **Year-Month-Day Hour:Minute:Second (Timezone +5)** |
-> | `2024-01-02 15:45:30-07:00` | **Year-Month-Day Hour:Minute:Second (Timezone -7)** |
+Dates are defined by the `YYYY-MM-DD` format. For example September 27, 2022 is represented as `2022-09-27`
 
 
-Dates filter can define excat dates, also ranges using the following operators:
+<Warning>Time granualiry (and time zones) is not yet implemented. It Will be available in future versions.</Warning>
 
-- `>` greater than
-- `<` less than
-- `>=` greater than or equal to
-- `<=` less than or equal to
+
+## Wildcard: `*`
+
+`*` can be used to accept any year, month or day:
+
+- `d:2008-02-15`: Filter by day 15th of February of 2008
+- `d:*-02-15`: Filter by day 15th of February of every year
+- `d:*-*-15`: Filter by day 15th of every month of every year
+- `d:2008-*-*`: filter by year 2008
+- `d:2008-02-*`: filter by year 2008 and month February
+- `d:*-02-*`: filter by month February
+
+## Time ranges
+
+
+Dates filter can define exact dates, but also **time ranges** using the following boolean operators:
+
+- `<` less than date
+- `<=` less or equal than date
+- `>` greater or equal than date
+- `>=` greater or equal than date
 
 ## Examples
 
-- `d:2020-02-08` Only Febraury 8th of 2020
+
+- `d:2014-04-08` Filter only dates of the day 8 of April od 2014
 - `!d:2020-02-08` Any day except Febraury 8th of 2020
-- `d:<2020-02-08` Lees than Febraury 8th of 2020
-- `d:>2020-02-08` Greater than Febraury 8th of 2020
-- `d:<=2020-02-08` Lees than or equal to Febraury 8th of 2020
-- `d:>=2020-02-08` Greater than or equal to Febraury 8th of 2020
-- `!d:<2020-02-08` Greater than or equal to Febraury 8th of 2020 (filter by the negative complement)
-- `d:>=2020-02-08 & d:<=2024-02-08` Inclusive range
-- `d:>2020-02-08 & d:<2024-02-08` Exclusive range
+- `d:>2020-02-08` Newer than Febraury 8th of 2020
+- `d:*-12-*` Filter dates of December
+- `d:<2008-02-*` Filter dates earlier of Feburay of 2008 
+- `d:<=2008-02-*` Filter dates of Feburay of 2008 or earlier
+- `d:>=2008 & d:<=2015` Filter images between 2008 and 2015
+- `d:>*-*-15` Filter dates with day of the month greater than 15
+- `d:<=*-02-15` Filter dates from the begining of the year until 15th of February, of every year
+- `d:>=*-02-15` Filter dates from 15th of February until the end of the year, of every year
+- `d:>=*-jun-20 & d:>=*-sep-22`: Summer photos 
+- `d:>=*-dec-21 | d:<*-mar-20`: Winter photos. (Note the *or* operator `|`).
+
+> ## Bonus example
+>
+> Summer photos (from June 20 to September 22), taken between 2008 and 2015.
+>
+> ```
+> d:>=2008-*-* & d:<=2015-*-* & d:>=*-jun-20 & d:>=*-sep-22
+> ```
+>
+> Not confuse with photos from 2008 June 20, until 2015 September 22
+>
+> ```
+> d:>=2008-jun-20 & d:<=2015-sep-22
+> ```
