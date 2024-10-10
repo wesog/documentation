@@ -14,15 +14,16 @@ Dates are defined by the `YYYY-MM-DD` format. For example September 27, 2022 is 
 
 `*` can be used to accept any year, month or day:
 
-- `d:2008-02-15`: Filter by day 15th of February of 2008
+- `d:2008-02-15`: Filter by 15th of February of 2008
+- `!d:2008-02-15`: Exclude 15th of February of 2008
+- `d:2008-*-*`: Filter by the year 2008
+- `d:2008-02-*`: Filter by the month February of 2008  
 - `d:*-02-15`: Filter by day 15th of February of every year
 - `d:*-*-15`: Filter by day 15th of every month of every year
-- `d:2008-*-*`: filter by year 2008
-- `d:2008-02-*`: filter by year 2008 and month February
-- `d:*-02-*`: filter by month February
+- `d:*-02-*`: Filter by month February
+
 
 ## Time ranges
-
 
 Dates filter can define exact dates, but also **time ranges** using the following boolean operators:
 
@@ -31,8 +32,8 @@ Dates filter can define exact dates, but also **time ranges** using the followin
 - `>` greater or equal than date
 - `>=` greater or equal than date
 
-## Examples
 
+## Examples
 
 - `d:2014-04-08` Filter only dates of the day 8 of April od 2014
 - `!d:2020-02-08` Any day except Febraury 8th of 2020
