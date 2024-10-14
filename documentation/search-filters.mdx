@@ -11,33 +11,42 @@ The `q` url parameter of the search endpoint (`GET /imgs`) defines the **query f
 Filters are the basic block of the QFF, they are defined by a filter prefix followed by a colon `:`, and then the filter value:
 
 ```
-<prefix>:<value>
+<filter type><filter operator><filter value>
 ```
 
-> #### Filter prefixes
-> Wesog search supports several types of prefixes. The most common are `t:` for *textual filters*, `i:` for *reverse image search* and `p:` for *person (celebrity) search* 
+> #### Filter types
+> Wesog search supports several types of filters. The most common are `t` for *text search*, `i` for *reverse image search* and `p:` for *person (celebrity) search.*
+
+> #### Filter operators
+> Wesog search supports several filters operators:
+> - `~`: Similar. Used for AI semantic search.
+> - `=`: Equal.
+> - `<`: Less than. Only for numeric filters (dates, age of a person,...).
+> - `>`: Greater than. Only for numeric.
+> - `≥`: Greater or equal than. Only for numeric.
+> - `≤`: Less or equal than. Only for numeric.
 
 **Examples:**
 
-- Text filter `t:us elections` searches for images semantically similar to "us elections".
-- Text filter `t:"us elections"` perfoms a fulltext searches for images containing "us elections" in their title, headline or caption.
-- Keyword filter `k:us elections` searches for images tagged with the keyword "us elections".
-- Date filter `d:1998` searches for photographies taken in 1998.
-- Date filter `d:>2020-03-11` searches for photographies post pandemic.
+- Text filter `t~us elections` searches for images semantically similar to "us elections".
+- Text filter `t=us elections` perfoms a fulltext searches for images containing "us elections" in their title, headline or caption.
+- Keyword filter `k=us elections` searches for images tagged with the keyword "us elections".
+- Date filter `d=1998-*-*` searches for photographies taken in 1998.
+- Date filter `d>2020-03-11` searches for photographies post pandemic.
 
 
 ## Filter with subfilters
 
-Some filters (image `i:`, person `p:`, author `a:`) can have subfilters. Subfilter specifies further properties of a filter. Subfilters are defined after the the filter containg. the "subfilter query formula" between sqare brakets.
+Some filters (image `i`, person `p`, author `a`) can have subfilters. Subfilter specifies further properties of a filter. Subfilters are defined after the the filter containg. the "subfilter query formula" between sqare brakets.
 
 **Examples:**
 
-- `p:taylor swift[a:20]` search for pictures of Talyor swift at the age of 20 years old.
-- `p:taylor swift[t:green dress and cowboy boots]` search for pictures of Talyor swift with that clothes.
-- `p:donald trump[k:smiling k:lookingToCamera]` search for pictures of Donald Trump smiling, looking to camera.
-- `p:anyone[a:>80]` search for pictures of any celebrity with more than 80 years old.
-- `a:anyone[g:woman & a:>70]` search for pictures done by women (women photographer or painters).
-- `i:1234[t:at winter]`. Considering 1234 the id of a previusly upluaded photo of the stockholm skyline at summer. Ssearch for pictures of Stockholm at Winter
+- `p=taylor swift[a=20]` search for pictures of Talyor swift at the age of 20 years old.
+- `p=taylor swift[t=green dress and cowboy boots]` search for pictures of Talyor swift with that clothes.
+- `p=donald trump[k=smiling k=lookingToCamera]` search for pictures of Donald Trump smiling, looking to camera.
+- `p=anyone[a>80]` search for pictures of any celebrity with more than 80 years old.
+- `a=anyone[g=woman & a>70]` search for pictures done by women (women photographer or painters).
+- `i=1234[t=at winter]`. Considering 1234 the id of a previusly upluaded photo of the stockholm skyline at summer. Ssearch for pictures of Stockholm at Winter
 - ``
 
 
@@ -45,18 +54,18 @@ Some filters (image `i:`, person `p:`, author `a:`) can have subfilters. Subfilt
 
 You can combine filters using the following Boolean operators:
 
-- `&`: Logical **AND**
-- `|`: Logical **OR**
+- `&&`: Logical **AND**
+- `||`: Logical **OR**
 - `!`: Logical **NOT**
 
 Parentheses `()` can be used to group filters and control the order of operations.
 
 **Examples:**
 
-- `t:beach & c:blue` searches for images of beaches **and** the color blue.
-- `t:beach | t:mountain` searches for images of beaches **or** mountains.
-- `t:beach & !c:blue` searches for images of beaches **but not** the color blue.
-- `t:beach & (!c:blue | c:yellow)` searches for images of beaches with the colors blue or yellow.
+- `t=beach && c=blue` searches for images of beaches **and** the color blue.
+- `t=beach || t=mountain` searches for images of beaches **or** mountains.
+- `t=beach && !c=blue` searches for images of beaches **but not** the color blue.
+- `t=beach && (!c=blue || c=yellow)` searches for images of beaches with the colors blue or yellow.
 
 
 ## Available Filters and Subfilters
@@ -93,50 +102,50 @@ List of avaliable filters and subfilters along with their prefixes:
 
 1. **Search for images of cats or dogs, excluding black and white images:**
 ```
-(t:cats | t:dogs) & !m:bw_photo
+(t=cats || t=dogs) && !m=bw_photo
 ```
 
 2. **Search for images of Barack Obama aged between 40 and 50, taken in Washington D.C.:**
 ```
-p:barack obama[a:40-50] & l:Washington D.C.
+p=barack obama[a≥40 && a≤50] && l=Washington D.C.
 ```
 
 3. **Search for images of anonymous females aged 20-30, who are smiling or wearing glasses:**
 ```
-p:anyone[g:female & a:20-30 & (k:smiling | k:wearing glasses)]
+p=anyone[g=female && a≥30 && a≤40 && (k=smiling || k=wearing glasses)]
 ```
 
 4. **Search for images of Taylor Swift or Selena Gomez performing on stage, featuring the color red:**
 ```
-( p:taylor swift[t:performing] | p:selena gomez[t:performing] ) & c:red
+( p=taylor swift[t=performing] || p=selena gomez[t=performing] ) && c=red
 ```
 
 5. **Search for images taken in Paris or London of buildings with Gothic architecture:**
 ```
-(l:Paris | l:London) & k:gothic architecture
+(l=Paris || l=London) && k=gothic architecture
 ```
 
 6. **Search for images similar to image REF 54321 with a "sunset" modification, excluding images with people:**
 ```
-i:54321[t:sunset] & n:0
+i=54321[t=sunset] && n=0
 ```
 
 7. **Search for images of anonymous males aged 30-40, running or jumping, taken in New York City:**
 ```
-p:anyone[g:male & a:30-40 & (t:running | t:jumping)] & l:New York City
+p=anyone[g=male && a≥30 && a≤40 && (t=running || t=jumping)] && l=New York City
 ```
 
 8. **Search for 16:9 aspect ratio images of beaches at sunset, taken in 2020:**
 ```
-r:16:9 & t:beach & t:sunset & d:2020
+r=16:9 && t=beach && t=sunset && d=2020-*-*
 ```
 
 9. **Search for images with the keyword "nature," medium type "photograph" or "illustration," and aspect ratio 4:3:**
 ```
-k:nature & (m:photograph | m:illustration) & r:4:3
+k=nature && (m=photograph || m=illustration) && r:4:3
 ```
 
 10. **Search for images of people celebrating with more than 5 people, taken in 2019:**
 ```
-t:celebrating & n:>5 & d:2019
+t=celebrating && n>5 && d=2019-*-*
 ```
