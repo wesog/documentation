@@ -4,27 +4,25 @@ description: 'Reverse image search. Both semantic or identity search.'
 icon: image
 ---
 
+This is Reverse image search and, like text filters (`t`), can perform both AI and extact search, using one of the following operators:
 
-
-This is Reverse image search and, like text filters (`t:___`), also have 2 searching modes:
-
-1. Image_ref without quotes: It performs semantic search. (AI search).
-2. Image_ref between quotes: It performs identity search. This will reatreve images that are an exact copy or a modified version like a cropping, fliping or any other type of modification.
+- `~`: It performs semantic search. (AI search).
+- `=`: It performs identity search. This will reatreve images that are an exact copy or a modified version like a cropping, fliping or any other type of modification.
 
 Note that the query image can be:
 - A new image uploaded by the user. In this case the image reference will be in the resoponse after uploading the image with the `/query_files` endpoint.
 - An existing image. In this case, the image reference will be the original id of that photo provided by the client.
 
-## Image subfilter `i:___[t:___]`
 
+## Text subfilter `t`
 <Warning>This subfilter is not ready yet. It will be available in future realeases of Wesog Search.</Warning>
 
-Only for semantic search, we can modify the semantic content of the image with a semantic text modification. This is useful when we want to modify the meaning / composition / style of the query image. Examples
+We can modify the semantic content of the image with a semantic text modification. This is useful when we want to modify the meaning / composition / style of the query image.
+
 
 ## Examples
-
 Cosidering a 123456789 as the image reference:
 
-- `i:123456789` AI search for finding similar images. 
-- `i:"123456789"` Identity search for finding exact matches. 
-- `i:123456789[t:at night]` AI search with text modification (eg. changing a day light picture to be at night)
+- `i~123456789` AI search for finding similar images. 
+- `i=123456789` Identity search for finding exact matches. 
+- `i~123456789[t~at night]` AI search with text modification (eg. changing a day light picture to be at night)

@@ -10,17 +10,17 @@ Dates are defined by the `YYYY-MM-DD` format. For example September 27, 2022 is 
 <Warning>Time granualiry (and time zones) is not yet implemented. It Will be available in future versions.</Warning>
 
 
-## Wildcard: `*`
+## Wildcard `*`
 
 `*` can be used to accept any year, month or day:
 
-- `d:2008-02-15`: Filter by 15th of February of 2008
-- `!d:2008-02-15`: Exclude 15th of February of 2008
-- `d:2008-*-*`: Filter by the year 2008
-- `d:2008-02-*`: Filter by the month February of 2008  
-- `d:*-02-15`: Filter by day 15th of February of every year
-- `d:*-*-15`: Filter by day 15th of every month of every year
-- `d:*-02-*`: Filter by month February
+- `d=2008-02-15`: Filter by 15th of February of 2008
+- `!d=2008-02-15`: Exclude 15th of February of 2008
+- `d=2008-*-*`: Filter by the year 2008
+- `d=2008-02-*`: Filter by the month February of 2008  
+- `d=*-02-15`: Filter by day 15th of February of every year
+- `d=*-*-15`: Filter by day 15th of every month of every year
+- `d=*-02-*`: Filter by month February
 
 
 ## Time ranges
@@ -28,36 +28,36 @@ Dates are defined by the `YYYY-MM-DD` format. For example September 27, 2022 is 
 Dates filter can define exact dates, but also **time ranges** using the following boolean operators:
 
 - `<` less than date
-- `<=` less or equal than date
-- `>` greater or equal than date
-- `>=` greater or equal than date
+- `>` greater than date
+- `≤` less or equal than date
+- `≥` greater or equal than date
 
 
 ## Examples
 
-- `d:2014-04-08` Filter only dates of the day 8 of April od 2014
-- `!d:2020-02-08` Any day except Febraury 8th of 2020
-- `d:>2020-02-08` Newer than Febraury 8th of 2020
-- `d:*-12-*` Filter dates of December
-- `d:<2008-02-*` Filter dates earlier of Feburay of 2008 
-- `d:<=2008-02-*` Filter dates of Feburay of 2008 or earlier
-- `d:>=2008 & d:<=2015` Filter images between 2008 and 2015
-- `d:>*-*-15` Filter dates with day of the month greater than 15
-- `d:<=*-02-15` Filter dates from the begining of the year until 15th of February, of every year
-- `d:>=*-02-15` Filter dates from 15th of February until the end of the year, of every year
-- `d:>=*-jun-20 & d:>=*-sep-22`: Summer photos 
-- `d:>=*-dec-21 | d:<*-mar-20`: Winter photos. (Note the *or* operator `|`).
+- `d=2014-04-08` Filter only dates of the day 8 of April od 2014
+- `!d=2020-02-08` Any day except Febraury 8th of 2020
+- `d>2020-02-08` Newer than Febraury 8th of 2020
+- `d=*-12-*` Filter dates of December
+- `d<2008-02-*` Filter dates earlier of Feburay of 2008 
+- `d≤2008-02-*` Filter dates of Feburay of 2008 or earlier
+- `d≥2008-*-* && d≤2015-*-*` Filter images between 2008 and 2015
+- `d>*-*-15` Filter dates with day of the month greater than 15
+- `d≤*-02-15` Filter dates from the begining of the year until 15th of February, of every year
+- `d≥*-02-15` Filter dates from 15th of February until the end of the year, of every year
+- `d≥*-jun-20 && d≥*-sep-22`: Summer photos 
+- `d≥*-dec-21 || d<*-mar-20`: Winter photos. (Note the *or* operator `||`).
 
 > ## Bonus example
 >
 > Summer photos (from June 20 to September 22), taken between 2008 and 2015.
 >
 > ```
-> d:>=2008-*-* & d:<=2015-*-* & d:>=*-jun-20 & d:>=*-sep-22
+> d≥2008-*-* && d≤2015-*-* && d≥*-jun-20 && d≥*-sep-22
 > ```
 >
 > Not confuse with photos from 2008 June 20, until 2015 September 22
 >
 > ```
-> d:>=2008-jun-20 & d:<=2015-sep-22
+> d≥2008-jun-20 && d≤2015-sep-22
 > ```

@@ -16,7 +16,7 @@ Additionally, it can be refined by specifying various attributes such as age, em
 The syntax for the person filter is as follows:
 
 ```
-p:<name or face or any>[ <subfilters such as age, emotion, clothes, ...> ]
+p=<name or face or anyone>[ <subfilters such as age, emotion, clothes, ...> ]
 ```
 
 ## Search by person name
@@ -24,9 +24,9 @@ p:<name or face or any>[ <subfilters such as age, emotion, clothes, ...> ]
 To search for a specific celebrity, the name must be specified.
 Here are several examples of celebrity names:
 
-- `p:Taylor Swift`
-- `p:Barack Obama`
-- `p:John F. Kennedy`
+- `p=Taylor Swift`
+- `p=Barack Obama`
+- `p=John F. Kennedy`
 
 
 ## Search by person face
@@ -52,15 +52,15 @@ To use the faces from uploaded images as a person filter, the syntax is as follo
 
 
 ```
-p:<image reference>_<face number>
-p:<image reference>_<face number>[ <optional subfilters> ]
+p=<image reference>_<face number>
+p=<image reference>_<face number>[ <optional subfilters> ]
 ```
 
-- `p:10405030202_1` Filter images that contains the face 1 of image 10405030202
-- `p:10405030202_2` Filter images that contains the face 1 of image 10405030202
-- `p:10405030202_3` Filter images that contains the face 1 of image 10405030202
-- `p:10405030202_1 & p:10405030202_3` Filter images that contains both face 1 and 3 of image 10405030202
-- `p:10405030202_1 & p:123456789_4` Filter images that contains both faces of different uploaded images.
+- `p=10405030202_1` Filter images that contains the face 1 of image 10405030202
+- `p=10405030202_2` Filter images that contains the face 1 of image 10405030202
+- `p=10405030202_3` Filter images that contains the face 1 of image 10405030202
+- `p=10405030202_1 && p=10405030202_3` Filter images that contains both face 1 and 3 of image 10405030202
+- `p=10405030202_1 && p=123456789_4` Filter images that contains both faces of different uploaded images.
 
 
 ## Search by `any` person
@@ -68,80 +68,83 @@ p:<image reference>_<face number>[ <optional subfilters> ]
 Note that apart from searching a person by their name or face, `any` can be used as the main filter value to add custom subfilter attributes. This is very useful for performing "multi-person" searches, such as *photographs containing Spanish actresses aged between 20 and 30*:
 
 ```
-p:any[g:woman & n:spain & j:actor & age>=20 & age<=30]
+p=any[g=woman && n=spain && j=actor && age≥20 && age≤30]
 ```
 
-This specifies the subfilters: gender `:g`, nationality `:n`, job occupation `:j` and age `:a`
+This specifies the subfilters: gender `g`, nationality `n`, job occupation `j` and age `a`
 
 
 ## Subfilters
 
 ### Age
-- **Exact number**: `a:18`, `a:43`, ...
-- **Number range**: `a:>18`, `a:>=20`, `a:>=20 & a:<=40`, ...
-- **Shortcut, one of**: `a:baby`, `a:child`, `a:adult`, `a:senior`
+- **Exact number**: `a=18`, `a=43`, ...
+- **Number range**: `a>18`, `a≥20`, `a≥20 && a≤40`, ...
+
+> ### Look-alike age
+> Also Wesog Search can look not only by the real age of the person in the photo, but also **by the age they appear to be**.
+> `a~baby`, `a~child`, `a~adult`, `a~senior`
 
 
 ### Gender
-`g:man` or `g:woman`
+`g=man` or `g=woman`
 
 
 ### Emotion
-`e:angry`, `e:disgust`, `e:fear`, `e:happy`, `e:neutral`, `e:sad`, `e:surprised`
+`e~angry`, `e~disgust`, `e~fear`, `e~happy`, `e~neutral`, `e~sad`, `e~surprised`
 
 > ### Other emotions
 > Note that if an emotion is missing, you can use the text subfilter. Examples:
 >
-> `t:calm`, `t:crying`, `t:excited`, `t:laughing`, `t:serious`, `t:smiling`, `t:thoughtful`
+> `t~calm`, `t~crying`, `t~excited`, `t~laughing`, `t~serious`, `t~smiling`, `t~thoughtful`
 
 
 ### Job occupation
-`j:politician`, `j:singer`, `j:footballer`, ...
+`j=politician`, `j=singer`, `j=footballer`, ...
 
 
 ### Nationality
-`n:brazil`, `n:canada`, `n:india`, `n:nigeria`, ...
+`n=brazil`, `n=canada`, `n=india`, `n=nigeria`, ...
 
 
 ### Shot
-- `s:head shot`   (1/4)
-- `s:waist up` (2/4)
-- `s:three quarter length`  (3/4)
-- `s:full length`           (4/4)
-- `s:no face`
+- `s=head shot`   (1/4)
+- `s=waist up` (2/4)
+- `s=three quarter length`  (3/4)
+- `s=full length`           (4/4)
+- `s=no face`
 
 
 ### Free Text
 This feature offers extensive control over the appearance of individuals in photos. Below are some illustrative examples:
 
 **Clothing** (colors, patterns, accessories):
-`t:a red dress`, `t:wearing blue jeans and red sneakers`, `t:a striped slip dress`, ...
+`t~a red dress`, `t~wearing blue jeans and red sneakers`, `t~a striped slip dress`, ...
 
 **Eyes**:
-`t:looking to camera`, `t:closed eyes` or `t:blinking`, `t:winking`, ...
+`t~looking to camera`, `t~closed eyes` or `t~blinking`, `t~winking`, ...
 
 **Action**:
-`t:standing`, `t:sitting`, `t:walking`, `t:lying down`, `t:jumping`, `t:running`, `t:dancing`, ...
+`t~standing`, `t~sitting`, `t~walking`, `t~lying down`, `t~jumping`, `t~running`, `t~dancing`, ...
 
 Be creatitive with many more!
 
 ### Veracity
-- `v:real` The person was there when the photo was taken.
-- `v:fake` The person is not present. Usually a photo of a photo.
+- `v=real` The person was there when the photo was taken.
+- `v=fake` The person is not present. Usually a photo of a photo.
 
 ### Race
-`r:asian`, `r:black`, `r:white`, `r:latino`, `r:middle eastern`, `r:indian`
+`r=asian`, `r=black`, `r=white`, `r=latino`, `r=middle eastern`, `r=indian`
 
 
 ## Examples
 
-- `p:Emma Watson & s:full length` Search for full-length photos of Emma Watson.
-- `p:Virat Kohli[g:man & a:>30 & t:wearing sports gear]` Find photos of Virat Kohli, a man over 30, in sports gear.
-- `p:any[n:china & j:director & g:woman]` Search for photos of female Chinese directors.
-- `p:Chris Hemsworth[e:happy]` Find photos where Chris Hemsworth appears happy.
-- `p:Rihanna[s:waist up] & p:Lady Gaga[s:waist up]` Search for waist-up photos featuring both Rihanna and Lady Gaga.
-- `p:Daniel Craig[j:actor & s:three quarter length]` Find three-quarter length photos of Daniel Craig identified as an actor.
-- `p:any[t:wearing a traditional dress & n:india]` Search for anyone wearing a traditional Indian dress.
-- `p:Serena Williams[a:>=35 & t:playing tennis]` Find photos of Serena Williams, aged 35 or older, playing tennis.
-- `p:Shakira[t:dancing]` Search for photos of Shakira dancing.
-- `p:Jackie Chan[t:performing a stunt]` Find photos of Jackie Chan performing a stunt.
+- `p=Emma Watson && s=full length` Search for full-length photos of Emma Watson.
+- `p=Virat Kohli[g=man && a>30 && t~wearing sports gear]` Find photos of Virat Kohli, a man over 30, in sports gear.
+- `p=any[n=china && j=director && g=woman]` Search for photos of female Chinese directors.
+- `p=Chris Hemsworth[e~happy]` Find photos where Chris Hemsworth appears happy.
+- `p=Rihanna[s=waist up] && p=Lady Gaga[s=waist up]` Search for waist-up photos featuring both Rihanna and Lady Gaga.
+- `p=Daniel Craig[j=actor && s=three quarter length]` Find three-quarter length photos of Daniel Craig identified as an actor.
+- `p=any[t~wearing a traditional dress && n=india]` Search for anyone wearing a traditional Indian dress.
+- `p=Serena Williams[a≥35 && t~playing tennis]` Find photos of Serena Williams, aged 35 or older, playing tennis.
+- `p=Shakira[t~dancing]` Search for photos of Shakira dancing.
+- `p=Jackie Chan[t~performing a stunt]` Find photos of Jackie Chan performing a stunt.

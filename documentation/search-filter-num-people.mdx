@@ -6,13 +6,21 @@ icon: users
 
 <Warning>This filter is not ready yet. It will be available in future realeases of Wesog Search.</Warning>
 
-## Number of people filter `n:___`
+## Number of people filter `n`
 
-- Nobody (0)
-- Individual (1)
-- Couple (2)
+- `0` (aliases: `nobody`)
+- `1` (aliases: `individual`)
+- `2` (aliases: `couple`)
+- `3`
 - ...
-- small Group
-- Crowd
 
 ## Examples
+
+- `n=0`
+- `n=1`
+- `n=2`
+- `n=3`
+- `n>5`
+- `n>5 && n≤10`
+- `n=nobody`
+- `n=couple`
