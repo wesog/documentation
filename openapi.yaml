@@ -1,4 +1,6 @@
 openapi: 3.0.1
+x-stoplight:
+  id: ck788hn4kpol9
 info:
   version: 1.0.0
   title: Wesog Search API
@@ -22,128 +24,21 @@ info:
   contact:
     email: javi@wesog.com
     name: Javier Abellán
-    url: ''
+    url: 'https://wesog.com/'
+  termsOfService: ''
+  license:
+    name: 'Legal'
+    url: 'https://wesog.com/es/aviso-legal/'
 servers:
-  - url: 'https://search.wesog.com/api'
-    description: Wesog Search server
+  - url: 'https://search.wesog.com/api/v1'
+    description: Wesog Search Server
 paths:
   /imgs:
-    get:
-      tags:
-        - Search your images
-      summary: Search for images
-      description: 'Search for images with filters, sorting and pagination. Read more [](url)'
-      operationId: ''
-      parameters:
-        - name: q
-          in: query
-          description: Query filtering formula
-          required: true
-          schema:
-            type: string
-            default: ''
-        - name: sort
-          in: query
-          description: Order of the search results by specific criteria.
-          required: false
-          schema:
-            type: string
-            enum:
-              - id
-              - ai_similarity
-              - trad_txt
-            default: id
-        - name: page
-          in: query
-          description: Page number of the search results.
-          schema:
-            type: integer
-            default: 1
-        - name: size
-          in: query
-          description: Number of search results per page.
-          required: false
-          schema:
-            type: integer
-            default: 50
-      responses:
-        '200':
-          description: OK - Successful request with response body
-          content:
-            application/json:
-              schema:
-                type: object
-                title: SearchForImagesOk
-                properties:
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        headline:
-                          type: string
-        '204':
-          description: No Content - Successful request with no response body
-        '400':
-          description: Bad Request - Invalid query parameters
-          content:
-            application/json:
-              schema:
-                type: object
-                title: SearchForImagesBadRequest
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
-        '401':
-          description: Unauthorized - Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_401'
-        '403':
-          description: Forbidden - Authenticated but not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_403'
-      security:
-        - API-WESOG-SEARCH: []
-      servers:
-        - url: 'https://search.wesog.com/api'
-          description: Wesog Search server
     post:
       tags:
         - Manage your images
       summary: Upload new images
-      description: |-
-        Upload a JSON list of new images. Each image is a JSON object with the following fields:
-        - `id`: *String*. Id of the image. **REQUIRED**
-        - `src`: *String*. URL of the source image. The image will be used for the AI processing. **REQUIRED**
-        - `headline`: *String*. Short text describing the image. **OPTIONAL** 
-        - `caption`: *String*. Long text describing the image. **OPTIONAL** 
-        - `keywords`: *List of strings*. List of tags **OPTIONAL**
+      description: Endpoint for insert new images inside Wesog Search.
       operationId: uploadNewImages
       parameters:
         - name: mode
@@ -165,7 +60,76 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IMAGES_POST'
+              type: array
+              items:
+                x-stoplight:
+                  id: 7wscn24xd1tki
+                type: object
+                required:
+                  - id
+                  - src
+                properties:
+                  id:
+                    x-stoplight:
+                      id: eqng65gmppvfo
+                    anyOf:
+                      - type: string
+                        x-stoplight:
+                          id: rgrodabani96u
+                      - type: number
+                        x-stoplight:
+                          id: yeji2d7mophps
+                    description: Unique identifier of the image
+                  src:
+                    type: string
+                    x-stoplight:
+                      id: 8z8co5osw7t6b
+                    description: Url of the image
+                  headline:
+                    type: string
+                    x-stoplight:
+                      id: s9e05gvjiq2a5
+                    description: Short text describing the image
+                  caption:
+                    type: string
+                    x-stoplight:
+                      id: grw78ypgaxo0l
+                    description: Long text describing the image
+                  keywords:
+                    x-stoplight:
+                      id: 4q6ezectx2e7n
+                    anyOf:
+                      - type: string
+                        x-stoplight:
+                          id: ld2vxrhxkv589
+                        description: string of keywords separated with ;
+                      - type: array
+                        x-stoplight:
+                          id: ko8q3cu8aov7w
+                        items:
+                          x-stoplight:
+                            id: 0rhzbxcbkz62y
+                          type: string
+                    description: Tags describing the image
+                  date:
+                    type: string
+                    x-stoplight:
+                      id: g3d9o8agwuooi
+                    format: date
+                    example: '2024-10-19'
+                    description: date in year-month-day format
+                  location:
+                    type: string
+                    x-stoplight:
+                      id: a0sayn87ot920
+                  medium:
+                    type: string
+                    x-stoplight:
+                      id: juhiusx7d4kl7
+                  author:
+                    type: string
+                    x-stoplight:
+                      id: hjr2qakke6cka
       responses:
         '201':
           description: Created - Resource successfully created
@@ -326,17 +290,24 @@ paths:
       servers:
         - url: 'https://search.wesog.com/api'
           description: Wesog Search server
+      x-stoplight:
+        id: vcpt9cihzgabk
     put:
       tags:
         - Manage your images
       summary: Update existing images
       operationId: updateExistingImages
       parameters:
-        - name: newParam
+        - name: mode
           in: query
           required: false
           schema:
             type: string
+            default: sync
+            enum:
+              - sync
+              - async
+          description: 'Update existing images in synchronous or asynchronously mode.- `sync` mode: The system will wait until the image upload is completed before sending a response.- `async` mode: The system will immediately return a response with an operation id and continue the image upload in the background. The operation id can be used later for tracking the upload process.'
       responses:
         '200':
           description: OK - Resource successfully updated
@@ -469,6 +440,83 @@ paths:
       servers:
         - url: 'https://search.wesog.com/api'
           description: Wesog Search server
+      x-stoplight:
+        id: jchkqr6jdjlji
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                x-stoplight:
+                  id: m83bvhx3y5zbs
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    x-stoplight:
+                      id: z8u8os0s9tbve
+                    description: Unique identifier of the image
+                    anyOf:
+                      - type: string
+                        x-stoplight:
+                          id: kknfofrabr570
+                      - type: number
+                        x-stoplight:
+                          id: s3k4pcri71apo
+                  src:
+                    type: string
+                    x-stoplight:
+                      id: 62yjftnahrj3l
+                    description: Url of the image
+                  headline:
+                    type: string
+                    x-stoplight:
+                      id: i8n8kshfvdrdx
+                    description: Short text describing the image
+                  caption:
+                    type: string
+                    x-stoplight:
+                      id: 2ms3gkspj07qc
+                    description: Long text describing the image
+                  keywords:
+                    x-stoplight:
+                      id: qp4tu7reui1fq
+                    anyOf:
+                      - type: string
+                        x-stoplight:
+                          id: svvs75sg8l24d
+                        description: string of keywords separated with ;
+                      - type: array
+                        x-stoplight:
+                          id: jm5gj1en6zfpo
+                        items:
+                          x-stoplight:
+                            id: 6co27ift829nk
+                          type: string
+                    description: Tags describing the image
+                  date:
+                    type: string
+                    x-stoplight:
+                      id: psohqvekhk1fi
+                    format: date
+                    example: '2024-10-19'
+                    description: date in year-month-day format
+                  location:
+                    type: string
+                    x-stoplight:
+                      id: 1s5tboinc7xmh
+                  medium:
+                    type: string
+                    x-stoplight:
+                      id: yq1lr6fqelonn
+                  author:
+                    type: string
+                    x-stoplight:
+                      id: wbmnaxbw81uzz
+        description: 'List of image objects. For each image object, the `id` field is required, while the other fields are optional.'
+      description: Endpoint for modify existing images already uploaded before.
     delete:
       tags:
         - Manage your images
@@ -536,59 +584,43 @@ paths:
       servers:
         - url: 'https://search.wesog.com/api'
           description: Wesog Search server
-  /query_files:
-    post:
-      tags:
-        - Search your images
-      summary: Upload images for your query.
-      description: |
-        After uploading the image file into the HTTP body on request,
-        the response return both:
-        - `image_hash` an identifier for reference that image later in the `GET /imgs` to perform a reverse image search.
-        - `faces`: The faces coordinates detected on that photo.
+      x-stoplight:
+        id: vxjlrffdxjcxe
+      description: Endpoint for erase existing images already uploaded before.
+      parameters:
+        - schema:
+            type: string
+            default: sync
+            enum:
+              - sync
+              - async
+          in: query
+          name: mode
+          description: 'Delete existing images in synchronous or asynchronously mode.- `sync` mode: The system will wait until the image upload is completed before sending a response.- `async` mode: The system will immediately return a response with an operation id and continue the image upload in the background. The operation id can be used later for tracking the upload process.'
       requestBody:
+        description: ''
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  description: Image file to upload
-                  format: binary
-      responses:
-        '200':
-          description: File uploaded successfully
-          content:
-            application/json:
-              schema:
+              type: array
+              items:
+                x-stoplight:
+                  id: lc2bgxzwio0w7
                 type: object
+                required:
+                  - id
                 properties:
-                  img_hash:
-                    type: string
-                    example: '10405030202'
-                  faces:
-                    type: array
-                    items:
-                      type: array
-                      items:
-                        type: string
-                    example:
-                      - - 0.4
-                        - 0.2
-                        - 0.8
-                        - 0.4
-                      - - 0.1
-                        - 0.2
-                        - 0.3
-                        - 0.4
-        '400':
-          description: Error in file upload
-      security:
-        - API-WESOG-SEARCH: []
-      servers:
-        - url: 'https://search.wesog.com/api'
-          description: Wesog Search server
+                  id:
+                    x-stoplight:
+                      id: dpt8a0guq1rwn
+                    description: Unique identifier of the image
+                    anyOf:
+                      - type: string
+                        x-stoplight:
+                          id: 3np15xrbublxo
+                      - type: number
+                        x-stoplight:
+                          id: jfxoi7a28v336
   '/ops/{op_id}':
     get:
       tags:
@@ -597,6 +629,7 @@ paths:
       operationId: getStatusOfAnAsyncOperation
       parameters:
         - name: op_id
+          description: Operation ID
           in: path
           required: true
           schema:
@@ -681,6 +714,121 @@ paths:
       servers:
         - url: 'https://search.wesog.com/api'
           description: Wesog Search server
+      x-stoplight:
+        id: 1xynth5u3n1zi
+      description: Get status of an asyncronous operations.
+    parameters: []
+  /query_img:
+    post:
+      tags:
+        - Search your images
+      summary: Upload images for your query.
+      description: |
+        After uploading the image file into the HTTP body on request,
+        the response return both:
+        - `image_hash` an identifier for reference that image later in the `GET /imgs` to perform a reverse image search.
+        - `faces`: The faces coordinates detected on that photo.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  description: Image file to upload
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  img_hash:
+                    type: string
+                    example: '10405030202'
+                  faces:
+                    type: array
+                    x-stoplight:
+                      id: tdgmipfwcmprh
+                    items:
+                      x-stoplight:
+                        id: mtwgwimzy7c52
+                      type: array
+                      items:
+                        x-stoplight:
+                          id: cu6k692m9tbn0
+                        type: number
+        '400':
+          description: Error in file upload
+      security:
+        - API-WESOG-SEARCH: []
+      servers:
+        - url: 'https://search.wesog.com/api'
+          description: Wesog Search server
+      x-stoplight:
+        id: ebmbnuu87duxv
+      operationId: uploadQuryImg
+    parameters: []
+  /search:
+    get:
+      summary: Search for images
+      tags:
+        - Search your images
+      responses:
+        '200':
+          description: OK - Successful search with content
+          content:
+            application/json:
+              schema:
+                type: object
+                title: SearchForImagesOk
+                properties:
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        headline:
+                          type: string
+        '204':
+          description: OK - Successful search without content
+        '400':
+          description: Bad Request - Invalid query parameters
+        '401':
+          description: Unauthorized - Authentication required
+        '403':
+          description: Forbidden - Authenticated but not authorized
+      operationId: search
+      x-stoplight:
+        id: akn9bftz8xhxo
+      description: 'Search for images with filters, sorting and pagination.'
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: q
+          description: Query filtering formula
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: sort
+          description: Order of the search results by specific criteria.
+        - schema:
+            type: integer
+          in: query
+          name: page
+          description: Page number of the search results.
+        - schema:
+            type: integer
+          in: query
+          name: size
+          description: Number of search results per page.
 tags:
   - name: Manage your images
     description: |
@@ -722,6 +870,8 @@ components:
       required:
         - message
         - status
+      x-stoplight:
+        id: vqcv78k86dkc5
     RESP_403:
       type: object
       title: SearchForImagesForbidden
@@ -739,36 +889,8 @@ components:
       required:
         - message
         - status
-    IMAGES_POST:
-      type: array
-      items:
-        type: object
-        properties:
-          id:
-            type: string
-            example: img001
-          src:
-            type: string
-            example: 'https://www.sample_server.com/sample_image.jpeg'
-          headline:
-            type: string
-            example: City skyline at night.
-          caption:
-            type: string
-            example: 'The city comes alive at night with its dazzling lights. The skyline is illuminated, showcasing the architectural marvels and vibrant energy.'
-          keywords:
-            type: array
-            items:
-              type: string
-            example:
-              - city
-              - skyline
-              - night
-              - lights
-              - architecture
-        required:
-          - id
-          - src
+      x-stoplight:
+        id: 4eev6u9gpxn26
     RESP_404:
       type: object
       properties:
@@ -785,6 +907,8 @@ components:
       required:
         - message
         - status
+      x-stoplight:
+        id: htcbcnvqn5xuz
     RESP_500:
       type: object
       properties:
@@ -801,5 +925,7 @@ components:
       required:
         - message
         - status
+      x-stoplight:
+        id: 5f7rdgnwa0jnh
 security:
   - API-WESOG-SEARCH: []
