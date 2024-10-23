@@ -767,12 +767,12 @@ paths:
     post:
       tags:
         - Search your images
-      summary: Upload images for your query.
+      summary: Upload query images
       description: |
-        After uploading the image file into the HTTP body on request,
+        1st step of reverse image search. After uploading the image file into the HTTP body on request,
         the response return both:
-        - `image_hash` an identifier for reference that image later in the `GET /imgs` to perform a reverse image search.
-        - `faces`: The faces coordinates detected on that photo.
+        - `image_hash` Identifier for reference that image later in the `GET /imgs` to perform a reverse image search (2nd step).
+        - `faces`: Face coordinates detected on the uploaded photo.
       requestBody:
         content:
           multipart/form-data:
