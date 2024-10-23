@@ -27,7 +27,7 @@ info:
     url: 'https://wesog.com/'
   termsOfService: ''
   license:
-    name: 'Legal'
+    name: Legal
     url: 'https://wesog.com/es/aviso-legal/'
 servers:
   - url: 'https://search.wesog.com/api/v1'
@@ -287,9 +287,6 @@ paths:
                   - status
       security:
         - API-WESOG-SEARCH: []
-      servers:
-        - url: 'https://search.wesog.com/api'
-          description: Wesog Search server
       x-stoplight:
         id: vcpt9cihzgabk
     put:
@@ -437,9 +434,6 @@ paths:
                 $ref: '#/components/schemas/RESP_500'
       security:
         - API-WESOG-SEARCH: []
-      servers:
-        - url: 'https://search.wesog.com/api'
-          description: Wesog Search server
       x-stoplight:
         id: jchkqr6jdjlji
       requestBody:
@@ -581,9 +575,6 @@ paths:
                 $ref: '#/components/schemas/RESP_500'
       security:
         - API-WESOG-SEARCH: []
-      servers:
-        - url: 'https://search.wesog.com/api'
-          description: Wesog Search server
       x-stoplight:
         id: vxjlrffdxjcxe
       description: Endpoint for erase existing images already uploaded before.
@@ -711,66 +702,9 @@ paths:
                 $ref: '#/components/schemas/RESP_500'
       security:
         - API-WESOG-SEARCH: []
-      servers:
-        - url: 'https://search.wesog.com/api'
-          description: Wesog Search server
       x-stoplight:
         id: 1xynth5u3n1zi
       description: Get status of an asyncronous operations.
-    parameters: []
-  /query_img:
-    post:
-      tags:
-        - Search your images
-      summary: Upload images for your query.
-      description: |
-        After uploading the image file into the HTTP body on request,
-        the response return both:
-        - `image_hash` an identifier for reference that image later in the `GET /imgs` to perform a reverse image search.
-        - `faces`: The faces coordinates detected on that photo.
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  description: Image file to upload
-                  format: binary
-      responses:
-        '200':
-          description: File uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  img_hash:
-                    type: string
-                    example: '10405030202'
-                  faces:
-                    type: array
-                    x-stoplight:
-                      id: tdgmipfwcmprh
-                    items:
-                      x-stoplight:
-                        id: mtwgwimzy7c52
-                      type: array
-                      items:
-                        x-stoplight:
-                          id: cu6k692m9tbn0
-                        type: number
-        '400':
-          description: Error in file upload
-      security:
-        - API-WESOG-SEARCH: []
-      servers:
-        - url: 'https://search.wesog.com/api'
-          description: Wesog Search server
-      x-stoplight:
-        id: ebmbnuu87duxv
-      operationId: uploadQuryImg
     parameters: []
   /search:
     get:
@@ -829,6 +763,57 @@ paths:
           in: query
           name: size
           description: Number of search results per page.
+  /query_img:
+    post:
+      tags:
+        - Search your images
+      summary: Upload images for your query.
+      description: |
+        After uploading the image file into the HTTP body on request,
+        the response return both:
+        - `image_hash` an identifier for reference that image later in the `GET /imgs` to perform a reverse image search.
+        - `faces`: The faces coordinates detected on that photo.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  description: Image file to upload
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  img_hash:
+                    type: string
+                    example: '10405030202'
+                  faces:
+                    type: array
+                    x-stoplight:
+                      id: tdgmipfwcmprh
+                    items:
+                      x-stoplight:
+                        id: mtwgwimzy7c52
+                      type: array
+                      items:
+                        x-stoplight:
+                          id: cu6k692m9tbn0
+                        type: number
+        '400':
+          description: Error in file upload
+      security:
+        - API-WESOG-SEARCH: []
+      x-stoplight:
+        id: ebmbnuu87duxv
+      operationId: uploadQuryImg
+    parameters: []
 tags:
   - name: Manage your images
     description: |
