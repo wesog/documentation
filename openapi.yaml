@@ -110,7 +110,7 @@ paths:
                           x-stoplight:
                             id: 0rhzbxcbkz62y
                           type: string
-                    description: Tags describing the image
+                    description: Tags describing the image. If string is used (instead of array of strings) of keywords separated with ;
                   date:
                     type: string
                     x-stoplight:
@@ -122,10 +122,22 @@ paths:
                     type: string
                     x-stoplight:
                       id: a0sayn87ot920
+                  city:
+                    type: string
+                    x-stoplight:
+                      id: x3gkoodmraehd
+                  country:
+                    type: string
+                    x-stoplight:
+                      id: 13zj4v7pulg30
                   medium:
                     type: string
                     x-stoplight:
                       id: juhiusx7d4kl7
+                  technique:
+                    type: string
+                    x-stoplight:
+                      id: nlotpk3und7im
                   author:
                     type: string
                     x-stoplight:
@@ -489,7 +501,7 @@ paths:
                           x-stoplight:
                             id: 6co27ift829nk
                           type: string
-                    description: Tags describing the image
+                    description: Tags describing the image. If string is used (instead of array of strings) of keywords separated with ;
                   date:
                     type: string
                     x-stoplight:
@@ -501,10 +513,22 @@ paths:
                     type: string
                     x-stoplight:
                       id: 1s5tboinc7xmh
+                  city:
+                    type: string
+                    x-stoplight:
+                      id: cfwikn7lcy6sc
+                  country:
+                    type: string
+                    x-stoplight:
+                      id: 3s0rgyzec1rxh
                   medium:
                     type: string
                     x-stoplight:
                       id: yq1lr6fqelonn
+                  technique:
+                    type: string
+                    x-stoplight:
+                      id: 01gjhhyrzx6gt
                   author:
                     type: string
                     x-stoplight:
