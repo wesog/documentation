@@ -110,7 +110,9 @@ paths:
                           x-stoplight:
                             id: 0rhzbxcbkz62y
                           type: string
-                    description: Tags describing the image. If string is used (instead of array of strings) of keywords separated with ;
+                    description: |-
+                      Keywords (tags) describing the image.
+                      If string is used (instead of array of strings) keywords must be separated with ;
                   date:
                     type: string
                     x-stoplight:
@@ -501,7 +503,9 @@ paths:
                           x-stoplight:
                             id: 6co27ift829nk
                           type: string
-                    description: Tags describing the image. If string is used (instead of array of strings) of keywords separated with ;
+                    description: |-
+                      Keywords (tags) describing the image.
+                      If string is used (instead of array of strings) keywords must be separated with ;
                   date:
                     type: string
                     x-stoplight:
