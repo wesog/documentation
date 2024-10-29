@@ -47,10 +47,10 @@
     {
       "group": "Manage your content",
       "pages": [
+        "documentation/manage-overview",
         "documentation/manage-upload",
         "documentation/manage-update",
-        "documentation/manage-delete",
-        "documentation/manage-overview"
+        "documentation/manage-delete"
       ]
     },
     {
