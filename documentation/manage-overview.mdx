@@ -33,14 +33,14 @@ In Relaxed mode, operations adapt flexibly by overwriting or creating records as
 
 Handling errors such as undownloadable image URLs or duplicate image IDs (in strict mode) is crucial. Wesgo Search supports two modes:
 
-| All_or_nothing | Subset (not yet implemented) |
+| All or nothing (`do=all`) (default) | Subset (`do=subset`) (not yet implemented) |
 |----------------|--------|
 | Operations are atomic; if one image fails, the entire operation fails. | Successfully processes valid images and returns error IDs and messages for failed ones. Useful for large-scale operations (e.g., initial ingestion). |
 
 
 ## Synchronous vs Asynchronous
 
-| Synchronous | Asynchronous |
+| Synchronous (`mode=sync`) (default) | Asynchronous (`mode=async`) |
 |-------------|--------------|
 | **Waits** for the operation to complete before sending the response. | **Immediately returns** the response with an operation ID; continues the operation in the background. The operation id can be used later for tracking the upload process. |
 
