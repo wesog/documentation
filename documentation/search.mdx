@@ -14,12 +14,17 @@ The search endpoint `GET /imgs` is the most powerful API endpoint, allowing the 
 The search endpoint (`HTTP GET /imgs`) has the following URL parameters:
 
 - `q`: Query Filtering Formula
-- `sort`: Sorting options (default: `id`)
+- `sort_by`: Sorting options (default: `id`)
+- `sort_order`: `asc` for ascending and `desc` for descending (default: `asc`)
 - `page`: The page number (starting from 1) (default: `1`)
 - `size`: The number of images per page (default: `50`)
 - `fields`: The returning image fields (comma-separated) (default: `id`)
 - `lang`: The language used the text filters search (default: `en`)
 
+> **Is imporant to notice that `q=` only filters and `sort_by=` does the actual sorting.**
+>
+> - `sort_by=` without `q=` is possible.
+> - `q=` without `sort_by=` sorts by image `id`.
 
 ### Output: Returned Response
 
@@ -30,8 +35,11 @@ The response is a JSON object containing the found images (`images`) and additio
 ### Example request:
 
 ```
-HTTP GET /imgs?q=t:us elections 2024&fields=id,headline
+HTTP GET /imgs?q=t~us elections&sort_by=t~us elections&fields=id,headline
 ```
+
+
+
 
 ### Example response:
 
