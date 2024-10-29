@@ -7,21 +7,27 @@ icon: house
 
 Wesgo Search supports CRUD operations (Create, Read, Update, Delete) for asset management.
 
-| Operation              | Endpoint       |
-|------------------------|----------------|
-| Upload new images      | `POST /imgs`   |
-| Update existing images | `PUT /imgs`    |
-| Delete existing images | `DELETE /imgs` |
+| Operation              | Endpoint       | Required image fields | Optional image fields    |
+|------------------------|----------------|-----------------------|--------------------------|
+| Upload new images      | `POST /imgs`   | `id`, `src`           | Image metadata fields... |
+| Update existing images | `PUT /imgs`    | `id`                  | Image metadata fields... |
+| Delete existing images | `DELETE /imgs` | `id`                  | No                       |
 
+Each operation can be executed with a single image or a **batch** of images.
 
 ## Relaxed vs Strict Mode
 
-| Operation              | Relaxed (not yet implemented) | Strict (default)          |
-|------------------------|-------------------------------|---------------------------|
-| Upload new images      | Overwrite if exists           | Error if exists           |
-| Update existing images | Create if doesn't exist       | Error if doesn't exist    |
-| Delete existing images | Ignore if doesn't exist       | Ignore if doesn't exist   |
+Wesgo Search requires that each image must have a **unique identifier** (`id`). When performing new operations, it is important to manage interactions with existing content, ensuring no duplicate ids.
 
+In Relaxed mode, operations adapt flexibly by overwriting or creating records as needed, whereas Strict mode, the operation only is executed if it meets the rule for unique IDs.
+
+| Operation              | Relaxed (not yet implemented)    | Strict (default)             |
+|------------------------|----------------------------------|------------------------------|
+| Upload new images      | Overwrite if `id` exists         | Error if `id` exists         |
+| Update existing images | Create if `id` doesn't exist (*) | Error if `id` doesn't exist  |
+| Delete existing images | Ignore if `id` doesn't exist     | Ignore if `id` doesn't exist |
+
+> (*) Update existing images in Relaxed mode, only Create new images if `id` doesn't exist **and `src` is present**. Otherwise the image can not be created because the `src` is missing.
 
 ## Error Management
 
