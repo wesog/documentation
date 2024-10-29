@@ -1,0 +1,58 @@
+---
+title: Overview
+description: Get started with Wesgo Search asset management
+icon: house
+---
+
+
+Wesgo Search supports CRUD operations (Create, Read, Update, Delete) for asset management.
+
+| Operation              | Endpoint       |
+|------------------------|----------------|
+| Upload new images      | `POST /imgs`   |
+| Update existing images | `PUT /imgs`    |
+| Delete existing images | `DELETE /imgs` |
+
+
+## Relaxed vs Strict Mode
+
+| Operation              | Relaxed (not yet implemented) | Strict (default)          |
+|------------------------|-------------------------------|---------------------------|
+| Upload new images      | Overwrite if exists           | Error if exists           |
+| Update existing images | Create if doesn't exist       | Error if doesn't exist    |
+| Delete existing images | Ignore if doesn't exist       | Ignore if doesn't exist   |
+
+
+## Error Management
+
+Handling errors such as undownloadable image URLs or duplicate image IDs (in strict mode) is crucial. Wesgo Search supports two modes:
+
+| All_or_nothing | Subset (not yet implemented) |
+|----------------|--------|
+| Operations are atomic; if one image fails, the entire operation fails. | Successfully processes valid images and returns error IDs and messages for failed ones. Useful for large-scale operations (e.g., initial ingestion). |
+
+
+## Synchronous vs Asynchronous
+
+| Synchronous | Asynchronous |
+|-------------|--------------|
+| **Waits** for the operation to complete before sending the response. | **Immediately returns** the response with an operation ID; continues the operation in the background. The operation id can be used later for tracking the upload process. |
+
+Synchronous mode is recommended for small operations, while asynchronous mode is better for larger operations to avoid timeouts. Considered small operations include:
+- Uploading fewer than 10 images
+- Updating fewer than 50 images
+- Deleting fewer than 100 images
+
+
+### Asynchronous Operation Statuses
+
+Endpoints for tracking operation statuses:
+
+| Operation              | Endpoint                  |
+|------------------------|---------------------------|
+| Get all operations     | `GET /ops`                |
+| Get a single operation | `GET /ops/{operation_id}` |
+
+- `finished=False` and `success=null`: Operation is still processing (`num_processed` < `num_total`).
+- `finished=True` and `success=True`: Operation completed successfully with database saving (`num_processed` = `num_total`).
+- `finished=True` and `success=False`: Operation aborted with no database changes. Check the message field using the operation ID for error details and retry accordingly.
