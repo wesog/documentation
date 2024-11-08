@@ -18,10 +18,11 @@ The `sort_by` parameter specifies the criterion used to sort the search results.
     - `p~`: Person face
 - **Numerically**:
   - `id` (This is the default)
-  - `date`
   - `width`
   - `height`
   - `n_faces`
+- **Date**
+  - `date`
 - **Alphabetically**:
   - `src`
   - `headline`
@@ -38,10 +39,12 @@ The `sort_by` parameter specifies the criterion used to sort the search results.
 The `sort_order` parameter defines the order (ascending or descending) of the sorted results.
 
 - `sort_order=asc` (This is the default)
-  - For similarity sorting, this orders from most to least similar.
-  - For numerical sorting, this orders from smallest to largest (for dates: from the earliest to the most recent).
-  - For alphabetical sorting, this orders from A to Z.
+  - For similarity sorting, this orders from **most** to **least similar**.
+  - For numerical sorting, this orders from **smallest** to **largest**.
+  - For date sorting: from the **earliest** to the **most recent**.
+  - For alphabetical sorting, this orders from **A** to **Z**.
 - `sort_order=desc`
-  - For similarity sorting, this orders from least to most similar.
-  - For numerical sorting, this orders from largest to smallest (for dates: from the most recent to the earliest).
-  - For alphabetical sorting, this orders from Z to A.
+  - For similarity sorting, this orders from **least** to **most similar**.
+  - For numerical sorting, this orders from **largest** to **smallest**.
+  - For date sorting: from the **most recent** to the **earliest**.
+  - For alphabetical sorting, this orders from **Z** to **A**.
