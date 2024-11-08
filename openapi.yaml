@@ -829,27 +829,11 @@ paths:
           description: 'Ascending or descending sorting. '
         - schema:
             type: string
-            example: id
-            enum:
-              - id
-              - src
-              - height
-              - width
-              - headline
-              - caption
-              - keywords
-              - date
-              - author
-              - location
-              - city
-              - country
-              - medium
-              - technique
-              - n_faces
+            example: 'id, headline, keywords, height, width'
             default: id
           in: query
           name: fields
-          description: Return image fields (comma separated) for the search result
+          description: 'Return image fields (comma separated) for the search result. Options: id, src, height, width, headline, caption, keywords, date, author, location, city, country, medium, technique, n_faces'
   /query_img:
     post:
       tags:
