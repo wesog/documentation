@@ -772,25 +772,83 @@ paths:
       parameters:
         - schema:
             type: string
+            example: keyword=man && country=UK
           in: query
           name: q
-          description: Query filtering formula
+          description: Query iltering formula
           required: true
         - schema:
             type: string
+            example: similarity
+            default: id
+            enum:
+              - id
+              - src
+              - height
+              - width
+              - headline
+              - caption
+              - date
+              - author
+              - location
+              - city
+              - country
+              - medium
+              - technique
+              - n_faces
+              - similarity
           in: query
-          name: sort
-          description: Order of the search results by specific criteria.
+          name: sort_by
+          description: Sort search results by specific criteria.
         - schema:
             type: integer
+            default: 1
+            minimum: 1
           in: query
           name: page
-          description: Page number of the search results.
+          description: Page number of the search results. First page is page=1
         - schema:
             type: integer
+            minimum: 1
+            default: 50
+            example: 75
+            maximum: 1000
           in: query
-          name: size
+          name: limit
           description: Number of search results per page.
+        - schema:
+            type: string
+            default: asc
+            enum:
+              - asc
+              - desc
+            example: desc
+          in: query
+          name: sort_order
+          description: 'Ascending or descending sorting. '
+        - schema:
+            type: string
+            example: 'id,src,headline,keywords'
+            enum:
+              - id
+              - src
+              - height
+              - width
+              - headline
+              - caption
+              - keywords
+              - date
+              - author
+              - location
+              - city
+              - country
+              - medium
+              - technique
+              - n_faces
+            default: id
+          in: query
+          name: fields
+          description: Return image fields (comma separated) for the search result
   /query_img:
     post:
       tags:
