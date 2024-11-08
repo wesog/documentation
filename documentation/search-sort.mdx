@@ -7,32 +7,31 @@ The `sort_by` and `sort_order` parameters of the search endpoint (`GET /imgs`) d
 
 ## Sort By
 
-The `sort_by` parameter specifies the criterion used to sort the search results. There are three different types of sorting criteria:
+The `sort_by` parameter specifies the criterion used to sort the search results. There are 4 different types of sorting criteria:
 
-- **Similarity**:
-  - `similarity` (alias `sim`). Note that this sorting option requires one of the following filters on the query:
-    - `t=`: Full text search
-    - `t~`: Semantic text search
-    - `i=`: Revesre identity image search
-    - `i~`: Revesre image semantic search
-    - `p~`: Person face
-- **Numerically**:
-  - `id` (This is the default)
-  - `width`
-  - `height`
-  - `n_faces`
-- **Date**
-  - `date`
-- **Alphabetically**:
-  - `src`
-  - `headline`
-  - `caption`
-  - `location`
-  - `country`
-  - `city`
-  - `author`
-  - `medium`
-  - `technique`
+1. **Similarity**: `sort_by=similarity` (or just `sort_by=sim`). Note that this sorting option requires one of the following filters on the query:
+   - `t=`: Full text search.
+   - `t~`: Semantic text search.
+   - `i=`: Reverse identity image search.
+   - `i~`: Reverse image semantic search.
+   - `p~`: Person face. (Similarity sorting between query face and faces on the image).
+2. **Numerically**:
+   - `sort_by=id`: Image identifier (This is the default).
+   - `sort_by=width`: Image width.
+   - `sort_by=height`: Image height.
+   - `sort_by=n_faces`: Number of faces in the image.
+3. **Date**
+   - `sort_by=date`
+4. **Alphabetically**:
+   - `sort_by=src`
+   - `sort_by=headline`
+   - `sort_by=caption`
+   - `sort_by=location`
+   - `sort_by=country`
+   - `sort_by=city`
+   - `sort_by=author`
+   - `sort_by=medium`
+   - `sort_by=technique`
 
 ## Sort Order
 
