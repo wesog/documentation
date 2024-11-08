@@ -770,14 +770,17 @@ paths:
         id: akn9bftz8xhxo
       description: 'Search for images with filters, sorting and pagination.'
       parameters:
-        - schema:
-            type: string
-            example: keyword=man && country=UK
-          in: query
-          name: q
+        - name: q
           description: Query iltering formula
           required: true
-        - schema:
+          in: query
+          schema:
+            type: string
+            example: 'keyword=man && country=UK'
+        - name: sort_by
+          description: 'Sorting criteria.'
+          in: query
+          schema:
             type: string
             example: similarity
             default: id
@@ -797,43 +800,40 @@ paths:
               - technique
               - n_faces
               - similarity
+        - name: sort_order
+          description: 'Ascending or descending sorting.'
           in: query
-          name: sort_by
-          description: Sort search results by specific criteria.
-        - schema:
-            type: integer
-            default: 1
-            minimum: 1
-            example: 1
-          in: query
-          name: page
-          description: Page number of the search results. First page is page=1
-        - schema:
-            type: integer
-            minimum: 1
-            default: 50
-            example: 75
-            maximum: 1000
-          in: query
-          name: limit
-          description: Number of search results per page.
-        - schema:
+          schema:
             type: string
             default: asc
             enum:
               - asc
               - desc
-            example: desc
+            example: asc
+        - name: page
+          description: 'Page number of the search results. page=1 is the first page.'
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+            example: 1
           in: query
-          name: sort_order
-          description: 'Ascending or descending sorting. '
-        - schema:
+        - name: limit
+          description: 'Number of search results per page.'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 50
+            example: 75
+            maximum: 1000
+        - name: fields
+          description: 'Return image fields (comma separated) for the search result. Available options: id, src, height, width, headline, caption, keywords, date, author, location, city, country, medium, technique, n_faces.'
+          in: query
+          schema:
             type: string
             example: 'id, headline, keywords, height, width'
             default: id
-          in: query
-          name: fields
-          description: 'Return image fields (comma separated) for the search result. Options: id, src, height, width, headline, caption, keywords, date, author, location, city, country, medium, technique, n_faces'
   /query_img:
     post:
       tags:
