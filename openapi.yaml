@@ -828,7 +828,23 @@ paths:
           description: 'Ascending or descending sorting. '
         - schema:
             type: string
-            example: 'id,src,headline,keywords'
+            example: 'id'
+            enum:
+              - id
+              - src
+              - height
+              - width
+              - headline
+              - caption
+              - keywords
+              - date
+              - author
+              - location
+              - city
+              - country
+              - medium
+              - technique
+              - n_faces
             default: id
           in: query
           name: fields
