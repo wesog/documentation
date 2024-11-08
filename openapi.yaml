@@ -771,7 +771,7 @@ paths:
       description: 'Search for images with filters, sorting and pagination.'
       parameters:
         - name: q
-          description: Query iltering formula
+          description: 'Query Filtering Formula.'
           required: true
           in: query
           schema:
