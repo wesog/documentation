@@ -13,37 +13,24 @@ The search endpoint `GET /imgs` is the most powerful API endpoint, allowing the 
 
 The search endpoint (`HTTP GET /imgs`) has the following URL parameters:
 
-- `q`: Query Filtering Formula
-- `sort_by`: Sorting options (default: `id`)
-- `sort_order`: `asc` for ascending and `desc` for descending (default: `asc`)
-- `page`: The page number (starting from 1) (default: `1`)
-- `size`: The number of images per page (default: `50`)
+- `q`: Query Filtering Formula. See more info [here](https://wesog.mintlify.app/documentation/search-filters). **Required**.
+- `sort_by`: Sorting criteria (Default: `id`)
+- `sort_order`: `asc` for ascending, `desc` for descending (Default: `asc`)
+- `page`: Page number. First page is 1 (Default: `1`)
+- `limit`: The number of images per page (default: `50`)
 - `fields`: The returning image fields (comma-separated) (default: `id`)
-- `lang`: The language used the text filters search (default: `en`)
 
-> **Is imporant to notice that `q=` only filters and `sort_by=` does the actual sorting.**
->
-> - `sort_by=` without `q=` is possible.
-> - `q=` without `sort_by=` sorts by image `id`.
+> #### Future parameters, not implemented yet
+> - `lang`: The language used the text filters search (default: `en`)
+
 
 ### Output: Returned Response
 
-The response is a JSON object containing the found images (`images`) and additional information such as the total number of images found and the time taken. The `images` field is a list of image objects containing the specified `fields`.
+The response is a JSON object containing the found images with the specified `fields` and additional information such as the total number of images found and the time taken.
 
-
-
-### Example request:
-
-```
-HTTP GET /imgs?q=t~us elections&sort_by=t~us elections&fields=id,headline
-```
-
-
-
-
-### Example response:
 
 ```json
+// HTTP GET /imgs?q=t~us elections&sort_by=t~us elections&fields=id,headline
 {
   "images": [
     {"id": 323, "headline": "Joe Biden drops his candidacy for president of the United States"},
@@ -53,4 +40,3 @@ HTTP GET /imgs?q=t~us elections&sort_by=t~us elections&fields=id,headline
   "time_taken": "0.02s"
 }
 ```
-
