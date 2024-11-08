@@ -804,6 +804,7 @@ paths:
             type: integer
             default: 1
             minimum: 1
+            example: 1
           in: query
           name: page
           description: Page number of the search results. First page is page=1
@@ -828,7 +829,7 @@ paths:
           description: 'Ascending or descending sorting. '
         - schema:
             type: string
-            example: 'id'
+            example: id
             enum:
               - id
               - src
