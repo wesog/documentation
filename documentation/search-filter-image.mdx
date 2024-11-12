@@ -10,10 +10,12 @@ An image can be used as a search query, this is called Reverse Image Search, and
 - `=`: It performs identity search. This will reatreve images that are an exact copy or a modified version like a cropping, fliping or any other type of modification.
 
 
-Sometimes too many results appear (false positives) and we would like to narrow the search. For those situautations wesog Search allows 3 levels of image filter operators for both semantic and identity search:
+## 3 levels of filtering
+
+Sometimes too many results appear (false positives) and we would like to narrow the search. For those situations Wesog Search allows 3 levels of image filter operators for both semantic and identity search:
 
 
-| Url Parameters       | Description                               | Example                                                               |
+| Image Filter         | Description                               | Example                                                               |
 |----------------------|-------------------------------------------|-----------------------------------------------------------------------|
 | `i~img_reference`    | Broad semantic search. False positives may appears.   | Any pet can appear at searching with "Golden Retriever" image         |
 | `i~~img_reference`   | Narrow semantic search                    | Any dog can appear at searching with "Golden Retriever" image         |
