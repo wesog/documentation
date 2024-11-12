@@ -13,23 +13,23 @@ An image can be used as a search query, this is called Reverse Image Search, and
 Sometimes too many results appear (false positives) and we would like to narrow the search. For those situautations wesog Search allows 3 levels of image filter operators for both semantic and identity search:
 
 
-| Url Parameters               | Description                               | Example                                                               |
-|------------------------------|-------------------------------------------|-----------------------------------------------------------------------|
-| `i~ref with sort_by=sim`    | Broad semantic search. False positives may appears.   | any pet can appear at searching with "Golden Retriever" image         |
-| `i~~ref with sort_by=sim`   | Narrow semantic search                    | any dog can appear at searching with "Golden Retriever" image         |
-| `i~~~ref with sort_by=sim`  | Very Narrow semantic search               | only Golden Retriever (or even Labrador) at searching with "Golden Retriever" img |
-| `i=ref with sort_by=sim`    | Identity search with all transformations (easy and hard ones). False positives may appears. | Severe zooms in/out, lot of overlays, Horizontal Flip, Rotation, ...  |
-| `i==ref with sort_by=sim`   | Identity search with small transformations| Subtle cropping, recolor, black & white, ...                          |
-| `i===ref with sort_by=sim`  | Identity search of same image only        | Very subtle transformations (JPEG compression, etc.)                  |
+| Url Parameters       | Description                               | Example                                                               |
+|----------------------|-------------------------------------------|-----------------------------------------------------------------------|
+| `i~img_reference`    | Broad semantic search. False positives may appears.   | Any pet can appear at searching with "Golden Retriever" image         |
+| `i~~img_reference`   | Narrow semantic search                    | Any dog can appear at searching with "Golden Retriever" image         |
+| `i~~~img_reference`  | Very Narrow semantic search               | Only Golden Retriever (or even Labrador) at searching with "Golden Retriever" img |
+| `i=img_reference`    | Identity search with all transformations (easy and hard ones). False positives may appears. | Severe zooms in/out, lot of overlays, Horizontal Flip, Rotation, ...  |
+| `i==img_reference`   | Identity search with small transformations| Subtle cropping, recolor, black & white, ...                          |
+| `i===img_reference`  | Identity search of same image only        | Very subtle transformations (JPEG compression, etc.)                  |
 
 
 ## Image Reference
 
 In order to use a image in the search query we need its image reference. We can use images from different sources:
 
-- **Image hash**: Previously uploaded query images by the user on the `POST /query_files` endpoint. In that case the image reference will be the **image hash** returned by the endpoint. 
-- **Image id**: Previously uploaded catalog images by the user with the `POST /imgs` endpoint. In that case the image reference will be the image id. **In future realease**
-- **Image URL**: **In future realease**
+- **Image Hash**: Previously uploaded query images by the user on the `POST /query_files` endpoint. In that case the image reference will be the **image hash** returned by the endpoint. Note that uploaded query images **only lives for one hour**, after that, the image must be uploaded again.
+- **Image Id**: Previously uploaded catalog images by the user with the `POST /imgs` endpoint. In that case the image reference will be the image id. *Not yet available, will be in future realeases*.
+- **Image URL**: *Not yet available, will be in future realeases*.
 
 
 
