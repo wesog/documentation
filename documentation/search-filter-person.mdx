@@ -1,6 +1,6 @@
 ---
 title: 'Person'
-description: 'Person (celebrity) filtering by writing its name or uploading its face. Subfiters attributes are also available.'
+description: 'Filter by the name or face of a celebrity.'
 icon: user
 ---
 
@@ -14,7 +14,8 @@ Additionally, it can be refined by specifying various attributes such as age, em
 The syntax for the person filter is as follows:
 
 ```
-p=<name or face or anyone>[ <subfilters such as age, emotion, clothes, ...> ]
+p~<face>[ <subfilters such as age, emotion, clothes, ...> ]
+p=<name or anyone>[ <subfilters such as age, emotion, clothes, ...> ]
 ```
 
 ## Search by person name
@@ -48,19 +49,25 @@ The first step is to upload an image using the `/query_files` endpoint. If an im
 
 The response includes both the image reference and the list of face positions sorted from largest to smallest. The face position is an array of 4 numbers specifying the top-left and bottom-right points of the face rectangle.
 
+> The 4 numbers of each face represent the bounding box coordinates of the detected face inside the image. Note that the origin (0,0) is the  top-left corner of the image. The 4 numbers are:
+> 1. X coordinate of face top-left corner point
+> 2. Y coordinate of face top-left corner point
+> 3. X coordinate of face bottom-right corner point
+> 4. Y coordinate of face bottom-right corner point
+
+
 To use the faces from uploaded images as a person filter, the syntax is as follows:
 
-
 ```
-p=<image reference>_<face number>
-p=<image reference>_<face number>[ <optional subfilters> ]
+p~<image reference>_<face number>
+p~<image reference>_<face number>[ <optional subfilters> ]
 ```
 
-- `p=10405030202_1` Filter images that contains the face 1 of image 10405030202
-- `p=10405030202_2` Filter images that contains the face 1 of image 10405030202
-- `p=10405030202_3` Filter images that contains the face 1 of image 10405030202
-- `p=10405030202_1 && p=10405030202_3` Filter images that contains both face 1 and 3 of image 10405030202
-- `p=10405030202_1 && p=123456789_4` Filter images that contains both faces of different uploaded images.
+- `p~10405030202_1` Filter images that contains the face 1 of image 10405030202
+- `p~10405030202_2` Filter images that contains the face 1 of image 10405030202
+- `p~10405030202_3` Filter images that contains the face 1 of image 10405030202
+- `p~10405030202_1 && p~10405030202_3` Filter images that contains both face 1 and 3 of image 10405030202
+- `p~10405030202_1 && p~123456789_4` Filter images that contains both faces of different uploaded images.
 
 
 
