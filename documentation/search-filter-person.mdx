@@ -4,8 +4,6 @@ description: 'Person (celebrity) filtering by writing its name or uploading its 
 icon: user
 ---
 
-<Warning>This filter is under development. Currently ony "Search by person face" (without subfilters) is supported.</Warning>
-
 
 ## Introduction
 
@@ -20,6 +18,8 @@ p=<name or face or anyone>[ <subfilters such as age, emotion, clothes, ...> ]
 ```
 
 ## Search by person name
+
+<Warning>Search by person name is not ready yet. It will be available in future realeases of Wesog Search.</Warning>
 
 To search for a specific celebrity, the name must be specified.
 Here are several examples of celebrity names:
@@ -63,7 +63,13 @@ p=<image reference>_<face number>[ <optional subfilters> ]
 - `p=10405030202_1 && p=123456789_4` Filter images that contains both faces of different uploaded images.
 
 
-## Search by `any` person
+
+## Subfilters
+
+<Warning>Person Subfilters is not ready yet. It will be available in future realeases of Wesog Search.</Warning>
+
+
+### Search by `any` person
 
 Note that apart from searching a person by their name or face, `any` can be used as the main filter value to add custom subfilter attributes. This is very useful for performing "multi-person" searches, such as *photographs containing Spanish actresses aged between 20 and 30*:
 
@@ -74,7 +80,6 @@ p=any[g=woman && n=spain && j=actor && age≥20 && age≤30]
 This specifies the subfilters: gender `g`, nationality `n`, job occupation `j` and age `a`
 
 
-## Subfilters
 
 ### Age
 - **Exact number**: `a=18`, `a=43`, ...
@@ -137,6 +142,9 @@ Be creatitive with many more!
 
 
 ## Examples
+
+<Warning>Note that these example include person names and person subfilters that are not yet ready. Please check "Search by person face" section to discover valid current examples.</Warning>
+
 
 - `p=Emma Watson && s=full length` Search for full-length photos of Emma Watson.
 - `p=Virat Kohli[g=man && a>30 && t~wearing sports gear]` Find photos of Virat Kohli, a man over 30, in sports gear.
