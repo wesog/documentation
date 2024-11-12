@@ -1,21 +1,40 @@
 ---
 title: 'Author'
-description: 'Author, artist, creator, photgrapher of the image'
+description: 'Author, artist, creator, photgrapher of the image.'
 icon: info
 ---
 
-<Warning>This filter is not ready yet. It will be available in future realeases of Wesog Search.</Warning>
+## Summary
 
-Filter and subfilters values:
+| Available Acronyms   | Available Operators | Value format  | Subfilters |
+|----------------------|---------------------|---------------|------------|
+| `a`, `aut`, `author` | `=`, `~`            | String        | Yes        |
 
-- `a` (author): Name of the author or `anyone`
-  - `g` (gender): `man` or `woman`
-  - `n` (nationality): ISO 3166-1 alpha-2 `fr`, `gb`, `` 
+
+## Operators
+
+- `=` Exact author search. Example: `a=Vincent van Gogh`
+- `~` Subwords search. Example: `a~gogh`
+
+
+## Subfilters
+
+<Warning>Author Subfilters are not ready yet. It will be available in future realeases of Wesog Search.</Warning>
+
+Syntax:
+
+```
+a=anyone[ subfilters... ]
+```
+
+- `g`: **G**ender (male or female) `man` or `woman`
+- `n`: **N**ationality ISO 3166-1 alpha-2 `fr`, `gb`, `` 
 
 
 ## Examples
 
-- `a=Vincent van Gogh` Filter artwotks painted by Vincent van Gogh.
+- `a=Vincent van Gogh` Filter by Vincent van Gogh artwotks.
+- `author~gogh` Filter images Gogh.
 - `a=Steve McCurry` Filter photograhs taken by Steve McCurry.
 - `a=anyone[n=nl]` Filter by Dutch photographers/painters.
 - `a=anyone[g=woman]` Filter by female photographers/painters.

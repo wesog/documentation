@@ -4,27 +4,39 @@ description: 'Create a boolean formula combining serveral filters and subfilters
 icon: filter
 ---
 
-The `q` url parameter of the search endpoint (`GET /imgs`) defines the **query filtering formula (QFF)**. This parameter uses a special syntax that allows various filter combinations using Boolean operators and supports subfilters for more granular searches.
+The `q` url parameter of the search endpoint (`GET /imgs`) defines the **query filtering formula**. This parameter uses a special syntax that allows various filter combinations using boolean operators and supports subfilters for more granular searches.
 
-## Filter
+## Filter Syntax
 
 Filters are the basic block of the QFF, they are defined by a filter prefix followed by a colon `:`, and then the filter value:
 
 ```
-<filter type><filter operator><filter value>
+<filter acronym><filter operator><filter value>
 ```
 
-> #### Filter types
-> Wesog search supports several types of filters. The most common are `t` for *text search*, `i` for *reverse image search* and `p:` for *person (celebrity) search.*
+## Available Filters and Subfilters
 
-> #### Filter operators
-> Wesog search supports several filters operators:
-> - `~`: Similar. Used for AI semantic search.
-> - `=`: Equal.
-> - `<`: Less than. Only for numeric filters (dates, age of a person,...).
-> - `>`: Greater than. Only for numeric.
-> - `≥`: Greater or equal than. Only for numeric.
-> - `≤`: Less or equal than. Only for numeric.
+List of avaliable filters and subfilters along with their prefixes:
+
+
+| Filter       | Available Acronyms     | Available Operators                | Value format    | Subfilters          |
+|--------------|------------------------|------------------------------------|-----------------|---------------------|
+| **T**ext     | `t`, `txt`, `text`     | `~`, `~~`, `~~~`                   | Free text       |                     |
+| **I**mage    | `i`, `img`, `image`    | `=`, `==`, `===`, `~`, `~~`, `~~~` | Image reference | Text modification   |
+| **P**erson   | `p`, `per`, `person`   | `~`, `~~`, `~~~`                   | ImgRef_faceNum  | A lot...            |
+| **D**ate     | `d`, `dat`, `date`     | `=`, `<`, `>`, `<=`, `>=`          | YEAR-MONTH-DAY  |                     |
+| **C**olor    | `c`, `col`, `color`    | `=`, `~`                           | Comma separated |                     |
+| **K**eywords | `k`, `key`, `keywords` | `=`, `∩`, `⊃`                      | Comma separated |                     |
+| **A**uthor   | `a`, `aut`, `author`   | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   | Gender, Nationality |
+| **L**ocation | `l`, `loc`, `location` | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
+| Cit**y**     | `y`, `cit`, `city`     | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
+| Co**u**ntry  | `u`, `cou`, `country`  | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
+| **M**edium   | `m`, `med`, `medium`   | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
+| Techni**q**ue| `q`, `tec`, `technique`| `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
+| **N**um of people | `n`, `num`, `n_people` | `=`, `<`, `>`, `<=`, `>=`     | Numeric         |                     |
+| Aspect **R**atio  | `r`, `asr`, `ratio`    | Not yet implemented           |                 |                     |
+| type of **S**hot  | `s`, `sht`, `shot`     | Not yet implemented           |                 |                     |
+
 
 **Examples:**
 
@@ -35,7 +47,24 @@ Filters are the basic block of the QFF, they are defined by a filter prefix foll
 - Date filter `d>2020-03-11` searches for photographies post pandemic.
 
 
+> #### Filter operators
+> Wesog search supports several filters operators:
+> - `~`: Similar. Used for AI semantic search (for text,image) and subwords search for the rest of filters.
+>   - `~~`: "Very similar"
+>   - `~~~`: "Super similar"
+> - `=`: Equal.
+>   - `==`: "Very equal"
+>   - `===`: "Super equal"
+> - Range comparison. For numeric filters, for dates, but also alphabetical order for single string filters.
+>   - `<`: Less than.
+>   - `>`: Greater than.
+>   - `<=`: Greater or equal than. Aliases: `=<`, `≤`.
+>   - `>=`: Less or equal than. Aliases: `=<`, `≥`.
+
+
 ## Filter with subfilters
+
+<Warning>Subfilters are not ready yet. It will be available in future realeases of Wesog Search.</Warning>
 
 Some filters (image `i`, person `p`, author `a`) can have subfilters. Subfilter specifies further properties of a filter. Subfilters are defined after the the filter containg. the "subfilter query formula" between sqare brakets.
 
@@ -67,35 +96,6 @@ Parentheses `()` can be used to group filters and control the order of operation
 - `t=beach && !c=blue` searches for images of beaches **but not** the color blue.
 - `t=beach && (!c=blue || c=yellow)` searches for images of beaches with the colors blue or yellow.
 
-
-## Available Filters and Subfilters
-
-List of avaliable filters and subfilters along with their prefixes:
-
-- `a`: **A**uthor of the image
-  - `g`: **G**ender (male or female)
-  - `n`: **N**ationality
-- `c`: **C**olor
-- `d`: **D**ate
-- `i`: **I**mage - semantic search (without quotes) same search (with quotes).
-  - `t`: **T**ext modification (only for semantic)
-- `k`: **K**eyword
-- `l`: **L**ocation (country, city, coordinate + radius in kms, polygon of coordinates)
-- `m`: **M**edium (photography, illustration, ...)
-- `n`: **N**um of people
-- `p`: **P**erson's name, face or `any`
-  - `i`: **I**mage modification (segemented or not) (for custom clothing, expresion, behaboior,...)
-  - `a`: **A**ge (a number, a range, a catergory like child, adult,...)
-  - `g`: **G**ender (male or female)
-  - `e`: **E**motion (happy, ...)
-  - `n`: **N**ationality (spain, ...)
-  - `s`: **S**hot (headshot, waistup, ...)
-  - `t`: **T**ext modification (for custom clothing, expresion, behaboior,...)
-  - `r`: **R**ace
-  - `v`: **V**eracity (`real` or `fake`)
-- `r`: aspect **r**atio / o**r**ientation
-- `s`: type of **s**hot
-- `t`: **t**ext - semantic search (without quotes) lexical search (with quotes)
 
 ## Examples
 
