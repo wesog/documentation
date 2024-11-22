@@ -19,9 +19,9 @@ The search endpoint (`HTTP GET /imgs`) has the following URL parameters:
 - `page`: Page number. First page is 1 (Default: `1`)
 - `limit`: The number of images per page (default: `50`)
 - `fields`: The returning image fields (comma-separated) (default: `id`)
-
-> #### Future parameters, not implemented yet
-> - `lang`: The language used the text filters search (default: `en`)
+- `facets`: 'Faceted Search. Facets (comma separated) that will appear in the search result. 20 is the defualt max number of options per facet.
+- `count`: If true, includes the exact number of images in the search results. (default: `false`)
+- `lang`: The language used the text search (default: `en`)
 
 
 ### Output: Returned Response
@@ -36,7 +36,8 @@ The response is a JSON object containing the found images with the specified `fi
     {"id": 323, "headline": "Joe Biden drops his candidacy for president of the United States"},
     {"id": 324, "headline": "Donald Trump getting shot in the ear"}
   ],
-  "total": 2,
+  "num_images": 2,
+  "facets": {},
   "time_taken": "0.02s"
 }
 ```
