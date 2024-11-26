@@ -7,15 +7,15 @@ icon: filter
 The `q` url parameter of the search endpoint (`GET /imgs`) defines the **query filtering formula**. This parameter uses a special syntax that allows various filter combinations using boolean operators and supports subfilters for more granular searches.
 
 ## Filter Syntax
-
-Filters are the basic block of the query filtering formula, they are defined by the following syntax:
+Filters form the fundamental component of the query filtering formula. They adhere to the syntax outlined below:
 
 ```
 <filter acronym><filter operator><filter value>
 ```
 
 #### Filter acronym
-Every filter has several ways of name it. For instance, availabel acronyms for the **keyword** filter are: `k`, `key`, `keywords`
+Each filter can be identified by multiple acronyms. For example, the **keyword** filter can be referred to by the following acronyms: `k`, `key`, `keywords`.
+
 
 #### Filter operator
 Wesog search supports several filters operators:
@@ -32,7 +32,7 @@ Wesog search supports several filters operators:
   - `>=`: Less or equal than. Aliases: `=<`, `≥`.
 - Set comparison. 
   - `∩`: Interection. At least has one of them.
-  - `⊃`: Subeset. Must contain all of them.
+  - `⊃`: Subset. Must contain all of them.
 
 
 #### Filter value
