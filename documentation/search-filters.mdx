@@ -8,11 +8,39 @@ The `q` url parameter of the search endpoint (`GET /imgs`) defines the **query f
 
 ## Filter Syntax
 
-Filters are the basic block of the QFF, they are defined by a filter prefix followed by a colon `:`, and then the filter value:
+Filters are the basic block of the query filtering formula, they are defined by the following syntax:
 
 ```
 <filter acronym><filter operator><filter value>
 ```
+
+#### Filter acronym
+Every filter has several ways of name it. For instance, availabel acronyms for the **keyword** filter are: `k`, `key`, `keywords`
+
+#### Filter operator
+Wesog search supports several filters operators:
+- `~`: Similar. Used for AI semantic search (for text,image) and subwords search for the rest of filters.
+  - `~~`: "Very similar"
+  - `~~~`: "Super similar"
+- `=`: Equal.
+  - `==`: "Very equal"
+  - `===`: "Super equal"
+- Range comparison. For numeric filters, for dates, but also alphabetical order for single string filters.
+  - `<`: Less than.
+  - `>`: Greater than.
+  - `<=`: Greater or equal than. Aliases: `=<`, `≤`.
+  - `>=`: Less or equal than. Aliases: `=<`, `≥`.
+- Set comparison. 
+  - `∩`: Interection. At least has one of them.
+  - `⊃`: Subeset. Must contain all of them.
+
+
+#### Filter value
+Each filter has a different format. Here are some examples:
+- Date: `YEAR-MONTH-DAY`. Eg. `d=2005-5-13`
+- Keyword: Comma separated. Eg. `k⊃blue, sky`
+- City: Single string. Eg. `cit=Paris`
+
 
 ## Available Filters and Subfilters
 
@@ -47,19 +75,7 @@ List of avaliable filters and subfilters along with their prefixes:
 - Date filter `d>2020-03-11` searches for photographies post pandemic.
 
 
-> #### Filter operators
-> Wesog search supports several filters operators:
-> - `~`: Similar. Used for AI semantic search (for text,image) and subwords search for the rest of filters.
->   - `~~`: "Very similar"
->   - `~~~`: "Super similar"
-> - `=`: Equal.
->   - `==`: "Very equal"
->   - `===`: "Super equal"
-> - Range comparison. For numeric filters, for dates, but also alphabetical order for single string filters.
->   - `<`: Less than.
->   - `>`: Greater than.
->   - `<=`: Greater or equal than. Aliases: `=<`, `≤`.
->   - `>=`: Less or equal than. Aliases: `=<`, `≥`.
+
 
 
 ## Filter with subfilters
