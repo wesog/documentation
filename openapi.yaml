@@ -33,11 +33,13 @@ servers:
 paths:
   /imgs:
     post:
-      tags:
-        - Manage your images
       summary: Upload new images
       description: Endpoint for insert new images inside Wesog Search.
       operationId: uploadNewImages
+      tags:
+        - Manage your images
+      security:
+        - API-WESOG-SEARCH: []
       parameters:
         - name: mode
           in: query
@@ -105,6 +107,8 @@ paths:
                   technique:
                     type: string
                   author:
+                    type: string
+                  status:
                     type: string
       responses:
         '201':
@@ -261,13 +265,14 @@ paths:
                 required:
                   - message
                   - status
-      security:
-        - API-WESOG-SEARCH: []
     put:
+      summary: Update existing images
+      description: Endpoint for modify existing images already uploaded before.
+      operationId: updateExistingImages
       tags:
         - Manage your images
-      summary: Update existing images
-      operationId: updateExistingImages
+      security:
+        - API-WESOG-SEARCH: []
       parameters:
         - name: mode
           in: query
@@ -279,6 +284,60 @@ paths:
               - sync
               - async
           description: 'Update existing images in synchronous or asynchronously mode.- `sync` mode: The system will wait until the image upload is completed before sending a response.- `async` mode: The system will immediately return a response with an operation id and continue the image upload in the background. The operation id can be used later for tracking the upload process.'
+      requestBody:
+        description: 'List of image objects. For each image object, the `id` field is required, while the other fields are optional.'
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    description: Unique identifier of the image
+                    anyOf:
+                      - type: string
+                      - type: number
+                  src:
+                    type: string
+                    description: Url of the image
+                  headline:
+                    type: string
+                    description: Short text describing the image
+                  caption:
+                    type: string
+                    description: Long text describing the image
+                  keywords:
+                    anyOf:
+                      - type: string
+                        description: string of keywords separated with ;
+                      - type: array
+                        items:
+                          type: string
+                    description: |-
+                      Keywords (tags) describing the image.
+                      If string is used (instead of array of strings) keywords must be separated with ;
+                  date:
+                    type: string
+                    format: date
+                    example: '2024-10-19'
+                    description: date in year-month-day format
+                  location:
+                    type: string
+                  city:
+                    type: string
+                  country:
+                    type: string
+                  medium:
+                    type: string
+                  technique:
+                    type: string
+                  author:
+                    type: string
+                  status:
+                    type: string
       responses:
         '200':
           description: OK - Resource successfully updated
@@ -406,61 +465,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RESP_500'
-      security:
-        - API-WESOG-SEARCH: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: object
-                required:
-                  - id
-                properties:
-                  id:
-                    description: Unique identifier of the image
-                    anyOf:
-                      - type: string
-                      - type: number
-                  src:
-                    type: string
-                    description: Url of the image
-                  headline:
-                    type: string
-                    description: Short text describing the image
-                  caption:
-                    type: string
-                    description: Long text describing the image
-                  keywords:
-                    anyOf:
-                      - type: string
-                        description: string of keywords separated with ;
-                      - type: array
-                        items:
-                          type: string
-                    description: |-
-                      Keywords (tags) describing the image.
-                      If string is used (instead of array of strings) keywords must be separated with ;
-                  date:
-                    type: string
-                    format: date
-                    example: '2024-10-19'
-                    description: date in year-month-day format
-                  location:
-                    type: string
-                  city:
-                    type: string
-                  country:
-                    type: string
-                  medium:
-                    type: string
-                  technique:
-                    type: string
-                  author:
-                    type: string
-        description: 'List of image objects. For each image object, the `id` field is required, while the other fields are optional.'
-      description: Endpoint for modify existing images already uploaded before.
     delete:
       tags:
         - Manage your images
@@ -709,6 +713,7 @@ paths:
               - medium
               - technique
               - n_faces
+              - status
               - similarity
         - name: sort_order
           description: 'Ascending or descending sorting.'
@@ -739,14 +744,14 @@ paths:
             example: 75
             maximum: 1000
         - name: fields
-          description: 'Image fields (comma separated) that will appear in the search result. If not specified, only the image ID will be provided per image. Available fields are: id, src, height, width, headline, caption, keywords, date, author, location, city, country, medium, technique, n_faces.'
+          description: 'Image fields (comma separated) that will appear in the search result. If not specified, only the image ID will be provided per image. Available fields are: id, src, height, width, headline, caption, keywords, date, author, location, city, country, medium, technique, status, n_faces.'
           in: query
           schema:
             type: string
             example: 'id, headline, keywords, height, width'
             default: id
         - name: facets
-          description: 'Faceted Search. Facets (comma separated) that will appear in the search result. 20 is the defualt max number of options per facet. Available facets are: keywords, author, location, city, country, medium, technique.'
+          description: 'Faceted Search. Facets (comma separated) that will appear in the search result. 20 is the defualt max number of options per facet. Available facets are: keywords, author, location, city, country, medium, technique, status.'
           in: query
           schema:
             type: string
