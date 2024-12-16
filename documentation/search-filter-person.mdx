@@ -40,9 +40,9 @@ The first step is to upload an image using the `/query_files` endpoint. If an im
 {
   "img_ref": 10405030202,
   "faces": [
-    [0.4, 0.2, 0.8, 0.4], // face 1
+    [0.4, 0.2, 0.8, 0.4], // face 0
+    [0.1, 0.2, 0.3, 0.4], // face 1
     [0.1, 0.2, 0.3, 0.4], // face 2
-    [0.1, 0.2, 0.3, 0.4], // face 3
   ]
 }
 ```
@@ -63,10 +63,10 @@ p~<image reference>_<face number>
 p~<image reference>_<face number>[ <optional subfilters> ]
 ```
 
-- `p~10405030202_1` Filter images that contains the first (bigger) face of image 10405030202
-- `p~10405030202_2` Filter images that contains the second face of image 10405030202
-- `p~10405030202_3` Filter images that contains the thrird face of image 10405030202
-- `p~10405030202_1 && p~10405030202_3` Filter images that contains both face 1 and 3 of image 10405030202
+- `p~10405030202_0` Filter images that contains the first (bigger) face of image 10405030202
+- `p~10405030202_1` Filter images that contains the second face of image 10405030202
+- `p~10405030202_2` Filter images that contains the thrird face of image 10405030202
+- `p~10405030202_0 && p~10405030202_2` Filter images that contains both face 1 and 3 of image 10405030202
 - `p~10405030202_1 && p~123456789_4` Filter images that contains both faces of different uploaded images.
 
 
