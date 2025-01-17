@@ -114,7 +114,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/param_wait'
         - $ref: '#/components/parameters/param_all'
-        - $ref: '#/components/parameters/param_strict'
+        - $ref: '#/components/parameters/param_strict_post'
         - $ref: '#/components/parameters/param_urgent'
       requestBody:
         description: 'List of image objects. For each image object, the `id` and `src` fields are required, while the other fields are optional.'
@@ -294,7 +294,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/param_wait'
         - $ref: '#/components/parameters/param_all'
-        - $ref: '#/components/parameters/param_strict'
+        - $ref: '#/components/parameters/param_strict_put'
         - $ref: '#/components/parameters/param_urgent'
       requestBody:
         description: 'List of image objects. For each image object, the `id` field is required, while the other fields are optional.'
@@ -442,7 +442,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/param_wait'
         - $ref: '#/components/parameters/param_all'
-        - $ref: '#/components/parameters/param_strict'
+        - $ref: '#/components/parameters/param_strict_delete'
         - $ref: '#/components/parameters/param_urgent'
       responses:
         '204':
@@ -875,30 +875,85 @@ components:
   parameters:
     param_wait:
       name: wait
-      description: Syncronous mode. The system will wait until the image upload is completed before sending a response (not recommended for a large amount of images).
+      description: >
+        Enables 'Synchronous' mode. When set to true, the system will
+        wait until the operation is completed before sending a response.
+        If set to false, 'Asynchronous' mode is enabled, meaning an
+        immediate response will be returned containing the operation ID
+        to track the status of the operation. Defaults to false.
       in: query
       required: false
+      default: false
       schema:
         type: boolean
     param_all:
       name: all
-      description: All or nothing mode.
+      description: >
+        Enables 'All or Nothing' mode. When set to true, the operation
+        will only succeed if all items are successfully saved.
+        If set to false, the operation may still succeed and save some items
+        even if others fail to save. Defaults to false.
       in: query
       required: false
+      default: false
       schema:
         type: boolean
-    param_strict:
+    param_strict_post:
       name: strict
-      description: Strict mode.
+      description: >
+        Enables 'Strict' mode for Insert Operations.
+        When set to true, the operation strictly performs an insert operation;
+        it will fail if an image with the same ID already exists in the database.
+        If set to false, the operation is more flexible, allowing
+        for the overwrite of an existing image with the same ID.
+        This flexible operation is referred to as an 'Upsert' (insert or update).
+        Defaults to false.
       in: query
       required: false
+      default: false
+      schema:
+        type: boolean
+    param_strict_put:
+      name: strict
+      description: >
+        Enables 'Strict' mode for Update Operations.
+        When set to true, the operation strictly performs an update operation;
+        it will fail if the specified image ID does not exist in the database.
+        If set to false, the operation is more flexible, allowing for the
+        creation of a new image if the specified ID does not already exist.
+        This flexible operation is referred to as an 'Upsert' (insert or update).
+        Defaults to false.
+      in: query
+      required: false
+      default: false
+      schema:
+        type: boolean
+    param_strict_delete:
+      name: strict
+      description: >
+        Enables 'Strict' mode for Delete Operations.
+        When set to true, the deletion will only proceed
+        if the specified image ID exists in the database;
+        it will fail if the ID does not exist.
+        If set to false, the operation is more tolerant,
+        and the deletion request will not fail even if the image ID does not exist,
+        effectively ignoring the absence of the specified ID. Defaults to false.
+      in: query
+      required: false
+      default: false
       schema:
         type: boolean
     param_urgent:
       name: urgent
-      description: Urgent mode.
+      description: >
+        Enables 'Faster' mode for Asynchronous Operations.
+        When set to true, the operation is enqueued at the head of the pending task queue,
+        allowing for sooner processing if many tasks were enqueued previously.
+        If set to false, the operation is enqueued at the tail,
+        maintaining the natural order of operations. Defaults to false.
       in: query
       required: false
+      default: false
       schema:
         type: boolean
   schemas:
