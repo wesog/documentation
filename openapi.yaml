@@ -112,19 +112,10 @@ paths:
       security:
         - API-WESOG-SEARCH: []
       parameters:
-        - name: mode
-          in: query
-          description: |-
-            Upload new images in synchronous or asynchronously mode.
-            - `sync` mode: The system will wait until the image upload is completed before sending a response.
-            - `async` mode: The system will immediately return a response with an operation id and continue the image upload in the background. The operation id can be used later for tracking the upload process.
-          required: false
-          schema:
-            type: string
-            enum:
-              - sync
-              - async
-            default: sync
+        - $ref: '#/components/parameters/param_wait'
+        - $ref: '#/components/parameters/param_all'
+        - $ref: '#/components/parameters/param_strict'
+        - $ref: '#/components/parameters/param_urgent'
       requestBody:
         description: 'List of image objects. For each image object, the `id` and `src` fields are required, while the other fields are optional.'
         required: true
@@ -301,16 +292,10 @@ paths:
       security:
         - API-WESOG-SEARCH: []
       parameters:
-        - name: mode
-          in: query
-          required: false
-          schema:
-            type: string
-            default: sync
-            enum:
-              - sync
-              - async
-          description: 'Update existing images in synchronous or asynchronously mode.- `sync` mode: The system will wait until the image upload is completed before sending a response.- `async` mode: The system will immediately return a response with an operation id and continue the image upload in the background. The operation id can be used later for tracking the upload process.'
+        - $ref: '#/components/parameters/param_wait'
+        - $ref: '#/components/parameters/param_all'
+        - $ref: '#/components/parameters/param_strict'
+        - $ref: '#/components/parameters/param_urgent'
       requestBody:
         description: 'List of image objects. For each image object, the `id` field is required, while the other fields are optional.'
         content:
@@ -451,8 +436,14 @@ paths:
     delete:
       tags:
         - Manage your images
-      summary: Delete existing images
       operationId: deleteExistingImages
+      summary: Delete existing images
+      description: Endpoint for erase existing images already uploaded before.
+      parameters:
+        - $ref: '#/components/parameters/param_wait'
+        - $ref: '#/components/parameters/param_all'
+        - $ref: '#/components/parameters/param_strict'
+        - $ref: '#/components/parameters/param_urgent'
       responses:
         '204':
           description: No Content - Resource successfully deleted
@@ -512,17 +503,6 @@ paths:
                 $ref: '#/components/schemas/RESP_500'
       security:
         - API-WESOG-SEARCH: []
-      description: Endpoint for erase existing images already uploaded before.
-      parameters:
-        - schema:
-            type: string
-            default: sync
-            enum:
-              - sync
-              - async
-          in: query
-          name: mode
-          description: 'Delete existing images in synchronous or asynchronously mode.- `sync` mode: The system will wait until the image upload is completed before sending a response.- `async` mode: The system will immediately return a response with an operation id and continue the image upload in the background. The operation id can be used later for tracking the upload process.'
       requestBody:
         description: ''
         content:
@@ -892,6 +872,35 @@ components:
       type: apiKey
       name: api-key
       in: header
+  parameters:
+    param_wait:
+      name: wait
+      description: Syncronous mode. The system will wait until the image upload is completed before sending a response (not recommended for a large amount of images).
+      in: query
+      required: false
+      schema:
+        type: boolean
+    param_all:
+      name: all
+      description: All or nothing mode.
+      in: query
+      required: false
+      schema:
+        type: boolean
+    param_strict:
+      name: strict
+      description: Strict mode.
+      in: query
+      required: false
+      schema:
+        type: boolean
+    param_urgent:
+      name: urgent
+      description: Urgent mode.
+      in: query
+      required: false
+      schema:
+        type: boolean
   schemas:
     IMAGE:
       type: object
