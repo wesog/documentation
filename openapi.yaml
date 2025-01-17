@@ -104,9 +104,9 @@ paths:
       security:
         - API-WESOG-SEARCH: []
     post:
+      operationId: uploadNewImages
       summary: Upload new images
       description: Endpoint for insert new images inside Wesog Search.
-      operationId: uploadNewImages
       tags:
         - Manage your images
       security:
@@ -284,9 +284,9 @@ paths:
                   - message
                   - status
     put:
+      operationId: updateExistingImages
       summary: Update existing images
       description: Endpoint for modify existing images already uploaded before.
-      operationId: updateExistingImages
       tags:
         - Manage your images
       security:
@@ -598,11 +598,11 @@ paths:
         - API-WESOG-SEARCH: []
   '/ops/{op_id}':
     get:
-      tags:
-        - Manage your images
+      operationId: getStatusOfAnAsyncOperation
       summary: Get status of an async operation
       description: Get status of an asyncronous operations.
-      operationId: getStatusOfAnAsyncOperation
+      tags:
+        - Manage your images
       parameters:
         - name: op_id
           description: Operation ID
@@ -678,39 +678,11 @@ paths:
     parameters: []
   /search:
     get:
+      operationId: search
       summary: Search for images
+      description: 'Search for images with filters, sorting and pagination.'
       tags:
         - Search your images
-      responses:
-        '200':
-          description: OK - Successful search with content
-          content:
-            application/json:
-              schema:
-                type: object
-                title: SearchForImagesOk
-                properties:
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                  num_images:
-                    type: integer
-                  facets:
-                    type: object
-        '204':
-          description: OK - Successful search without content
-        '400':
-          description: Bad Request - Invalid query parameters
-        '401':
-          description: Unauthorized - Authentication required
-        '403':
-          description: Forbidden - Authenticated but not authorized
-      operationId: search
-      description: 'Search for images with filters, sorting and pagination.'
       parameters:
         - name: q
           description: 'Query Filtering Formula. See Filters section in the documentation API guide to learn more abot the Query Filtering Formula syntax.'
@@ -806,10 +778,36 @@ paths:
               - pt
               - it
               - fr
+      responses:
+        '200':
+          description: OK - Successful search with content
+          content:
+            application/json:
+              schema:
+                type: object
+                title: SearchForImagesOk
+                properties:
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                  num_images:
+                    type: integer
+                  facets:
+                    type: object
+        '204':
+          description: OK - Successful search without content
+        '400':
+          description: Bad Request - Invalid query parameters
+        '401':
+          description: Unauthorized - Authentication required
+        '403':
+          description: Forbidden - Authenticated but not authorized
   /query_img:
     post:
-      tags:
-        - Search your images
       operationId: uploadQuryImg
       summary: Upload query images
       description: |
@@ -817,6 +815,8 @@ paths:
         the response return both:
         - `image_hash` Identifier for reference that image later in the `GET /imgs` to perform a reverse image search (2nd step).
         - `faces`: Face coordinates detected on the uploaded photo.
+      tags:
+        - Search your images
       requestBody:
         content:
           multipart/form-data:
@@ -883,7 +883,6 @@ components:
         to track the status of the operation. Defaults to false.
       in: query
       required: false
-      default: false
       schema:
         type: boolean
     param_all:
@@ -895,7 +894,6 @@ components:
         even if others fail to save. Defaults to false.
       in: query
       required: false
-      default: false
       schema:
         type: boolean
     param_strict_post:
@@ -910,7 +908,6 @@ components:
         Defaults to false.
       in: query
       required: false
-      default: false
       schema:
         type: boolean
     param_strict_put:
@@ -925,7 +922,6 @@ components:
         Defaults to false.
       in: query
       required: false
-      default: false
       schema:
         type: boolean
     param_strict_delete:
@@ -940,7 +936,6 @@ components:
         effectively ignoring the absence of the specified ID. Defaults to false.
       in: query
       required: false
-      default: false
       schema:
         type: boolean
     param_urgent:
@@ -953,7 +948,6 @@ components:
         maintaining the natural order of operations. Defaults to false.
       in: query
       required: false
-      default: false
       schema:
         type: boolean
   schemas:
