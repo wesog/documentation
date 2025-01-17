@@ -32,6 +32,77 @@ servers:
     description: Wesog Search Server
 paths:
   /imgs:
+    get:
+      operationId: getImages
+      summary: Get saved images
+      description: Get saved images information.
+      tags:
+        - Manage your images
+      responses:
+        '200':
+          description: OK - Successful request with response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IMAGE'
+        '400':
+          description: Bad Request - Invalid query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                title: GetStatusOfAnAsyncOperationBadRequest
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_401'
+        '403':
+          description: Forbidden - Authenticated but not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_403'
+        '404':
+          description: Not Found - Resource doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_404'
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_500'
+      security:
+        - API-WESOG-SEARCH: []
     post:
       summary: Upload new images
       description: Endpoint for insert new images inside Wesog Search.
@@ -62,54 +133,10 @@ paths:
             schema:
               type: array
               items:
-                type: object
+                $ref: '#/components/schemas/IMAGE'
                 required:
                   - id
                   - src
-                properties:
-                  id:
-                    anyOf:
-                      - type: string
-                      - type: number
-                    description: Unique identifier of the image
-                  src:
-                    type: string
-                    description: Url of the image
-                  headline:
-                    type: string
-                    description: Short text describing the image
-                  caption:
-                    type: string
-                    description: Long text describing the image
-                  keywords:
-                    anyOf:
-                      - type: string
-                        description: string of keywords separated with ;
-                      - type: array
-                        items:
-                          type: string
-                    description: |-
-                      Keywords (tags) describing the image.
-                      If string is used (instead of array of strings) keywords must be separated with ;
-                  date:
-                    type: string
-                    format: date
-                    example: '2024-10-19'
-                    description: date in year-month-day format
-                  location:
-                    type: string
-                  city:
-                    type: string
-                  country:
-                    type: string
-                  medium:
-                    type: string
-                  technique:
-                    type: string
-                  author:
-                    type: string
-                  status:
-                    type: string
       responses:
         '201':
           description: Created - Resource successfully created
@@ -291,53 +318,9 @@ paths:
             schema:
               type: array
               items:
-                type: object
+                $ref: '#/components/schemas/IMAGE'
                 required:
                   - id
-                properties:
-                  id:
-                    description: Unique identifier of the image
-                    anyOf:
-                      - type: string
-                      - type: number
-                  src:
-                    type: string
-                    description: Url of the image
-                  headline:
-                    type: string
-                    description: Short text describing the image
-                  caption:
-                    type: string
-                    description: Long text describing the image
-                  keywords:
-                    anyOf:
-                      - type: string
-                        description: string of keywords separated with ;
-                      - type: array
-                        items:
-                          type: string
-                    description: |-
-                      Keywords (tags) describing the image.
-                      If string is used (instead of array of strings) keywords must be separated with ;
-                  date:
-                    type: string
-                    format: date
-                    example: '2024-10-19'
-                    description: date in year-month-day format
-                  location:
-                    type: string
-                  city:
-                    type: string
-                  country:
-                    type: string
-                  medium:
-                    type: string
-                  technique:
-                    type: string
-                  author:
-                    type: string
-                  status:
-                    type: string
       responses:
         '200':
           description: OK - Resource successfully updated
@@ -556,11 +539,89 @@ paths:
                     anyOf:
                       - type: string
                       - type: number
+  '/imgs/{img_id}':
+    get:
+      operationId: getImageInfo
+      summary: Get fields of an image.
+      description: Get saved fields of a given image by id.
+      tags:
+        - Manage your images
+      parameters:
+        - name: img_id
+          description: Image ID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK - Successful request with response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IMAGE'
+        '400':
+          description: Bad Request - Invalid query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                title: GetStatusOfAnAsyncOperationBadRequest
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_401'
+        '403':
+          description: Forbidden - Authenticated but not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_403'
+        '404':
+          description: Not Found - Resource doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_404'
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_500'
+      security:
+        - API-WESOG-SEARCH: []
   '/ops/{op_id}':
     get:
       tags:
         - Manage your images
       summary: Get status of an async operation
+      description: Get status of an asyncronous operations.
       operationId: getStatusOfAnAsyncOperation
       parameters:
         - name: op_id
@@ -575,19 +636,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: GetStatusOfAnAsyncOperationOk
-                properties:
-                  data:
-                    type: object
-                  status:
-                    type: string
-                    enum:
-                      - success
-                    default: success
-                required:
-                  - data
-                  - status
+                $ref: '#/components/schemas/OPERATION'
         '204':
           description: No Content - Successful request with no response body
         '400':
@@ -646,7 +695,6 @@ paths:
                 $ref: '#/components/schemas/RESP_500'
       security:
         - API-WESOG-SEARCH: []
-      description: Get status of an asyncronous operations.
     parameters: []
   /search:
     get:
@@ -782,6 +830,7 @@ paths:
     post:
       tags:
         - Search your images
+      operationId: uploadQuryImg
       summary: Upload query images
       description: |
         1st step of reverse image search. After uploading the image file into the HTTP body on request,
@@ -819,8 +868,6 @@ paths:
           description: Error in file upload
       security:
         - API-WESOG-SEARCH: []
-      operationId: uploadQuryImg
-    parameters: []
 tags:
   - name: Manage your images
     description: |
@@ -846,6 +893,93 @@ components:
       name: api-key
       in: header
   schemas:
+    IMAGE:
+      type: object
+      properties:
+        id:
+          anyOf:
+            - type: string
+            - type: number
+          description: Unique identifier of the image
+        src:
+          type: string
+          description: Url of the image
+        headline:
+          type: string
+          description: Short text describing the image
+        caption:
+          type: string
+          description: Long text describing the image
+        keywords:
+          anyOf:
+            - type: string
+              description: string of keywords separated with ;
+            - type: array
+              items:
+                type: string
+          description: |-
+            Keywords (tags) describing the image.
+            If string is used (instead of array of strings) keywords must be separated with ;
+        date:
+          type: string
+          format: date
+          example: '2024-10-19'
+          description: date in year-month-day format
+        location:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        medium:
+          type: string
+        technique:
+          type: string
+        author:
+          type: string
+        status:
+          type: string
+    OPERATION:
+      type: object
+      title: GetStatusOfAnAsyncOperationOk
+      properties:
+        id:
+          type: number
+        type:
+          type: string
+          enum:
+            - add
+            - upd
+            - del
+            - multiple
+        num_total:
+          type: number
+        num_processed:
+          type: number
+        num_saved:
+          type: number
+        do_wait:
+          type: boolean
+        do_urgent:
+          type: boolean
+        do_all:
+          type: boolean
+        do_strict:
+          type: boolean
+        finished:
+          type: boolean
+        all_saved:
+          type: boolean
+        date_created:
+          type: string
+          format: date
+        date_finished:
+          type: string
+          format: date
+        errors:
+          type: array
+          items:
+            type: string
     RESP_401:
       type: object
       properties:
