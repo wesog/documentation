@@ -1000,17 +1000,6 @@ components:
             - type: string
               description: The name of the provider.
               example: "Acme Inc."
-        collection:
-          description: A list of collections that the image belongs to, identified by either collection IDs or names.
-          type: array
-            items:
-              anyOf:
-                - type: number
-                  description: The unique identifier for the collection.
-                  example: 101
-                - type: string
-                  description: The name of the collection.
-                  example: Street pics
         country:
           description: The name of the country.
           type: string
@@ -1033,16 +1022,26 @@ components:
           example: Drawing
         #### MULTICATEGORICAL FIELDS
         keywords:
+          description: |-
+            Keywords (tags) describing the image.
+            If string is used (instead of array of strings) keywords must be separated with ;
           anyOf:
             - type: string
               description: string of keywords separated with ;
             - type: array
               items:
                 type: string
-          description: |-
-            Keywords (tags) describing the image.
-            If string is used (instead of array of strings) keywords must be separated with ;
-
+        collections:
+          description: A list of collections that the image belongs to, identified by either collection IDs or names.
+          type: array
+          items:
+            anyOf:
+              - type: number
+                description: The unique identifier for the collection.
+                example: 101
+              - type: string
+                description: The name of the collection.
+                example: Street pics
     OPERATION:
       type: object
       title: GetStatusOfAnAsyncOperationOk
