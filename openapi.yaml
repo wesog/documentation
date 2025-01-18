@@ -527,7 +527,7 @@ paths:
   '/imgs/{img_id}':
     get:
       operationId: getImage
-      summary: Get fields of an image.
+      summary: Get 1 image
       description: Get saved fields of a given image by id.
       tags:
         - Manage your images
@@ -607,7 +607,7 @@ paths:
   '/ops':
     get:
       operationId: getOperations
-      summary: Get operations
+      summary: Get N operations
       description: Get information of many operations.
       tags:
         - Keep track of your operations
@@ -683,8 +683,8 @@ paths:
   '/ops/{op_id}':
     get:
       operationId: getOperation
-      summary: Get status of an async operation
-      description: Get status of an asyncronous operations.
+      summary: Get 1 operation
+      description: Get information of one operation.
       tags:
         - Keep track of your operations
       security:
@@ -763,7 +763,7 @@ paths:
     get:
       operationId: search
       summary: Search for images
-      description: 'Search for images with filters, sorting and pagination.'
+      description: Search for images with filters, sorting and pagination.
       tags:
         - Search your images
       parameters:
