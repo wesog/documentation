@@ -31,6 +31,8 @@ servers:
   - url: 'https://search.wesog.com/api/v1'
     description: Wesog Search Server
 paths:
+
+  ################################################## /imgs
   /imgs:
     get:
       operationId: getImages
@@ -104,7 +106,7 @@ paths:
       security:
         - API-WESOG-SEARCH: []
     post:
-      operationId: uploadNewImages
+      operationId: postImages
       summary: Upload new images
       description: Endpoint for insert new images inside Wesog Search.
       tags:
@@ -284,7 +286,7 @@ paths:
                   - message
                   - status
     put:
-      operationId: updateExistingImages
+      operationId: putImages
       summary: Update existing images
       description: Endpoint for modify existing images already uploaded before.
       tags:
@@ -434,11 +436,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/RESP_500'
     delete:
-      tags:
-        - Manage your images
-      operationId: deleteExistingImages
+      operationId: deleteImages
       summary: Delete existing images
       description: Endpoint for erase existing images already uploaded before.
+      tags:
+        - Manage your images
       parameters:
         - $ref: '#/components/parameters/param_wait'
         - $ref: '#/components/parameters/param_all'
@@ -519,9 +521,12 @@ paths:
                     anyOf:
                       - type: string
                       - type: number
+
+
+  ################################################## /imgs/{img_id}
   '/imgs/{img_id}':
     get:
-      operationId: getImageInfo
+      operationId: getImage
       summary: Get fields of an image.
       description: Get saved fields of a given image by id.
       tags:
@@ -596,13 +601,94 @@ paths:
                 $ref: '#/components/schemas/RESP_500'
       security:
         - API-WESOG-SEARCH: []
+
+
+  ################################################## /ops
+  '/ops':
+    get:
+      operationId: getOperations
+      summary: Get operations
+      description: Get information of many operations.
+      tags:
+        - Keep track of your operations
+      security:
+        - API-WESOG-SEARCH: []
+      responses:
+        '200':
+          description: OK - Successful request with response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OPERATION'
+        '204':
+          description: No Content - Successful request with no response body
+        '400':
+          description: Bad Request - Invalid query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                title: GetStatusOfAnAsyncOperationBadRequest
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - field
+                        - message
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - error
+                    default: error
+                required:
+                  - message
+                  - status
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_401'
+        '403':
+          description: Forbidden - Authenticated but not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_403'
+        '404':
+          description: Not Found - Resource doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_404'
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RESP_500'
+
+  ################################################## /ops/{op_id}
   '/ops/{op_id}':
     get:
-      operationId: getStatusOfAnAsyncOperation
+      operationId: getOperation
       summary: Get status of an async operation
       description: Get status of an asyncronous operations.
       tags:
-        - Manage your images
+        - Keep track of your operations
+      security:
+        - API-WESOG-SEARCH: []
       parameters:
         - name: op_id
           description: Operation ID
@@ -673,9 +759,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RESP_500'
-      security:
-        - API-WESOG-SEARCH: []
-    parameters: []
   /search:
     get:
       operationId: search
@@ -808,7 +891,7 @@ paths:
           description: Forbidden - Authenticated but not authorized
   /query_img:
     post:
-      operationId: uploadQuryImg
+      operationId: uploadQueryImg
       summary: Upload query images
       description: |
         1st step of reverse image search. After uploading the image file into the HTTP body on request,
@@ -855,10 +938,10 @@ tags:
       - **Upload** new images: `POST /imgs`
       - **Update** existing images: `PUT /imgs`
       - **Delete** images: `DELETE /imgs`
-
-      All operations can be performed synchronously or asynchronously.
-      In asynchronous mode, you receive an operation ID immediately, and the process runs in the background.
-      - **Track async** operation status: `GET /ops/{op_id}`
+  - name: Keep track of your operations
+    description: |
+      Operations refer to tasks that run in the background, such as saving multiple images.
+      These operations can be monitored to determine whether they are still in progress or have been completed.
   - name: Search your images
     description: |
       After uploading images, you can start performing search queries. Wesog Search offers a single endpoint for all types of queries:
