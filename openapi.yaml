@@ -954,20 +954,84 @@ components:
     IMAGE:
       type: object
       properties:
+        #### SPECIAL FIELDS
         id:
+          description: Unique identifier of the image.
           anyOf:
             - type: string
             - type: number
-          description: Unique identifier of the image
         src:
+          description: Url of the image.
           type: string
-          description: Url of the image
+          format: uri
+        #### TEXTUAL FIELDS
         headline:
+          description: Short text describing the image.
           type: string
-          description: Short text describing the image
         caption:
+          description: Long text describing the image.
           type: string
-          description: Long text describing the image
+        #### DATE FIELDS
+        date:
+          description: Date of the image creation in year-month-day format. Capture date for photographies.
+          type: string
+          format: date
+          example: '2024-10-19'
+        #### CATEGORICAL FIELDS
+        status:
+          description: Current status of the image. Default 'Active' if not specified.
+          type: string
+          enum:
+            - Active
+            - Withdrawn
+            - Reserved
+            - RDA Only
+          default: Active
+        author:
+          description: The name of the individual or entity responsible for creating the image, such as a photographer or painter.
+          type: string
+          example: Jane Doe
+        provider:
+          description: The identifier of the provider, which can be either a unique numeric ID or a descriptive name.
+          anyOf:
+            - type: number
+              description: The unique numeric ID of the provider.
+              example: 456
+            - type: string
+              description: The name of the provider.
+              example: "Acme Inc."
+        collection:
+          description: A list of collections that the image belongs to, identified by either collection IDs or names.
+          type: array
+            items:
+              anyOf:
+                - type: number
+                  description: The unique identifier for the collection.
+                  example: 101
+                - type: string
+                  description: The name of the collection.
+                  example: Street pics
+        country:
+          description: The name of the country.
+          type: string
+          example: United States
+        city:
+          description: The name of the city.
+          type: string
+          example: New York
+        location:
+          description: A detailed description of the location, complementing the specified country and city with additional details such as street address or notable landmarks.
+          type: string
+          example: 123 Main St, near Central Park
+        medium:
+          description: The material or substance used in the creation of the artwork or object. This field corresponds to various artistic mediums like oils, acrylics, or digital formats.
+          type: string
+          example: Oil on canvas
+        technique:
+          description: The specific method or process used in creating the artwork, reflecting the artist's unique approach or the traditional methods tied to certain mediums.
+          type: string
+          example: Drawing
+        #### MULTICATEGORICAL FIELDS
         keywords:
           anyOf:
             - type: string
@@ -978,25 +1042,7 @@ components:
           description: |-
             Keywords (tags) describing the image.
             If string is used (instead of array of strings) keywords must be separated with ;
-        date:
-          type: string
-          format: date
-          example: '2024-10-19'
-          description: date in year-month-day format
-        location:
-          type: string
-        city:
-          type: string
-        country:
-          type: string
-        medium:
-          type: string
-        technique:
-          type: string
-        author:
-          type: string
-        status:
-          type: string
+
     OPERATION:
       type: object
       title: GetStatusOfAnAsyncOperationOk
