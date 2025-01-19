@@ -136,40 +136,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: UploadNewImagesCreated
-                properties:
-                  data:
-                    type: object
-                  status:
-                    type: string
-                    enum:
-                      - success
-                    default: success
-                required:
-                  - data
-                  - status
+                $ref: '#/components/schemas/OPERATION'
         '202':
           description: Accepted - Request accepted for processing
           content:
             application/json:
               schema:
-                type: object
-                title: UploadNewImagesAccepted
-                properties:
-                  message:
-                    type: string
-                    enum:
-                      - Accepted
-                    default: Accepted
-                  status:
-                    type: string
-                    enum:
-                      - success
-                    default: success
-                required:
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK'
         '400':
           description: Bad Request - Invalid request body
           content:
@@ -314,21 +287,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                title: UpdateExistingImagesOk
-                properties:
-                  data:
-                    type: object
-                  status:
-                    type: string
-                    enum:
-                      - success
-                    default: success
-                required:
-                  - data
-                  - status
-        '204':
-          description: No Content - Successful update with no response body
+                $ref: '#/components/schemas/OPERATION'
+        '202':
+          description: Accepted - Request accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PENDING_TASK'
         '400':
           description: Bad Request - Invalid request body
           content:
@@ -447,8 +412,18 @@ paths:
         - $ref: '#/components/parameters/param_strict_delete'
         - $ref: '#/components/parameters/param_urgent'
       responses:
-        '204':
-          description: No Content - Resource successfully deleted
+        '200':
+          description: OK - Resource successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OPERATION'
+        '202':
+          description: Accepted - Request accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PENDING_TASK'
         '400':
           description: Bad Request - Invalid request
           content:
@@ -959,11 +934,18 @@ components:
     param_wait:
       name: wait
       description: >
-        Enables 'Synchronous' mode. When set to true, the system will
+        Enables 'Synchronous' mode.
+
+        When set to true, the system will
         wait until the operation is completed before sending a response.
+        If the request is correct, the response status code
+        will be 202: Accepted - Request accepted for processing.
+
         If set to false, 'Asynchronous' mode is enabled, meaning an
         immediate response will be returned containing the operation ID
-        to track the status of the operation. Defaults to false.
+        to track the status of the operation.
+
+        Defaults to false.
       in: query
       required: false
       schema:
@@ -1125,6 +1107,18 @@ components:
               - type: string
                 description: The name of the collection.
                 example: Street pics
+    PENDING_TASK:
+      type: object
+      title: PendingTask
+      properties:
+        operation_id:
+          type: number
+        number_of_items:
+          type: number
+        success:
+          type: boolean
+        message:
+          type: string
     OPERATION:
       type: object
       title: GetStatusOfAnAsyncOperationOk
