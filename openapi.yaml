@@ -1058,13 +1058,9 @@ components:
           example: Jane Doe
         provider:
           description: The identifier of the provider, which can be either a unique numeric ID or a descriptive name.
-          anyOf:
-            - type: number
-              description: The unique numeric ID of the provider.
-              example: 456
-            - type: string
-              description: The name of the provider.
-              example: "Acme Inc."
+          type: string
+          description: The name of the provider.
+          example: "Acme Inc."
         country:
           description: The name of the country.
           type: string
@@ -1100,13 +1096,9 @@ components:
           description: A list of collections that the image belongs to, identified by either collection IDs or names.
           type: array
           items:
-            anyOf:
-              - type: number
-                description: The unique identifier for the collection.
-                example: 101
-              - type: string
-                description: The name of the collection.
-                example: Street pics
+            type: string
+            description: The name of the collection.
+            example: Street pics
     PENDING_TASK:
       type: object
       title: PendingTask
