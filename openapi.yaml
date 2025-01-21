@@ -142,122 +142,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PENDING_TASK'
+                $ref: '#/components/schemas/PENDING_TASK_OK'
         '400':
           description: Bad Request - Invalid request body
           content:
             application/json:
               schema:
-                type: object
-                title: UploadNewImagesBadRequest
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '401':
           description: Unauthorized - Authentication required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_401'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '403':
           description: Forbidden - Authenticated but not authorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_403'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '409':
           description: Conflict - Resource already exists
           content:
             application/json:
               schema:
-                type: object
-                title: UploadNewImagesConflict
-                properties:
-                  message:
-                    type: string
-                    enum:
-                      - Conflict
-                    default: Conflict
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '422':
           description: Unprocessable Entity - Validation errors
           content:
             application/json:
               schema:
-                type: object
-                title: UploadNewImagesUnprocessableEntity
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - errors
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '500':
           description: Internal Server Error - Unexpected server error
           content:
             application/json:
               schema:
-                type: object
-                title: UploadNewImagesInternalServerError
-                properties:
-                  message:
-                    type: string
-                    enum:
-                      - Internal Server Error
-                    default: Internal Server Error
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
     put:
       operationId: putImages
       summary: Update existing images
@@ -293,113 +214,49 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PENDING_TASK'
+                $ref: '#/components/schemas/PENDING_TASK_OK'
         '400':
           description: Bad Request - Invalid request body
           content:
             application/json:
               schema:
-                type: object
-                title: UpdateExistingImagesBadRequest
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '401':
           description: Unauthorized - Authentication required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_401'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '403':
           description: Forbidden - Authenticated but not authorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_403'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '404':
           description: Not Found - Resource doesn't exist
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_404'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '409':
-          description: Conflict - Version conflict
+          description: Conflict - Resource does not exist
           content:
             application/json:
               schema:
-                type: object
-                title: UpdateExistingImagesConflict
-                properties:
-                  message:
-                    type: string
-                    enum:
-                      - Conflict
-                    default: Conflict
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '422':
           description: Unprocessable Entity - Validation errors
           content:
             application/json:
               schema:
-                type: object
-                title: UpdateExistingImagesUnprocessableEntity
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - errors
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '500':
           description: Internal Server Error - Unexpected server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_500'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
     delete:
       operationId: deleteImages
       summary: Delete existing images
@@ -423,61 +280,37 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PENDING_TASK'
+                $ref: '#/components/schemas/PENDING_TASK_OK'
         '400':
           description: Bad Request - Invalid request
           content:
             application/json:
               schema:
-                type: object
-                title: DeleteExistingImagesBadRequest
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '401':
           description: Unauthorized - Authentication required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_401'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '403':
           description: Forbidden - Authenticated but not authorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_403'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '404':
           description: Not Found - Resource doesn't exist
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_404'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
         '500':
           description: Internal Server Error - Unexpected server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RESP_500'
+                $ref: '#/components/schemas/PENDING_TASK_ERROR'
       security:
         - API-WESOG-SEARCH: []
       requestBody:
@@ -1127,18 +960,46 @@ components:
             type: string
             description: The name of the collection.
             example: Street pics
-    PENDING_TASK:
+    PENDING_TASK_OK:
       type: object
-      title: PendingTask
+      title: PendingTaskOk
       properties:
         operation_id:
           type: number
+          description: Operation ID if the operation is submitted, -1 if the operation is rejected.
+          example: 123
         number_of_items:
           type: number
+          description: Number of items queued waiting to be processed.
+          example: 1000
         success:
           type: boolean
+          description: True if the operation is submitted, false if the operation is rejected.
+          example: true
         message:
           type: string
+          description: "\"\" if the operation is submitted, false if the operation is rejected."
+          example: ""
+    PENDING_TASK_ERROR:
+      type: object
+      title: PendingTaskError
+      properties:
+        operation_id:
+          type: number
+          description: Operation ID if the operation is submitted, -1 if the operation is rejected.
+          example: -1
+        number_of_items:
+          type: number
+          description: Number of items queued waiting to be processed.
+          example: 0
+        success:
+          type: boolean
+          description: True if the operation is submitted, false if the operation is rejected.
+          example: false
+        message:
+          type: string
+          description: "\"\" if the operation is submitted, false if the operation is rejected."
+          example: "Error message."
     OPERATION:
       type: object
       title: GetStatusOfAnAsyncOperationOk
