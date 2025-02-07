@@ -37,9 +37,28 @@ paths:
     get:
       operationId: getImages
       summary: Get saved images
-      description: Get saved images information.
+      description: Get sorted image ids. Default limit = 1M
       tags:
         - Manage your images
+      parameters:
+        - name: page
+          description: 'Page number. 1 is the first page.'
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+            maximum: 100000
+            example: 1
+          in: query
+        - name: limit
+          description: 'Number of ids per page.'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1000000
+            example: 100000
+            maximum: 10000000
       responses:
         '200':
           description: OK - Successful request with response body
@@ -48,7 +67,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/IMAGE'
+                  $ref: '#/components/schemas/IMAGE_ID'
         '400':
           description: Bad Request - Invalid query parameters
           content:
@@ -849,6 +868,15 @@ components:
       schema:
         type: boolean
   schemas:
+    IMAGE_ID:
+      type: object
+      properties:
+        #### SPECIAL FIELDS
+        id:
+          description: Unique identifier of the image.
+          anyOf:
+            - type: number
+            - type: string
     IMAGE:
       type: object
       properties:
@@ -856,8 +884,8 @@ components:
         id:
           description: Unique identifier of the image.
           anyOf:
-            - type: string
             - type: number
+            - type: string
         src:
           description: Url of the image.
           type: string
