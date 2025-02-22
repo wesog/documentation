@@ -10,6 +10,22 @@ Color value can be a color name or hexadecimal code.
 
 ## Examples
 
-- `c=red`
-- `c=yellow`
-- `c=#32a852`
+| Description                 | Examples                                          |
+|-----------------------------|---------------------------------------------------|
+| Color alias (X11 colors)    | `c=Red` `c=DarkRed` `c=Salmon` `c=DarkOliveGreen` |
+| Hexadecimal color           | `c=#ff0000`, `c=#32a852`                          |
+| Special color compositions  | `c=B&W`                                           |
+| Existing image              | `c=I123`                                          |
+| User-uploaded image         | `c=U123`, `c=U282833`                             |
+| Equally color combinations  | `c=#32a852,#32a852`, `c=Red,DarkRed,#32a852,I123` |
+| weighted color combinations | `c=#32a852 5%, #32a852 95%`                       |
+
+
+
+> ### X11 color names
+> X11 color, also known as Extended HTML colors can be explored in the following links:
+> - https://en.wikipedia.org/wiki/Web_colors#Extended_colors
+> - https://en.wikipedia.org/wiki/X11_color_names
+> - https://www.w3schools.com/cssref/css_colors.php
+> - https://www.w3.org/wiki/CSS3/Color/Extended_color_keywords
+> - https://nameacolor.com/FRONT%20PAGE%20NAMES.htm

@@ -31,14 +31,14 @@ Wesog search supports several filters operators:
   - `<=`: Greater or equal than. Aliases: `=<`, `≤`.
   - `>=`: Less or equal than. Aliases: `=<`, `≥`.
 - Set comparison. 
-  - `∩`: Interection. At least has one of them.
-  - `⊃`: Subset. Must contain all of them.
+  - `=`: Must contain all of them.
+  - `∩`: Must contain at least one of them. (Intersection).
 
 
 #### Filter value
 Each filter has a different format. Here are some examples:
 - Date: `YEAR-MONTH-DAY`. Eg. `d=2005-5-13`
-- Keyword: Comma separated. Eg. `k⊃blue, sky`
+- Keyword: Comma separated. Eg. `k=blue, sky`
 - City: Single string. Eg. `cit=Paris`
 
 
@@ -47,24 +47,36 @@ Each filter has a different format. Here are some examples:
 List of avaliable filters and subfilters along with their prefixes:
 
 
-| Filter            | Available Acronyms     | Available Operators                | Value format    | Subfilters (Not yet implemented) |
-|-------------------|------------------------|------------------------------------|-----------------|---------------------|
-| **T**ext          | `t`, `txt`, `text`     | `~`, `~~`, `~~~`                   | Free text       |                     |
-| **I**mage         | `i`, `img`, `image`    | `=`, `==`, `===`, `~`, `~~`, `~~~` | Image reference | Text modification   |
-| **P**erson        | `p`, `per`, `person`   | `~`, `~~`, `~~~`                   | ImgRef_faceNum  | A lot...            |
-| **D**ate          | `d`, `dat`, `date`     | `=`, `<`, `>`, `<=`, `>=`          | YEAR-MONTH-DAY  |                     |
-| **K**eywords      | `k`, `key`, `keywords` | `=`, `∩`, `⊃`                      | Comma separated |                     |
-| **A**uthor        | `a`, `aut`, `author`   | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   | Gender, Nationality |
-| **L**ocation      | `l`, `loc`, `location` | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
-| Cit**y**          | `y`, `cit`, `city`     | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
-| Co**u**ntry       | `u`, `cou`, `country`  | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
-| **M**edium        | `m`, `med`, `medium`   | `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
-| Techni**q**ue     | `q`, `tec`, `technique`| `=`, `~`, `<`, `>`, `<=`, `>=`     | Single string   |                     |
-| **N**um of people | `n`, `num`, `n_people` | `=`, `<`, `>`, `<=`, `>=`          | Numeric         |                     |
-| Status            | `sta`, `status`        | Not yet implemented                | Single string   |                     |
-| **C**olor         | `c`, `col`, `color`    | Not yet implemented                | Comma separated |                     |
-| Aspect **R**atio  | `r`, `asr`, `ratio`    | Not yet implemented                |                 |                     |
-| type of **S**hot  | `s`, `sht`, `shot`     | Not yet implemented                |                 |                     |
+| Filter                | Available Acronyms     | Available Operators                | Value format    | Examples            |
+|-----------------------|------------------------|------------------------------------|-----------------|---------------------|
+| **T**ext              | `t`, `txt`, `text`     | `~`, `~~`, `~~~`                   | Free text       | `t~a red car`       |
+| **I**mage             | `i`, `img`, `image`    | `=`, `==`, `===`, `~`, `~~`, `~~~` | Image reference | `i~123456`          |
+| **P**erson            | `p`,        `person`   | `~`, `~~`, `~~~`                   | ImgRef_faceNum  | `p=taylor swift`    |
+| **D**ate              | `d`,        `date`     | `=`, `<`, `>`, `<=`, `>=`          | YEAR-MONTH-DAY  | `d>2020-01-01`      |
+| Aspect **R**atio      | `r`,        `ratio`    | `=`, `<`, `>`, `<=`, `>=`          | Numeric         | `r<1.5`             |
+| **N**um of people     | `n`,        `n_people` | `=`, `<`, `>`, `<=`, `>=`          | Numeric         | `n=3`               |
+| **AI** generated      | `ai`                   | `=`                                | Boolean         | `bw=true`           |
+| **B**lack & **W**hite | `bw`                   | `=`                                | Boolean         |                     |
+| **M**odel **R**elease | `mr`                   | `=`                                | Boolean         |                     |
+| **P**roperty **R**elease | `pr`                | `=`                                | Boolean         |                     |
+| **NSFW**              | `nsfw`                 | `=`                                | Boolean         | `nsfw=false`        |
+| **O**rientation       | `o`, `orientation`     | `=`                                | String          | `o=Horizontal`      |
+| Status                | `status`               | `=`                                | String          | `status=Active`     |
+| **A**uthor            | `a`, `author`          | `=`                                | String          |                     |
+| Provider              | `provider`             | `=`                                | String          |                     |
+| Event                 | `e`, `event`           | `=`                                | String          |                     |
+| City                  | `city`                 | `=`                                | String          |                     |
+| Country               | `country`              | `=`                                | String          |                     |
+| **L**ocation          | `l`, `location`        | `=`                                | String          |                     |
+| **S**hot              | `s`, `shot`            | `=`                                | String          |                     |
+| Scene                 | `scene`                | `=`                                | String          |                     |
+| **M**edium level **1**| `m1`                   | `=`                                | String          |                     |
+| **M**edium level **2**| `m2`, `medium`         | `=`                                | String          |                     |
+| **M**edium level **3**| `m3`, `technique`      | `=`                                | String          |                     |
+| **K**eywords          | `k`, `keywords`        | `=`, `∩`                           | Comma separated |                     |
+| Categories            | `categories`           | `=`, `∩`                           | Comma separated |                     |
+| Collections           | `collections`          | `=`, `∩`                           | Comma separated |                     |
+| **C**olor             | `c`, `color`           | `=`                                | Color           | `c=#ff0000`         |
 
 
 **Examples:**
@@ -91,7 +103,7 @@ Some filters (image `i`, person `p`, author `a`) can have subfilters. Subfilter 
 - `p=taylor swift[t=green dress and cowboy boots]` search for pictures of Talyor swift with that clothes.
 - `p=donald trump[k=smiling k=lookingToCamera]` search for pictures of Donald Trump smiling, looking to camera.
 - `p=anyone[a>80]` search for pictures of any celebrity with more than 80 years old.
-- `a=anyone[g=woman & a>70]` search for pictures done by women (women photographer or painters).
+- `a=anyone[g=woman && a>70]` search for pictures done by women (women photographer or painters).
 - `i=1234[t=at winter]`. Considering 1234 the id of a previusly upluaded photo of the stockholm skyline at summer. Ssearch for pictures of Stockholm at Winter
 - ``
 
