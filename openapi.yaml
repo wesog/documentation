@@ -1,24 +1,8 @@
 openapi: 3.0.1
 info:
   version: 1.0.0
-  title: Wesog Search API
-  description: |
-    Welcome to the Wesog Search API documentation!
-    Unleash the full potential of your digital assets with Wesog Search,
-    a tool designed to revolutionize your search capabilities in ways you've never seen before.
-
-    # Getting Started
-
-    The Wesog Search API is organized into two main sections:
-
-    - **[Manage Your Images](/doc/#tag/manage-your-images)**: This section includes all endpoints
-      for uploading, modifying, and deleting your images within Wesog Search.
-      Enhance your visuals with our advanced AI semantics and Celebrity Recognition technology.
-    - **[Search Your Images](/doc/#tag/search-your-images)**: Here, you'll find all the endpoints
-      needed to create a custom search engine. Integrate it seamlessly into your applications
-      to elevate user experience and functionality.
-
-    Dive into our documentation to discover how Wesog Search can transform your image management and retrieval processes.
+  title: Wesog API
+  description: Wesog API documentation
   contact:
     email: javi@wesog.com
     name: Javier Abellán
@@ -28,8 +12,8 @@ info:
     name: Legal
     url: 'https://wesog.com/es/aviso-legal/'
 servers:
-  - url: 'https://search.wesog.com/api/v1'
-    description: Wesog Search Server
+  - url: 'https://api.wesog.com'
+    description: Wesog API
 paths:
 
   ################################################## /imgs
@@ -880,14 +864,23 @@ components:
     IMAGE:
       type: object
       properties:
-        #### SPECIAL FIELDS
+        #### UNIQUE FIELDS
         id:
           description: Unique identifier of the image.
           anyOf:
             - type: number
             - type: string
+        #### URL FIELDS
         src:
-          description: Url of the image.
+          description: Url of the image (used as source for the AI)
+          type: string
+          format: uri
+        url_img_watermark:
+          description: Url of the watermarked image.
+          type: string
+          format: uri
+        url_img_thumbnail:
+          description: Url of the thumbnail image.
           type: string
           format: uri
         #### TEXTUAL FIELDS
