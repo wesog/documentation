@@ -61,6 +61,7 @@
         {
           "group": "Available filters",
           "pages": [
+            "documentation/search-filter-id",
             "documentation/search-filter-person",
             "documentation/search-filter-author",
             "documentation/search-filter-color",
