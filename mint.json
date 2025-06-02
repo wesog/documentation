@@ -31,7 +31,8 @@
     {
       "name": "API Reference",
       "url": "api-reference",
-      "openapi": "/openapi.yaml"
+      "openapi": "https://api.wesog.com/openapi.json" // Docuemntacion autogenerada
+      //"openapi": "/openapi.yaml" // Docuemntacion manual antigua. NO BORRAR !!!
     }
   ],
   "anchors": [
