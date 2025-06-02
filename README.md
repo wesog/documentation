@@ -1,5 +1,30 @@
 # Mintlify Starter Kit
 
+
+### Docuemntacion autogenerada
+```json
+"tabs": [
+  {
+    "name": "API Reference",
+    "url": "api-reference",
+    "openapi": "https://api.wesog.com/openapi.json"
+  }
+]
+```
+
+### Docuemntacion manual
+```json
+"tabs": [
+  {
+    "name": "API Reference",
+    "url": "api-reference",
+    "openapi": "/openapi.yaml"
+  }
+]
+```
+
+
+
 Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
 
 - Guide pages
