@@ -5,13 +5,7 @@
   "colors": {
     "primary": "#007BFF",
     "light": "#66B2FF",
-    "dark": "#0056B3",
-    "ultraLight": "#99CAFF",
-    "ultraDark": "#001933",
-    "anchors": {
-      "from": "#007BFF",
-      "to": "#66B2FF"
-    }
+    "dark": "#0056B3"
   },
   "description": "Wesog API documentation with guides, examples and API reference. Wesog Search and Wesog Tag are the main products.",
   "logo": {
@@ -59,7 +53,7 @@
           },
           {
             "anchor": "Wesog Tag",
-            "icon": "square-terminal",
+            "icon": "tag",
             "pages": []
           }
         ]
