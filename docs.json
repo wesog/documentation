@@ -29,24 +29,24 @@
               {
                 "group": "Get Started",
                 "pages": [
-                  "content/intro",
-                  "content/feats"
+                  "content/search/intro",
+                  "content/search/feats"
                 ]
               },
               {
                 "group": "Manage your content",
                 "pages": [
-                  "content/manage-overview",
-                  "content/manage-upload",
-                  "content/manage-update",
-                  "content/manage-delete"
+                  "content/search/manage-overview",
+                  "content/search/manage-upload",
+                  "content/search/manage-update",
+                  "content/search/manage-delete"
                 ]
               },
               {
                 "group": "Search",
                 "pages": [
-                  "content/search",
-                  "content/search-filters"
+                  "content/search/search",
+                  "content/search/search-filters"
                 ]
               }
             ]
@@ -54,7 +54,9 @@
           {
             "anchor": "Wesog Tag",
             "icon": "tag",
-            "pages": []
+            "pages": [
+              "content/tag/intro",
+            ]
           }
         ]
       },
