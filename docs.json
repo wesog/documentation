@@ -55,7 +55,7 @@
             "anchor": "Wesog Tag",
             "icon": "tag",
             "pages": [
-              "content/tag/intro",
+              "content/tag/intro"
             ]
           }
         ]
