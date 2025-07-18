@@ -52,7 +52,7 @@
                 "group": "Search",
                 "pages": [
                   "content/search",
-                  "content/search-filters",
+                  "content/search-filters"
                 ]
               }
             ]
