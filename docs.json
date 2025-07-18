@@ -1,0 +1,73 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Wesog Docs",
+  "colors": {
+    "primary": "#007BFF",
+    "light": "#66B2FF",
+    "dark": "#0056B3",
+    "ultraLight": "#99CAFF",
+    "ultraDark": "#001933",
+    "anchors": {
+      "from": "#007BFF",
+      "to": "#66B2FF"
+    }
+  },
+  "description": "Wesog API documentation with guides, examples and API reference. Wesog Search and Wesog Tag are the main products.",
+  "logo": {
+    "dark": "/assets/logo-dark.svg",
+    "light": "/assets/logo-light.svg",
+    "href": "http://wesog.com"
+  },
+  "favicon": {
+    "light": "/assets/favicon-black.svg",
+    "dark":  "/assets/favicon-white.svg"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "anchors": [
+          {
+            "anchor": "Wesog Search",
+            "icon": "magnifying-glass",
+            "groups": [
+              {
+                "group": "Get Started",
+                "pages": [
+                  "content/intro",
+                  "content/feats"
+                ]
+              },
+              {
+                "group": "Manage your content",
+                "pages": [
+                  "content/manage-overview",
+                  "content/manage-upload",
+                  "content/manage-update",
+                  "content/manage-delete"
+                ]
+              },
+              {
+                "group": "Search",
+                "pages": [
+                  "content/search",
+                  "content/search-filters",
+                ]
+              }
+            ]
+          },
+          {
+            "anchor": "Wesog Tag",
+            "icon": "square-terminal",
+            "pages": []
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "openapi": "https://api.wesog.com/openapi.json"
+      }
+    ]
+  }
+}

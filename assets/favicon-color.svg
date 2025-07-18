@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="Capa_1" data-name="Capa 1" viewBox="78.67 78.66 242.67 242.69">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#Degradado_sin_nombre_17);
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8, .cls-9 {
+        stroke-width: 0px;
+      }
+
+      .cls-10 {
+        mask: url(#mask-2);
+      }
+
+      .cls-11 {
+        mask: url(#mask-3);
+      }
+
+      .cls-2 {
+        fill: url(#Degradado_sin_nombre_22-4);
+      }
+
+      .cls-3 {
+        fill: url(#Degradado_sin_nombre_136);
+      }
+
+      .cls-4 {
+        fill: url(#Degradado_sin_nombre_136-3);
+      }
+
+      .cls-5 {
+        fill: url(#Degradado_sin_nombre_22-2);
+      }
+
+      .cls-12 {
+        mask: url(#mask-1);
+      }
+
+      .cls-13 {
+        mask: url(#mask);
+      }
+
+      .cls-6 {
+        fill: url(#Degradado_sin_nombre_136-4);
+      }
+
+      .cls-7 {
+        fill: url(#Degradado_sin_nombre_22);
+      }
+
+      .cls-8 {
+        fill: url(#Degradado_sin_nombre_22-3);
+      }
+
+      .cls-9 {
+        fill: url(#Degradado_sin_nombre_136-2);
+      }
+    </style>
+    <radialGradient id="Degradado_sin_nombre_17" data-name="Degradado sin nombre 17" cx="182.97" cy="183.91" fx="182.97" fy="183.91" r="91.19" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5cbcab"/>
+      <stop offset=".11" stop-color="#5abaaf"/>
+      <stop offset=".72" stop-color="#4391ce"/>
+    </radialGradient>
+    <linearGradient id="Degradado_sin_nombre_136" data-name="Degradado sin nombre 136" x1="86.09" y1="212.6" x2="212.22" y2="86.46" gradientUnits="userSpaceOnUse">
+      <stop offset=".2" stop-color="#fff"/>
+      <stop offset=".3" stop-color="#e4e4e4"/>
+      <stop offset=".53" stop-color="#a09fa0"/>
+      <stop offset=".85" stop-color="#343334"/>
+      <stop offset=".86" stop-color="#333233"/>
+    </linearGradient>
+    <mask id="mask" x="78.66" y="111.45" width="108.58" height="108.58" maskUnits="userSpaceOnUse">
+      <path class="cls-3" d="m98.69,220.03c-5.13,0-10.25-1.96-14.16-5.87-7.82-7.82-7.82-20.5,0-28.32l68.52-68.52c7.82-7.83,20.5-7.83,28.32,0,7.82,7.82,7.82,20.5,0,28.32l-68.52,68.52c-3.91,3.91-9.04,5.87-14.16,5.87Z"/>
+    </mask>
+    <linearGradient id="Degradado_sin_nombre_22" data-name="Degradado sin nombre 22" x1="1264.17" y1="-268.85" x2="1264.17" y2="-405.81" gradientTransform="translate(-999.49 -489.63) rotate(45)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5cbcab"/>
+      <stop offset="0" stop-color="#5abaaf"/>
+      <stop offset=".45" stop-color="#4391ce"/>
+    </linearGradient>
+    <linearGradient id="Degradado_sin_nombre_136-2" data-name="Degradado sin nombre 136" x1="-3289.99" y1="312.46" x2="-3163.86" y2="186.32" gradientTransform="translate(-99.86 -2976.08) rotate(-90)" xlink:href="#Degradado_sin_nombre_136"/>
+    <mask id="mask-1" x="111.45" y="212.77" width="108.58" height="108.58" maskUnits="userSpaceOnUse">
+      <path class="cls-9" d="m220.03,301.32c0,5.13-1.96,10.25-5.87,14.16-7.82,7.82-20.5,7.82-28.32,0l-68.52-68.52c-7.83-7.82-7.83-20.5,0-28.32,7.82-7.82,20.5-7.82,28.32,0l68.52,68.52c3.91,3.91,5.87,9.04,5.87,14.16Z"/>
+    </mask>
+    <linearGradient id="Degradado_sin_nombre_22-2" data-name="Degradado sin nombre 22" x1="-1052.47" y1="2189.01" x2="-1052.47" y2="2052.05" gradientTransform="translate(-589.49 -1976.59) rotate(-45)" xlink:href="#Degradado_sin_nombre_22"/>
+    <linearGradient id="Degradado_sin_nombre_136-3" data-name="Degradado sin nombre 136" x1="-3418.33" y1="-3112.7" x2="-3292.19" y2="-3238.83" gradientTransform="translate(-3104.41 -2925.29) rotate(-180)" xlink:href="#Degradado_sin_nombre_136"/>
+    <mask id="mask-2" x="212.77" y="179.97" width="108.58" height="108.58" maskUnits="userSpaceOnUse">
+      <path class="cls-4" d="m301.31,179.97c5.13,0,10.25,1.96,14.16,5.87,7.82,7.82,7.82,20.5,0,28.32l-68.52,68.52c-7.82,7.83-20.5,7.83-28.32,0-7.82-7.82-7.82-20.5,0-28.32l68.52-68.52c3.91-3.91,9.04-5.87,14.16-5.87Z"/>
+    </mask>
+    <linearGradient id="Degradado_sin_nombre_22-3" data-name="Degradado sin nombre 22" x1="-3565.16" y1="-142.2" x2="-3565.16" y2="-279.15" gradientTransform="translate(-2104.93 -2435.66) rotate(-135)" xlink:href="#Degradado_sin_nombre_22"/>
+    <linearGradient id="Degradado_sin_nombre_136-4" data-name="Degradado sin nombre 136" x1="35.3" y1="-3191.96" x2="161.43" y2="-3318.09" gradientTransform="translate(-3004.55 50.79) rotate(90)" xlink:href="#Degradado_sin_nombre_136"/>
+    <mask id="mask-3" x="179.97" y="78.65" width="108.58" height="108.58" maskUnits="userSpaceOnUse">
+      <path class="cls-6" d="m179.97,98.68c0-5.13,1.96-10.25,5.87-14.16,7.82-7.82,20.5-7.82,28.32,0l68.52,68.52c7.83,7.82,7.83,20.5,0,28.32-7.82,7.82-20.5,7.82-28.32,0l-68.52-68.52c-3.91-3.91-5.87-9.04-5.87-14.16Z"/>
+    </mask>
+    <linearGradient id="Degradado_sin_nombre_22-4" data-name="Degradado sin nombre 22" x1="-1179.13" y1="-2640.33" x2="-1179.13" y2="-2777.28" gradientTransform="translate(-2514.92 -948.7) rotate(135)" xlink:href="#Degradado_sin_nombre_22"/>
+  </defs>
+  <circle class="cls-1" cx="200" cy="200" r="29.1"/>
+  <g class="cls-13">
+    <path class="cls-7" d="m98.69,220.03c-5.13,0-10.25-1.96-14.16-5.87-7.82-7.82-7.82-20.5,0-28.32l68.52-68.52c7.82-7.83,20.5-7.83,28.32,0,7.82,7.82,7.82,20.5,0,28.32l-68.52,68.52c-3.91,3.91-9.04,5.87-14.16,5.87Z"/>
+  </g>
+  <g class="cls-12">
+    <path class="cls-5" d="m220.03,301.32c0,5.13-1.96,10.25-5.87,14.16-7.82,7.82-20.5,7.82-28.32,0l-68.52-68.52c-7.83-7.82-7.83-20.5,0-28.32,7.82-7.82,20.5-7.82,28.32,0l68.52,68.52c3.91,3.91,5.87,9.04,5.87,14.16Z"/>
+  </g>
+  <g class="cls-10">
+    <path class="cls-8" d="m301.31,179.97c5.13,0,10.25,1.96,14.16,5.87,7.82,7.82,7.82,20.5,0,28.32l-68.52,68.52c-7.82,7.83-20.5,7.83-28.32,0-7.82-7.82-7.82-20.5,0-28.32l68.52-68.52c3.91-3.91,9.04-5.87,14.16-5.87Z"/>
+  </g>
+  <g class="cls-11">
+    <path class="cls-2" d="m179.97,98.68c0-5.13,1.96-10.25,5.87-14.16,7.82-7.82,20.5-7.82,28.32,0l68.52,68.52c7.83,7.82,7.83,20.5,0,28.32-7.82,7.82-20.5,7.82-28.32,0l-68.52-68.52c-3.91-3.91-5.87-9.04-5.87-14.16Z"/>
+  </g>
+</svg>
