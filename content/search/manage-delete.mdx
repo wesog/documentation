@@ -3,3 +3,145 @@ title: Delete images
 description: 'Delete images'
 icon: 'minus'
 ---
+
+Although images themselves aren’t stored directly in the Wesog Search service—instead only external URLs and AI-generated data representations are retained—users are provided with the ability to remove this information using the `DELETE /imgs` endpoint.
+
+Deletion can be performed on a single image or on an entire **batch** (the recommended approach for removing large numbers of images). To support this, two different endpoints have been implemented, as explained below:
+
+# Delete a single image (`DELETE` /imgs/{item_id})
+This endpoint allows for the deletion of data for a specific image using its unique identifier (`item_id`).
+
+## Parameters
+In this case, the only parameter directly associated with the image to be sent is the `item_id`, which, as indicated in the endpoint name, is included as a URL parameter.
+
+The other parameters that can be sent as Query Parameters are:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `wait` | Boolean | No | Enables 'Synchronous' mode. When true, waits until operation completes (default: false) |
+| `urgent` | Boolean | No | Enqueue the operation associated at head of operation's queue |
+| `strict` | Boolean | No | Enables 'Strict' mode. When true, fails if image ID doesn't exist. When false, ignores missing IDs (default: false) |
+
+## Responses
+Deleting an image internally triggers an operation whose status can be queried. Accordingly, the endpoint returns all information associated with that operation, enabling the client to identify the generated operation ID and check its status thereafter.
+
+| Field | Type  | Description |
+|-----------|------|-------------|
+| `op_id` | Number | Unique identifier of the operation |
+| `method` | String | Type of operation: add, upd, del, or multiple |
+| `resource` | String | Resource being operated on (e.g., images) |
+| `num_total` | Number | Total number of items in the operation |
+| `num_good` | Number | Number of items successfully processed |
+| `num_bad` | Number | Number of items that failed to process |
+| `is_started` | Boolean | Whether the operation has started execution |
+| `all_good` | Boolean | Whether all items were successfully processed |
+| `do_wait` | Boolean | Whether the operation was executed in synchronous mode |
+| `do_urgent` | Boolean | Whether the operation was prioritized in the queue |
+| `do_strict` | Boolean | Whether strict mode was enabled for the operation |
+| `idle_ms` | Number | Time in milliseconds the operation waited before starting |
+| `exec_ms` | Number | Time in milliseconds the operation took to execute |
+| `created_at` | String | Timestamp when the operation was created |
+| `started_at` | String | Timestamp when the operation started execution |
+| `finished_at` | String | Timestamp when the operation finished |
+| `errors` | Array | List of errors that occurred during processing |
+
+## Code Responses
+| Status Code | Description | Response Body |
+|-------------|-------------|---------------|
+| `200` | OK - Resource successfully deleted | Operation details |
+| `422` | Unprocessable Entity - Validation errors | Error details |
+| `500` | Internal Server Error - Unexpected server error | Error message |
+
+## Example
+```bash
+curl --request DELETE \
+  --url https://api.wesog.com/imgs \
+  --header 'API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '[
+  {
+    "id": "image123"
+  }
+]'
+```
+
+# Delete multiple images (`DELETE` /imgs)
+This endpoint allows you to delete data for multiple images at once. It’s useful for efficiently removing large quantities of images.
+
+## Parameters
+This endpoint maintains the same `Query Parameters` as the previous endpoint, but also allows for a request body containing the identifiers of the images to be deleted.
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `wait` | Boolean | No | Enables 'Synchronous' mode. When true, waits until operation completes (default: false) |
+| `strict` | Boolean | No | Enables 'Strict' mode. When true, fails if image ID doesn't exist. When false, ignores missing IDs (default: false) |
+| `urgent` | Boolean | No | Enables 'Faster' mode. When true, operation is prioritized in queue (default: false) |
+
+Since this endpoint is specifically designed to allow for the deletion of multiple images at once, the request body must include a list of JSON objects, each containing an `id` field with the identifier of the image to be deleted. For example:
+
+```json
+[
+  {
+    "id": "image123"
+  },
+  {
+    "id": "image456"
+  },
+  {
+    "id": "image789"
+  }
+]
+```
+Thus, the structure of the JSON objects that should comprise the list is:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | String/Number | Yes | Unique identifier of the image to delete |
+
+## Responses
+The responses received from this endpoint have the same format as in the case of the previous endpoint exactly:
+| Field | Type  | Description |
+|-----------|------|-------------|
+| `op_id` | Number | Unique identifier of the operation |
+| `method` | String | Type of operation: add, upd, del, or multiple |
+| `resource` | String | Resource being operated on (e.g., images) |
+| `num_total` | Number | Total number of items in the operation |
+| `num_good` | Number | Number of items successfully processed |
+| `num_bad` | Number | Number of items that failed to process |
+| `is_started` | Boolean | Whether the operation has started execution |
+| `all_good` | Boolean | Whether all items were successfully processed |
+| `do_wait` | Boolean | Whether the operation was executed in synchronous mode |
+| `do_urgent` | Boolean | Whether the operation was prioritized in the queue |
+| `do_strict` | Boolean | Whether strict mode was enabled for the operation |
+| `idle_ms` | Number | Time in milliseconds the operation waited before starting |
+| `exec_ms` | Number | Time in milliseconds the operation took to execute |
+| `created_at` | String | Timestamp when the operation was created |
+| `started_at` | String | Timestamp when the operation started execution |
+| `finished_at` | String | Timestamp when the operation finished |
+| `errors` | Array | List of errors that occurred during processing |
+
+## Code Responses
+As with the previous endpoint’s output, the response codes you may receive are the same as those defined for the single-image deletion endpoint.
+| Status Code | Description | Response Body |
+|-------------|-------------|---------------|
+| `200` | OK - Resource successfully deleted | Operation details |
+| `422` | Unprocessable Entity - Validation errors | Error details |
+| `500` | Internal Server Error - Unexpected server error | Error message |
+
+## Example
+
+```bash
+curl --request DELETE \
+  --url https://api.wesog.com/imgs \
+  --header 'API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '[
+  {
+    "id": "image123"
+  },
+  {
+    "id": "image456"
+  },
+  {
+    "id": "image789"
+  }
+]'
+```

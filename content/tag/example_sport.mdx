@@ -1,0 +1,22 @@
+---
+title: "Use cases"
+description: "Examples of Wesog Tag"
+---
+
+```{bash}
+curl --request POST \
+  --url https://api.wesog.com/tag/image \
+  --header 'API-Key: <api-key>' \
+  --header 'Content-Type: multipart/form-data' \
+  --form lang=en \
+  --form mode=editorial \
+  --form date= \
+  --form event= \
+  --form city= \
+  --form country= \
+  --form caption=false \
+  --form keywords=false \
+  --form ocr=false \
+  --form colors=false \
+  --form image=@example-file
+```

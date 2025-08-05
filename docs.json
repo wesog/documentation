@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Wesog Docs",
+  "name": "Wesog Documentation",
   "colors": {
     "primary": "#007BFF",
     "light": "#66B2FF",
@@ -16,6 +16,13 @@
   "favicon": {
     "light": "/assets/favicon-black.svg",
     "dark":  "/assets/favicon-white.svg"
+  },
+  "footer": {
+    "socials": {
+      "linkedin": "https://www.linkedin.com/company/wesog/",
+      "github": "https://github.com/wesog",
+      "website": "https://wesog.com/"
+    }
   },
   "navigation": {
     "tabs": [
@@ -43,6 +50,12 @@
                 ]
               },
               {
+                "group": "Monitoring your operations",
+                "pages": [
+                  "content/search/operations-overview"
+                ]
+              },
+              {
                 "group": "Search",
                 "pages": [
                   "content/search/search",
@@ -54,8 +67,25 @@
           {
             "anchor": "Wesog Tag",
             "icon": "tag",
-            "pages": [
-              "content/tag/intro"
+            "groups": [
+                {
+                  "group": "Get Started",
+                  "pages": [
+                    "content/tag/intro"
+                  ]
+                },
+                {
+                  "group": "How to use",
+                  "pages": [
+                    "content/tag/request_tag"
+                  ]
+                },
+                {
+                  "group": "Examples",
+                  "pages": [
+                    "content/tag/example_sport"
+                  ]
+                }
             ]
           }
         ]

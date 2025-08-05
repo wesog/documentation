@@ -1,0 +1,72 @@
+---
+title: Overview
+description: 'How to monitoring operations'
+icon: 'chart-line'
+---
+
+Operations represent tasks that users can submit to the Wesog system for asynchronous execution—that is, so the client isn’t blocked while the server completes the assigned task. This way of organizing work becomes especially crucial when handling image ingestion, since a given tenant can request the system to upload thousands of different images at once without having to wait or block the system until all uploads are finished.
+
+# Structure of an Operation
+Una operación se describe viene descrita por los campos que se muestran en la siguiente tabla:
+
+| Attributes | Type  | Description |
+|-----------|------|-------------|
+| `op_id` | Number | Unique identifier of the operation |
+| `method` | String | Type of operation: add, upd, del, or multiple |
+| `resource` | String | Resource being operated on (e.g., images) |
+| `num_total` | Number | Total number of items in the operation |
+| `num_good` | Number | Number of items successfully processed |
+| `num_bad` | Number | Number of items that failed to process |
+| `is_started` | Boolean | Whether the operation has started execution |
+| `all_good` | Boolean | Whether all items were successfully processed |
+| `do_wait` | Boolean | Whether the operation was executed in synchronous mode |
+| `do_urgent` | Boolean | Whether the operation was prioritized in the queue |
+| `do_strict` | Boolean | Whether strict mode was enabled for the operation |
+| `idle_ms` | Number | Time in milliseconds the operation waited before starting |
+| `exec_ms` | Number | Time in milliseconds the operation took to execute |
+| `created_at` | String | Timestamp when the operation was created |
+| `started_at` | String | Timestamp when the operation started execution |
+| `finished_at` | String | Timestamp when the operation finished |
+| `errors` | Array | List of errors that occurred during processing |
+
+These attributes aren’t provided directly when creating an operation, since there isn’t an endpoint specifically for that. Instead, whenever you call the endpoints for image upload or processing, the Wesog Search system automatically creates these tasks behind the scenes to ensure that a heavy request doesn’t block the entire system, but is interleaved with other clients’ API requests.
+
+As operations are primarily used to monitor the progress of tasks, their associated endpoints are designed to:
+
+* Retrieve all tasks for a given tenant
+* Fetch detailed information about a specific task
+* Cancel a scheduled task
+
+Because these endpoints are not complex enough to require individual sections, they will all be explained together below.
+
+# Check Operation status
+Given a `GET /ops/{op_id}` request with the header `API-Key: <api-key>`, you can retrieve the status of a specific operation for a particular tenant.
+
+## Example
+```bash
+curl --request GET \
+  --url https://api.wesog.com/ops/{op_id} \
+  --header 'API-Key: <api-key>'
+```
+
+# See all operations
+This endpoint is the simplest, since you only need to send the access API key to the Wesog server; using that, the system can identify the tenant making the request and return all operations they’ve performed.
+
+When requesting all operations, no additional parameters beyond the API key in the request header are required, and the server responds with a JSON-formatted list of Operation objects, containing the various parameters shown in the table at the beginning of this section.
+
+## Example
+```bash
+curl --request GET \
+  --url https://api.wesog.com/ops \
+  --header 'API-Key: <api-key>'
+```
+
+# Abort current running operation
+Once a task is started, even if it was indicated to run asynchronously, it may be necessary to abort it. To do this, a `DELETE /ops/{op_id}` call can be made, sending the header `API-Key: <api-key>`, and the Wesog server will cancel the operation if it has not yet finished.
+
+## Example
+```bash
+curl --request DELETE \
+    --url https://api.wesog.com/ops/{op_id} \
+    --header 'API-Key: <api-key>'
+```
