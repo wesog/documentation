@@ -7,9 +7,10 @@ icon: 'plus'
 Uploading images to the Wesog Search platform expands the tool’s search capabilities for a given organization by processing those images and adding them to the pool of images that can be retrieved via Wesog Search text queries.
 
 Ingestion can be performed either synchronously or asynchronously. However, since this process involves not only operations on our available hardware but also external requests to fetch the images, we recommend using the asynchronous mode, which will create an operation that can be queried afterwards.
-# Upload single image (`POST` /imgs/{item_id})
 
-## Parameters
+## Upload single image (`POST /imgs/{item_id}`)
+
+### Parameters
 This endpoint allows uploading a new image by explicitly indicating the unique identifier of the image in the URL. This identifier must be unique for each image and cannot be repeated with any other image already stored in the system.
 
 Additionally, like in the case of update and delete endpoints, the following parameters can be sent as Query Parameters:
@@ -51,7 +52,7 @@ Finally, it is necessary to specify the image metadata, among which the most imp
 | `categories` | Array | No | General categories |
 | `collections` | Array | No | Collections the image belongs to |
 
-## Responses
+### Responses
 The different types of responses depend on whether the image upload process has been performed synchronously, if the task has been accepted but is pending asynchronous execution, or if some type of error has occurred during data validation:
 
 If the image has been uploaded successfully, all information related to the operation created to manage the image upload will be returned, for example:
@@ -101,7 +102,7 @@ And if, on the other hand, some error has occurred during the data validation st
   ]
 }
 ```
-## Example
+### Example
 A valid request example to this endpoint for uploading an image would be the following:
 
 ```bash
@@ -151,10 +152,11 @@ curl --request POST \
 }'
 ```
 
-# Upload multiple images (`POST` /imgs)
+## Upload multiple images (`POST /imgs`)
+
 The multiple image upload method or endpoint allows sending a collection of JSON objects in a single message, with each object representing a different image with its own metadata. The entire upload process execution is treated as a general operation that may or may not be executed synchronously or asynchronously, depending on the parameters sent in the request.
 
-## Parameters
+### Parameters
 Like other endpoints that result in the internal generation of an operation, the following parameters can be received as Query Parameters:
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -192,7 +194,7 @@ The following table shows the fields that can be sent in each object of the list
 | `categories` | Array/String | No | General categories (array or semicolon-separated string) |
 | `collections` | Array | No | Collections the image belongs to |
 
-## Responses
+### Responses
 The type of response that can be received when requesting the upload of multiple images is the same as in the case of uploading a single image, since internally an operation is created that encompasses the entire image upload process. The response contains detailed information about the created operation:
 
 | Field | Type | Description |
@@ -216,7 +218,7 @@ The type of response that can be received when requesting the upload of multiple
 | `errors` | Array | List of error objects with `id` and `msg` fields for failed items |
 
 
-# Example
+### Example
 
 Here is an example of how to use the Wesog Search API for uploading multiple images:
 

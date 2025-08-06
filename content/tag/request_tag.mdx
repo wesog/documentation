@@ -5,7 +5,7 @@ description: "How to use Wesog Tag from API"
 
 Currently, Wesog Tag exposes an HTTP endpoint that accepts requests to tag a specific image, which must be included as a field in the request.
 
-# Parameters
+## Parameters
 In the following table, you’ll find the various parameters that can be sent to the Wesog Tag service not only to generate a list of keywords describing a specific image, but also to enable caption generation, OCR processing, or color extraction. Most parameters are optional—except for the image itself—but we recommend including the additional parameters, as they provide extra context to the system and help produce more relevant keywords, more accurate captions, better text extraction, and richer color data.
 
 | Parameter | Type | Required | Description |
@@ -22,7 +22,7 @@ In the following table, you’ll find the various parameters that can be sent to
 | `ocr` | Boolean | No | Extract text from image (default: false) |
 | `colors` | Boolean | No | Extract dominant colors (default: false) |
 
-# Code Responses
+## Code Responses
 
 Upon receiving the data via the HTTP request, the system processes the image and accompanying textual information, then returns a response with a status code. This code lets the user determine—without inspecting the message body—whether the image was processed successfully or whether an error occurred, and if so, whether the error was due to the input data format or an internal server issue.
 
@@ -34,7 +34,7 @@ Upon receiving the data via the HTTP request, the system processes the image and
 
 Of the two error responses the endpoint can return, the 422 status provides more detail: it is issued when either a field not defined in the parameter table is sent, or a required field is omitted. By contrast, the 500 error simply indicates that some internal process within Wesog’s servers has failed. In the latter case, the fix will likely need to be carried out by the Wesog development team, whereas a 422 error typically results from incorrect API usage.
 
-# Example
+## Example
 In the following example, a request to the endpoint for keyword generation is shown. In this case, it assumes that the image referenced in the `curl` command is available so that the system can process it correctly:
 
 ```{bash}
@@ -57,20 +57,11 @@ In the following example, a request to the endpoint for keyword generation is sh
 
 After a brief period during which the server processes the request, a response is returned in the following form:
 
-```{bash}
-    curl --request POST \
-    --url https://api.wesog.com/tag/image \
-    --header 'API-Key: <api-key>' \
-    --header 'Content-Type: multipart/form-data' \
-    --form lang=en \
-    --form mode=editorial \
-    --form date= \
-    --form event= \
-    --form city= \
-    --form country= \
-    --form caption=false \
-    --form keywords=true \
-    --form ocr=false \
-    --form colors=false \
-    --form image=@example-file
+```json
+{
+  "keywords": ["politics", "elections", "voting", "democracy", "campaign"],
+  "processing_time": "1.2s",
+  "language": "en",
+  "mode": "editorial"
+}
 ```

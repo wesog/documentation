@@ -1,1138 +1,1810 @@
-openapi: 3.0.1
+openapi: 3.1.0
 info:
-  version: 1.0.0
   title: Wesog API
-  description: Wesog API documentation
-  contact:
-    email: javi@wesog.com
-    name: Javier Abellán
-    url: 'https://wesog.com/'
-  termsOfService: ''
-  license:
-    name: Legal
-    url: 'https://wesog.com/es/aviso-legal/'
+  description: Wesog AI services for media providers
+  version: 1.0.0
 servers:
-  - url: 'https://api.wesog.com'
-    description: Wesog API
+- url: https://api.wesog.com
+  description: Production server
 paths:
-
-  ################################################## /imgs
-  /imgs:
+  /me:
     get:
-      operationId: getImages
-      summary: Get saved images
-      description: Get sorted image ids. Default limit = 1M
       tags:
-        - Manage your images
-      parameters:
-        - name: page
-          description: 'Page number. 1 is the first page.'
-          schema:
-            type: integer
-            default: 1
-            minimum: 1
-            maximum: 100000
-            example: 1
-          in: query
-        - name: limit
-          description: 'Number of ids per page.'
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            default: 1000000
-            example: 100000
-            maximum: 10000000
+      - Roles
+      summary: Get my role
+      description: Get information about my role like client name, role name... (using
+        the provided api key)
+      operationId: read_me_me_get
       responses:
         '200':
-          description: OK - Successful request with response body
+          description: Successful Response
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IMAGE_ID'
-        '400':
-          description: Bad Request - Invalid query parameters
-          content:
-            application/json:
-              schema:
-                type: object
-                title: GetStatusOfAnAsyncOperationBadRequest
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
-        '401':
-          description: Unauthorized - Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_401'
-        '403':
-          description: Forbidden - Authenticated but not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_403'
-        '404':
-          description: Not Found - Resource doesn't exist
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_404'
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_500'
+              schema: {}
       security:
-        - API-WESOG-SEARCH: []
-    post:
-      operationId: postImages
-      summary: Upload new images
-      description: Endpoint for insert new images inside Wesog Search.
+      - APIKeyHeader: []
+  /ops/:
+    get:
       tags:
-        - Manage your images
+      - Operations
+      summary: See all operations
+      operationId: get_all_operations_ops__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
       security:
-        - API-WESOG-SEARCH: []
+      - APIKeyHeader: []
+  /ops/{op_id}:
+    get:
+      tags:
+      - Operations
+      summary: Check operation status
+      operationId: operation_status_ops__op_id__get
+      security:
+      - APIKeyHeader: []
       parameters:
-        - $ref: '#/components/parameters/param_wait'
-        - $ref: '#/components/parameters/param_all'
-        - $ref: '#/components/parameters/param_strict_post'
-        - $ref: '#/components/parameters/param_urgent'
+      - name: op_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Op Id
+      responses:
+        '200':
+          description: Operation status successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation_Out'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Operations
+      summary: Abort current running operation
+      operationId: operation_delete_ops__op_id__delete
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: op_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Op Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /tag/image:
+    post:
+      tags:
+      - Wesog Tag
+      summary: Tag Image
+      operationId: tag_image_tag_image_post
       requestBody:
-        description: 'List of image objects. For each image object, the `id` and `src` fields are required, while the other fields are optional.'
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_tag_image_tag_image_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - APIKeyHeader: []
+  /query_imgs:
+    post:
+      tags:
+      - Query Images
+      summary: Upload 1 query image
+      description: Upload 1 image file to be used in a reverse image search. This
+        endpoint returns an image hash that can be used as a reference later in the
+        search query.
+      operationId: upload_query_image_query_imgs_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_query_image_query_imgs_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - APIKeyHeader: []
+  /imgs/{item_id}:
+    get:
+      tags:
+      - Images
+      summary: Get 1 image
+      description: Get a image by its ID.
+      operationId: get_1_imgs__item_id__get
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Item Id
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            enum:
+            - image_id
+            - src
+            - url_img_watermark
+            - url_img_thumbnail
+            - height
+            - width
+            - aspect_ratio
+            - n_faces
+            - title
+            - headline
+            - caption
+            - ai_generated
+            - model_release
+            - property_release
+            - nsfw
+            - date
+            - orientation
+            - status
+            - location
+            - city
+            - country
+            - event
+            - author
+            - provider
+            - shot
+            - scene
+            - medium
+            - technique
+            - keywords
+            - categories
+            - collections
+            type: string
+          description: 'List of fields to retrieve. Example: fields=title&fields=description'
+          default:
+          - height
+          - width
+          - src
+          - url_img_watermark
+          - url_img_thumbnail
+          - n_faces
+          - title
+          - headline
+          - caption
+          title: Fields
+        description: 'List of fields to retrieve. Example: fields=title&fields=description'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImgOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Images
+      summary: Create 1 image
+      description: Create a image by its ID.
+      operationId: post_1_imgs__item_id__post
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Item Id
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Wait for completion?
+          default: false
+          title: Wait
+        description: Wait for completion?
+      - name: urgent
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Enqueue at head of queue if True
+          default: false
+          title: Urgent
+        description: Enqueue at head of queue if True
+      - name: strict
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Use strict mode if True
+          default: false
+          title: Strict
+        description: Use strict mode if True
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          description: en|es|pt|fr|ru
+          default: es
+          title: Lang
+        description: en|es|pt|fr|ru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImgNew_withoutID'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '201':
+          description: image successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation_Out'
+        '202':
+          description: image creation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingOperation'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - Images
+      summary: Replace 1 image
+      description: Completely replace existing image in DB.
+      operationId: put_1_imgs__item_id__put
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Item Id
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Wait for completion?
+          default: false
+          title: Wait
+        description: Wait for completion?
+      - name: urgent
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Enqueue at head of queue if True
+          default: false
+          title: Urgent
+        description: Enqueue at head of queue if True
+      - name: strict
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Use strict mode if True
+          default: false
+          title: Strict
+        description: Use strict mode if True
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          description: en|es|pt|fr|ru
+          default: es
+          title: Lang
+        description: en|es|pt|fr|ru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImgNew_withoutID'
+      responses:
+        '200':
+          description: image successfully replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation_Out'
+        '202':
+          description: image replacement accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingOperation'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Images
+      summary: Delete 1 image
+      description: Remove existing image by ID from the database.
+      operationId: delete_1_imgs__item_id__delete
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Item Id
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Wait for completion?
+          default: false
+          title: Wait
+        description: Wait for completion?
+      - name: urgent
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Enqueue at head of queue if True
+          default: false
+          title: Urgent
+        description: Enqueue at head of queue if True
+      - name: strict
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Use strict mode if True
+          default: false
+          title: Strict
+        description: Use strict mode if True
+      responses:
+        '200':
+          description: image successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation_Out'
+        '202':
+          description: image deletion accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingOperation'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /imgs:
+    get:
+      tags:
+      - Images
+      summary: Search N images
+      description: Do simple image listing or do advanced image search with filters,
+        sorting, pagination, facets and counting
+      operationId: get_n_imgs_get
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          description: 'Query filtering formula, must be url-encoded. Example: (id=123
+            && type=A) || status:active'
+          default: ''
+          title: Q
+        description: 'Query filtering formula, must be url-encoded. Example: (id=123
+          && type=A) || status:active'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          description: Page number. 1 is the first page.
+          default: 1
+          title: Page
+        description: Page number. 1 is the first page.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 1
+          description: Maximum number of images to return per page
+          default: 50
+          title: Limit
+        description: Maximum number of images to return per page
+      - name: sort_by
+        in: query
+        required: false
+        schema:
+          enum:
+          - ''
+          - image_id
+          - src
+          - url_img_watermark
+          - url_img_thumbnail
+          - height
+          - width
+          - aspect_ratio
+          - n_faces
+          - date
+          - title
+          - headline
+          - caption
+          - location
+          - city
+          - country
+          - event
+          - author
+          - provider
+          - shot
+          - scene
+          - medium
+          - technique
+          - similarity
+          - sim
+          type: string
+          description: Sorting criterion. Note that sort_by=similarity only works
+            if there are present "similary filters" on the Query Filtering Formula.
+          default: ''
+          title: Sort By
+        description: Sorting criterion. Note that sort_by=similarity only works if
+          there are present "similary filters" on the Query Filtering Formula.
+      - name: sort_order
+        in: query
+        required: false
+        schema:
+          enum:
+          - asc
+          - desc
+          type: string
+          description: Ascending or descending sorting.
+          default: desc
+          title: Sort Order
+        description: Ascending or descending sorting.
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            enum:
+            - image_id
+            - src
+            - url_img_watermark
+            - url_img_thumbnail
+            - height
+            - width
+            - aspect_ratio
+            - n_faces
+            - title
+            - headline
+            - caption
+            - ai_generated
+            - model_release
+            - property_release
+            - nsfw
+            - date
+            - orientation
+            - status
+            - location
+            - city
+            - country
+            - event
+            - author
+            - provider
+            - shot
+            - scene
+            - medium
+            - technique
+            - keywords
+            - categories
+            - collections
+            type: string
+          description: 'Array of fields to retrieve. Example: fields=image_id&fields=src'
+          default:
+          - height
+          - width
+          - src
+          - url_img_watermark
+          - url_img_thumbnail
+          - n_faces
+          - title
+          - headline
+          - caption
+          title: Fields
+        description: 'Array of fields to retrieve. Example: fields=image_id&fields=src'
+      - name: facets
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            enum:
+            - ai_generated
+            - model_release
+            - property_release
+            - nsfw
+            - orientation
+            - status
+            - location
+            - city
+            - country
+            - event
+            - author
+            - provider
+            - shot
+            - scene
+            - medium
+            - technique
+            - keywords
+            - categories
+            - collections
+            type: string
+          description: 'Array of facets to retrieve. Example: facets=author&facets=keywords'
+          default: []
+          title: Facets
+        description: 'Array of facets to retrieve. Example: facets=author&facets=keywords'
+      - name: count
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Include total hit count?
+          default: false
+          title: Count
+        description: Include total hit count?
+      - name: lang
+        in: query
+        required: false
+        schema:
+          enum:
+          - ml
+          - en
+          - es
+          type: string
+          description: Language code.
+          default: ml
+          title: Lang
+        description: Language code.
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/image_search_response'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Images
+      summary: Create N images
+      description: Create one or more new images.
+      operationId: post_n_imgs_post
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Wait for completion?
+          default: false
+          title: Wait
+        description: Wait for completion?
+      - name: urgent
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Enqueue at head of queue if True
+          default: false
+          title: Urgent
+        description: Enqueue at head of queue if True
+      - name: strict
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Use strict mode if True
+          default: false
+          title: Strict
+        description: Use strict mode if True
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          description: en|es|pt|fr|ru
+          default: es
+          title: Lang
+        description: en|es|pt|fr|ru
+      requestBody:
         required: true
         content:
           application/json:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/IMAGE'
-                required:
-                  - id
-                  - src
+                $ref: '#/components/schemas/ImgNew'
+              title: Items
       responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
         '201':
-          description: Created - Resource successfully created
+          description: images successfully created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OPERATION'
+                $ref: '#/components/schemas/Operation_Out'
         '202':
-          description: Accepted - Request accepted for processing
+          description: images creation accepted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PENDING_TASK_OK'
-        '400':
-          description: Bad Request - Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '401':
-          description: Unauthorized - Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '403':
-          description: Forbidden - Authenticated but not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '409':
-          description: Conflict - Resource already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
+                $ref: '#/components/schemas/PendingOperation'
         '422':
-          description: Unprocessable Entity - Validation errors
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
+                $ref: '#/components/schemas/HTTPValidationError'
     put:
-      operationId: putImages
-      summary: Update existing images
-      description: Endpoint for modify existing images already uploaded before.
       tags:
-        - Manage your images
+      - Images
+      summary: Replace N images
+      description: Completely replace existing images in DB.
+      operationId: put_n_imgs_put
       security:
-        - API-WESOG-SEARCH: []
+      - APIKeyHeader: []
       parameters:
-        - $ref: '#/components/parameters/param_wait'
-        - $ref: '#/components/parameters/param_all'
-        - $ref: '#/components/parameters/param_strict_put'
-        - $ref: '#/components/parameters/param_urgent'
-      requestBody:
-        description: 'List of image objects. For each image object, the `id` field is required, while the other fields are optional.'
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/IMAGE'
-                required:
-                  - id
-      responses:
-        '200':
-          description: OK - Resource successfully updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OPERATION'
-        '202':
-          description: Accepted - Request accepted for processing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_OK'
-        '400':
-          description: Bad Request - Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '401':
-          description: Unauthorized - Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '403':
-          description: Forbidden - Authenticated but not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '404':
-          description: Not Found - Resource doesn't exist
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '409':
-          description: Conflict - Resource does not exist
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '422':
-          description: Unprocessable Entity - Validation errors
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-    delete:
-      operationId: deleteImages
-      summary: Delete existing images
-      description: Endpoint for erase existing images already uploaded before.
-      tags:
-        - Manage your images
-      parameters:
-        - $ref: '#/components/parameters/param_wait'
-        - $ref: '#/components/parameters/param_all'
-        - $ref: '#/components/parameters/param_strict_delete'
-        - $ref: '#/components/parameters/param_urgent'
-      responses:
-        '200':
-          description: OK - Resource successfully deleted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OPERATION'
-        '202':
-          description: Accepted - Request accepted for processing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_OK'
-        '400':
-          description: Bad Request - Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '401':
-          description: Unauthorized - Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '403':
-          description: Forbidden - Authenticated but not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '404':
-          description: Not Found - Resource doesn't exist
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PENDING_TASK_ERROR'
-      security:
-        - API-WESOG-SEARCH: []
-      requestBody:
-        description: ''
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: object
-                required:
-                  - id
-                properties:
-                  id:
-                    description: Unique identifier of the image
-                    anyOf:
-                      - type: string
-                      - type: number
-
-
-  ################################################## /imgs/{img_id}
-  '/imgs/{img_id}':
-    get:
-      operationId: getImage
-      summary: Get 1 image
-      description: Get saved fields of a given image by id.
-      tags:
-        - Manage your images
-      parameters:
-        - name: img_id
-          description: Image ID
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK - Successful request with response body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IMAGE'
-        '400':
-          description: Bad Request - Invalid query parameters
-          content:
-            application/json:
-              schema:
-                type: object
-                title: GetStatusOfAnAsyncOperationBadRequest
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
-        '401':
-          description: Unauthorized - Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_401'
-        '403':
-          description: Forbidden - Authenticated but not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_403'
-        '404':
-          description: Not Found - Resource doesn't exist
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_404'
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_500'
-      security:
-        - API-WESOG-SEARCH: []
-
-
-  ################################################## /ops
-  '/ops':
-    get:
-      operationId: getOperations
-      summary: Get N operations
-      description: Get information of many operations.
-      tags:
-        - Keep track of your operations
-      security:
-        - API-WESOG-SEARCH: []
-      responses:
-        '200':
-          description: OK - Successful request with response body
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OPERATION'
-        '204':
-          description: No Content - Successful request with no response body
-        '400':
-          description: Bad Request - Invalid query parameters
-          content:
-            application/json:
-              schema:
-                type: object
-                title: GetStatusOfAnAsyncOperationBadRequest
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
-        '401':
-          description: Unauthorized - Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_401'
-        '403':
-          description: Forbidden - Authenticated but not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_403'
-        '404':
-          description: Not Found - Resource doesn't exist
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_404'
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_500'
-
-  ################################################## /ops/{op_id}
-  '/ops/{op_id}':
-    get:
-      operationId: getOperation
-      summary: Get 1 operation
-      description: Get information of one operation.
-      tags:
-        - Keep track of your operations
-      security:
-        - API-WESOG-SEARCH: []
-      parameters:
-        - name: op_id
-          description: Operation ID
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK - Successful request with response body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OPERATION'
-        '204':
-          description: No Content - Successful request with no response body
-        '400':
-          description: Bad Request - Invalid query parameters
-          content:
-            application/json:
-              schema:
-                type: object
-                title: GetStatusOfAnAsyncOperationBadRequest
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                        message:
-                          type: string
-                      required:
-                        - field
-                        - message
-                  message:
-                    type: string
-                  status:
-                    type: string
-                    enum:
-                      - error
-                    default: error
-                required:
-                  - message
-                  - status
-        '401':
-          description: Unauthorized - Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_401'
-        '403':
-          description: Forbidden - Authenticated but not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_403'
-        '404':
-          description: Not Found - Resource doesn't exist
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_404'
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RESP_500'
-  /search:
-    get:
-      operationId: search
-      summary: Search for images
-      description: Search for images with filters, sorting and pagination.
-      tags:
-        - Search your images
-      parameters:
-        - name: q
-          description: 'Query Filtering Formula. See Filters section in the documentation API guide to learn more abot the Query Filtering Formula syntax.'
-          required: true
-          in: query
-          schema:
-            type: string
-            example: 'keyword=man && country=UK'
-        - name: sort_by
-          description: 'Sorting criteria. Note that sort_by=similarity only works if there are present "similary filters" on the Query Filtering Formula.'
-          in: query
-          schema:
-            type: string
-            example: similarity
-            default: id
-            enum:
-              - id
-              - src
-              - height
-              - width
-              - headline
-              - caption
-              - date
-              - author
-              - location
-              - city
-              - country
-              - medium
-              - technique
-              - n_faces
-              - status
-              - similarity
-        - name: sort_order
-          description: 'Ascending or descending sorting.'
-          in: query
-          schema:
-            type: string
-            default: asc
-            enum:
-              - asc
-              - desc
-            example: asc
-        - name: page
-          description: 'Page number of the search results. 1 is the first page.'
-          schema:
-            type: integer
-            default: 1
-            minimum: 1
-            maximum: 100000
-            example: 1
-          in: query
-        - name: limit
-          description: 'Number of search results per page.'
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            default: 50
-            example: 75
-            maximum: 1000
-        - name: fields
-          description: 'Image fields (comma separated) that will appear in the search result. If not specified, only the image ID will be provided per image. Available fields are: id, src, height, width, headline, caption, keywords, date, author, location, city, country, medium, technique, status, n_faces.'
-          in: query
-          schema:
-            type: string
-            example: 'id, headline, keywords, height, width'
-            default: id
-        - name: facets
-          description: 'Faceted Search. Facets (comma separated) that will appear in the search result. 20 is the defualt max number of options per facet. Available facets are: keywords, author, location, city, country, medium, technique, status.'
-          in: query
-          schema:
-            type: string
-            example: 'keywords, author'
-            default: ""
-        - name: count
-          description: 'If true, includes the exact number of images in the search results. If not specified, num_images will be set to -1 in the response.'
-          in: query
-          schema:
-            type: boolean
-            example: true
-            default: false
-        - name: lang
-          description: 'Language. Specifies the language used by the Query Filtering Formula for text search. Default: English (en). Available languages include Spanish (es), German (de), Portuguese (pt), Italian (it), and French (fr).'
-          in: query
-          schema:
-            type: string
-            example: en
-            default: en
-            enum:
-              - en
-              - es
-              - de
-              - pt
-              - it
-              - fr
-      responses:
-        '200':
-          description: OK - Successful search with content
-          content:
-            application/json:
-              schema:
-                type: object
-                title: SearchForImagesOk
-                properties:
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                  num_images:
-                    type: integer
-                  facets:
-                    type: object
-        '204':
-          description: OK - Successful search without content
-        '400':
-          description: Bad Request - Invalid query parameters
-        '401':
-          description: Unauthorized - Authentication required
-        '403':
-          description: Forbidden - Authenticated but not authorized
-  /query_img:
-    post:
-      operationId: uploadQueryImg
-      summary: Upload query images
-      description: |
-        1st step of reverse image search. After uploading the image file into the HTTP body on request,
-        the response return both:
-        - `image_hash` Identifier for reference that image later in the `GET /imgs` to perform a reverse image search (2nd step).
-        - `faces`: Face coordinates detected on the uploaded photo.
-      tags:
-        - Search your images
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  description: Image file to upload
-                  format: binary
-      responses:
-        '200':
-          description: File uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  img_hash:
-                    type: string
-                    example: '10405030202'
-                  faces:
-                    type: array
-                    items:
-                      type: array
-                      items:
-                        type: number
-        '400':
-          description: Error in file upload
-      security:
-        - API-WESOG-SEARCH: []
-tags:
-  - name: Manage your images
-    description: |
-      To start using Wesog Search, upload your images. You can also update or delete them.
-      - **Upload** new images: `POST /imgs`
-      - **Update** existing images: `PUT /imgs`
-      - **Delete** images: `DELETE /imgs`
-  - name: Keep track of your operations
-    description: |
-      Operations refer to tasks that run in the background, such as saving multiple images.
-      These operations can be monitored to determine whether they are still in progress or have been completed.
-  - name: Search your images
-    description: |
-      After uploading images, you can start performing search queries. Wesog Search offers a single endpoint for all types of queries:
-      - **Search** for images with filters, sorting, and pagination: `GET /imgs`
-
-      To perform a reverse image search (using an external image as a query), upload the image first with the following endpoint:
-      - **Upload query files** (e.g., images): `POST /query_files`
-components:
-  securitySchemes:
-    API-WESOG-SEARCH:
-      type: apiKey
-      name: api-key
-      in: header
-  parameters:
-    param_wait:
-      name: wait
-      description: >
-        Enables 'Synchronous' mode.
-
-        When set to true, the system will
-        wait until the operation is completed before sending a response.
-        If the request is correct, the response status code
-        will be 202: Accepted - Request accepted for processing.
-
-        If set to false, 'Asynchronous' mode is enabled, meaning an
-        immediate response will be returned containing the operation ID
-        to track the status of the operation.
-
-        Defaults to false.
-      in: query
-      required: false
-      schema:
-        type: boolean
-    param_all:
-      name: all
-      description: >
-        Enables 'All or Nothing' mode. When set to true, the operation
-        will only succeed if all items are successfully saved.
-        If set to false, the operation may still succeed and save some items
-        even if others fail to save. Defaults to false.
-      in: query
-      required: false
-      schema:
-        type: boolean
-    param_strict_post:
-      name: strict
-      description: >
-        Enables 'Strict' mode for Insert Operations.
-        When set to true, the operation strictly performs an insert operation;
-        it will fail if an image with the same ID already exists in the database.
-        If set to false, the operation is more flexible, allowing
-        for the overwrite of an existing image with the same ID.
-        This flexible operation is referred to as an 'Upsert' (insert or update).
-        Defaults to false.
-      in: query
-      required: false
-      schema:
-        type: boolean
-    param_strict_put:
-      name: strict
-      description: >
-        Enables 'Strict' mode for Update Operations.
-        When set to true, the operation strictly performs an update operation;
-        it will fail if the specified image ID does not exist in the database.
-        If set to false, the operation is more flexible, allowing for the
-        creation of a new image if the specified ID does not already exist.
-        This flexible operation is referred to as an 'Upsert' (insert or update).
-        Defaults to false.
-      in: query
-      required: false
-      schema:
-        type: boolean
-    param_strict_delete:
-      name: strict
-      description: >
-        Enables 'Strict' mode for Delete Operations.
-        When set to true, the deletion will only proceed
-        if the specified image ID exists in the database;
-        it will fail if the ID does not exist.
-        If set to false, the operation is more tolerant,
-        and the deletion request will not fail even if the image ID does not exist,
-        effectively ignoring the absence of the specified ID. Defaults to false.
-      in: query
-      required: false
-      schema:
-        type: boolean
-    param_urgent:
-      name: urgent
-      description: >
-        Enables 'Faster' mode for Asynchronous Operations.
-        When set to true, the operation is enqueued at the head of the pending task queue,
-        allowing for sooner processing if many tasks were enqueued previously.
-        If set to false, the operation is enqueued at the tail,
-        maintaining the natural order of operations. Defaults to false.
-      in: query
-      required: false
-      schema:
-        type: boolean
-  schemas:
-    IMAGE_ID:
-      type: object
-      properties:
-        #### SPECIAL FIELDS
-        id:
-          description: Unique identifier of the image.
-          anyOf:
-            - type: number
-            - type: string
-    IMAGE:
-      type: object
-      properties:
-        #### UNIQUE FIELDS
-        id:
-          description: Unique identifier of the image.
-          anyOf:
-            - type: number
-            - type: string
-        #### URL FIELDS
-        src:
-          description: Url of the image (used as source for the AI)
-          type: string
-          format: uri
-        url_img_watermark:
-          description: Url of the watermarked image.
-          type: string
-          format: uri
-        url_img_thumbnail:
-          description: Url of the thumbnail image.
-          type: string
-          format: uri
-        #### TEXTUAL FIELDS
-        headline:
-          description: Short text describing the image.
-          type: string
-        caption:
-          description: Long text describing the image.
-          type: string
-        #### DATE FIELDS
-        date:
-          description: Date of the image creation in year-month-day format. Capture date for photographies.
-          type: string
-          format: date
-          example: '2024-10-19'
-        #### BOOLEAN FIELDS
-        ai_generated:
-          description: Indicates if the image was generated by Artificial Intelligence. Default = False.
+      - name: wait
+        in: query
+        required: false
+        schema:
           type: boolean
-        #### CATEGORICAL FIELDS
+          description: Wait for completion?
+          default: false
+          title: Wait
+        description: Wait for completion?
+      - name: urgent
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Enqueue at head of queue if True
+          default: false
+          title: Urgent
+        description: Enqueue at head of queue if True
+      - name: strict
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Use strict mode if True
+          default: false
+          title: Strict
+        description: Use strict mode if True
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          description: en|es|pt|fr|ru
+          default: es
+          title: Lang
+        description: en|es|pt|fr|ru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ImgNew'
+              title: Items
+      responses:
+        '200':
+          description: images successfully replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation_Out'
+        '202':
+          description: images replacement accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingOperation'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Images
+      summary: Delete N images
+      description: Remove existing images from the database.
+      operationId: delete_n_imgs_delete
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Wait for completion?
+          default: false
+          title: Wait
+        description: Wait for completion?
+      - name: urgent
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Enqueue at head of queue if True
+          default: false
+          title: Urgent
+        description: Enqueue at head of queue if True
+      - name: strict
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Use strict mode if True
+          default: false
+          title: Strict
+        description: Use strict mode if True
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ImgDel'
+              title: Items
+      responses:
+        '200':
+          description: images successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation_Out'
+        '202':
+          description: images deletion accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingOperation'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    Body_tag_image_tag_image_post:
+      properties:
+        image:
+          type: string
+          format: binary
+          title: Image
+        lang:
+          type: string
+          title: Lang
+          default: en
+        mode:
+          type: string
+          title: Mode
+          default: editorial
+        date:
+          type: string
+          title: Date
+          default: ''
+        event:
+          type: string
+          title: Event
+          default: ''
+        city:
+          type: string
+          title: City
+          default: ''
+        country:
+          type: string
+          title: Country
+          default: ''
+        caption:
+          type: boolean
+          title: Caption
+          default: false
+        keywords:
+          type: boolean
+          title: Keywords
+          default: false
+        ocr:
+          type: boolean
+          title: Ocr
+          default: false
+        colors:
+          type: boolean
+          title: Colors
+          default: false
+      type: object
+      required:
+      - image
+      title: Body_tag_image_tag_image_post
+    Body_upload_query_image_query_imgs_post:
+      properties:
+        image:
+          type: string
+          format: binary
+          title: Image
+          description: "Binary image (JPG / PNG \u2264 5 MB)"
+      type: object
+      required:
+      - image
+      title: Body_upload_query_image_query_imgs_post
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ImgDel:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique identifier of the image.
+      type: object
+      required:
+      - id
+      title: ImgDel
+    ImgNew:
+      properties:
+        url_img_watermark:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Watermark
+          description: URL of the watermarked image.
+          example: https://cdn.example.com/image/wm.jpg
+        url_img_thumbnail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Thumbnail
+          description: URL of the thumbnail image.
+          example: https://cdn.example.com/image/thumb.jpg
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+          description: A shorthand reference for the image.
+          example: image123
+        headline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Headline
+          description: Short text describing the image.
+          example: Sunset over the Hudson River
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+          description: Long text describing the image.
+          example: A vibrant orange sunset reflecting on the river with the city skyline
+            in silhouette.
+        alt_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alt Text
+          description: Text describing the visual appearance of an image (Accessibility).
+        ai_generated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ai Generated
+          description: Image generated by Artificial Intelligence.
+        model_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Model Release
+          description: image with model release.
+        property_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Property Release
+          description: image with property release.
+        nsfw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Nsfw
+          description: Image Not Safe For Work.
         status:
-          description: Current status of the image. Default 'Active' if not specified.
-          type: string
-          enum:
-            - Active
-            - Withdrawn
-            - Reserved
-            - RDA Only
-          default: Active
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+          description: Current status of the image.
+          example: Active
+        date:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date
+          description: Date of the image creation in year-month-day format. Capture
+            date for photographies.
+          example: '2024-10-19'
         location:
-          description: A detailed description of the location, complementing the specified country and city with additional details such as street address or notable landmarks.
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Location
+          description: A detailed description of the location, complementing the specified
+            country and city with additional details such as street address or notable
+            landmarks.
           example: 123 Main St, near Central Park
         city:
-          description: The name of the city.
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Name of the country.
           example: New York
         country:
-          description: The name of the country.
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+          description: Name of the country.
           example: United States
         event:
-          description: The name of the event.
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event
+          description: Related event
           example: Oscar awards 2024
         author:
-          description: The name of the individual or entity responsible for creating the image, such as a photographer or painter.
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+          description: The name of the individual or entity responsible for creating
+            the image, such as a photographer or painter.
           example: Jane Doe
         provider:
-          description: The identifier of the provider, which can be either a unique numeric ID or a descriptive name.
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+          description: The identifier of the provider, which can be either a unique
+            numeric ID or a descriptive name.
           example: Acme Inc.
         shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
           description: Type of photography shot.
-          type: string
           example: Portrait
-        medium_lvl1:
-          description: Photography or Illustration
-          type: string
-          example: Photography
-        medium_lvl2:
-          description: The specific method or process used in creating the artwork, reflecting the artist's unique approach or the traditional methods tied to certain mediums.
-          type: string
+        scene:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scene
+          description: Spot, place, visual location
+          example: Town square
+        technique:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Technique
+          description: The specific method or process used in creating the artwork,
+            reflecting the artist's unique approach or the traditional methods tied
+            to certain mediums.
           example: Drawing
-        medium_lvl3:
-          description: The material or substance used in the creation of the artwork or object. This field corresponds to various artistic mediums like oils, acrylics, or digital formats.
-          type: string
+        medium:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Medium
+          description: The material or substance used in the creation of the artwork
+            or object. This field corresponds to various artistic mediums like oils,
+            acrylics, or digital formats.
           example: Oil on canvas
-        #### MULTICATEGORICAL FIELDS
         keywords:
-          description: |-
-            Keywords (tags) describing the image. Examples: Tree, Dog, Ball, Water, ...
-          oneOf:
-            - type: array
-              description: array of strings
-              items:
-                type: string
-                example: Ball
-            - type: string
-              description: string of keywords separated with ;
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+          description: Specific tags describing the image
+          example:
+          - Tree
+          - Dog
+          - Ball
+          - Water
         categories:
-          description: |-
-            General categories of the image. Examples: Sport, Fashion, Politics, ...
-          oneOf:
-            - type: array
-              description: array of strings
-              items:
-                type: string
-                example: Sport
-            - type: string
-              description: string of keywords separated with ;
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+          description: General categories of the image
+          example:
+          - Sport
+          - Fashion
+          - Politics
         collections:
-          description: |-
-            A list of collections that the image belongs to. Examples: Steet pics, Exclusive, ...
-          type: array
-          items:
-            type: string
-            description: The name of the collection.
-            example: Street pics
-    PENDING_TASK_OK:
-      type: object
-      title: PendingTaskOk
-      properties:
-        operation_id:
-          type: number
-          description: Operation ID if the operation is submitted, -1 if the operation is rejected.
-          example: 123
-        number_of_items:
-          type: number
-          description: Number of items queued waiting to be processed.
-          example: 1000
-        success:
-          type: boolean
-          description: True if the operation is submitted, false if the operation is rejected.
-          example: true
-        message:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Collections
+          description: Collections that the image belongs to
+          example:
+          - Steet pics
+          - Exclusive
+        id:
           type: string
-          description: "\"\" if the operation is submitted, false if the operation is rejected."
-          example: ""
-    PENDING_TASK_ERROR:
-      type: object
-      title: PendingTaskError
-      properties:
-        operation_id:
-          type: number
-          description: Operation ID if the operation is submitted, -1 if the operation is rejected.
-          example: -1
-        number_of_items:
-          type: number
-          description: Number of items queued waiting to be processed.
-          example: 0
-        success:
-          type: boolean
-          description: True if the operation is submitted, false if the operation is rejected.
-          example: false
-        message:
+          title: Id
+          description: Unique identifier of the image.
+        src:
           type: string
-          description: "\"\" if the operation is submitted, false if the operation is rejected."
-          example: "Error message."
-    OPERATION:
+          title: Src
+          description: Url of the image (used as source for the AI)
+      additionalProperties: false
       type: object
-      title: GetStatusOfAnAsyncOperationOk
+      required:
+      - id
+      - src
+      title: ImgNew
+      description: Modelo para crear una nueva imagen (con ID).
+    ImgNew_withoutID:
+      properties:
+        url_img_watermark:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Watermark
+          description: URL of the watermarked image.
+          example: https://cdn.example.com/image/wm.jpg
+        url_img_thumbnail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Thumbnail
+          description: URL of the thumbnail image.
+          example: https://cdn.example.com/image/thumb.jpg
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+          description: A shorthand reference for the image.
+          example: image123
+        headline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Headline
+          description: Short text describing the image.
+          example: Sunset over the Hudson River
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+          description: Long text describing the image.
+          example: A vibrant orange sunset reflecting on the river with the city skyline
+            in silhouette.
+        alt_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alt Text
+          description: Text describing the visual appearance of an image (Accessibility).
+        ai_generated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ai Generated
+          description: Image generated by Artificial Intelligence.
+        model_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Model Release
+          description: image with model release.
+        property_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Property Release
+          description: image with property release.
+        nsfw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Nsfw
+          description: Image Not Safe For Work.
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+          description: Current status of the image.
+          example: Active
+        date:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date
+          description: Date of the image creation in year-month-day format. Capture
+            date for photographies.
+          example: '2024-10-19'
+        location:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Location
+          description: A detailed description of the location, complementing the specified
+            country and city with additional details such as street address or notable
+            landmarks.
+          example: 123 Main St, near Central Park
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Name of the country.
+          example: New York
+        country:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+          description: Name of the country.
+          example: United States
+        event:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event
+          description: Related event
+          example: Oscar awards 2024
+        author:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+          description: The name of the individual or entity responsible for creating
+            the image, such as a photographer or painter.
+          example: Jane Doe
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+          description: The identifier of the provider, which can be either a unique
+            numeric ID or a descriptive name.
+          example: Acme Inc.
+        shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
+          description: Type of photography shot.
+          example: Portrait
+        scene:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scene
+          description: Spot, place, visual location
+          example: Town square
+        technique:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Technique
+          description: The specific method or process used in creating the artwork,
+            reflecting the artist's unique approach or the traditional methods tied
+            to certain mediums.
+          example: Drawing
+        medium:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Medium
+          description: The material or substance used in the creation of the artwork
+            or object. This field corresponds to various artistic mediums like oils,
+            acrylics, or digital formats.
+          example: Oil on canvas
+        keywords:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+          description: Specific tags describing the image
+          example:
+          - Tree
+          - Dog
+          - Ball
+          - Water
+        categories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+          description: General categories of the image
+          example:
+          - Sport
+          - Fashion
+          - Politics
+        collections:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Collections
+          description: Collections that the image belongs to
+          example:
+          - Steet pics
+          - Exclusive
+        src:
+          type: string
+          title: Src
+          description: Unique identifier of the image.
+      additionalProperties: false
+      type: object
+      required:
+      - src
+      title: ImgNew_withoutID
+    ImgOut:
+      properties:
+        url_img_watermark:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Watermark
+          description: URL of the watermarked image.
+          example: https://cdn.example.com/image/wm.jpg
+        url_img_thumbnail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Thumbnail
+          description: URL of the thumbnail image.
+          example: https://cdn.example.com/image/thumb.jpg
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+          description: A shorthand reference for the image.
+          example: image123
+        headline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Headline
+          description: Short text describing the image.
+          example: Sunset over the Hudson River
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+          description: Long text describing the image.
+          example: A vibrant orange sunset reflecting on the river with the city skyline
+            in silhouette.
+        alt_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alt Text
+          description: Text describing the visual appearance of an image (Accessibility).
+        ai_generated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ai Generated
+          description: Image generated by Artificial Intelligence.
+        model_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Model Release
+          description: image with model release.
+        property_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Property Release
+          description: image with property release.
+        nsfw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Nsfw
+          description: Image Not Safe For Work.
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+          description: Current status of the image.
+          example: Active
+        date:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date
+          description: Date of the image creation in year-month-day format. Capture
+            date for photographies.
+          example: '2024-10-19'
+        location:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Location
+          description: A detailed description of the location, complementing the specified
+            country and city with additional details such as street address or notable
+            landmarks.
+          example: 123 Main St, near Central Park
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Name of the country.
+          example: New York
+        country:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+          description: Name of the country.
+          example: United States
+        event:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event
+          description: Related event
+          example: Oscar awards 2024
+        author:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+          description: The name of the individual or entity responsible for creating
+            the image, such as a photographer or painter.
+          example: Jane Doe
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+          description: The identifier of the provider, which can be either a unique
+            numeric ID or a descriptive name.
+          example: Acme Inc.
+        shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
+          description: Type of photography shot.
+          example: Portrait
+        scene:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scene
+          description: Spot, place, visual location
+          example: Town square
+        technique:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Technique
+          description: The specific method or process used in creating the artwork,
+            reflecting the artist's unique approach or the traditional methods tied
+            to certain mediums.
+          example: Drawing
+        medium:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Medium
+          description: The material or substance used in the creation of the artwork
+            or object. This field corresponds to various artistic mediums like oils,
+            acrylics, or digital formats.
+          example: Oil on canvas
+        keywords:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+          description: Specific tags describing the image
+          example:
+          - Tree
+          - Dog
+          - Ball
+          - Water
+        categories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+          description: General categories of the image
+          example:
+          - Sport
+          - Fashion
+          - Politics
+        collections:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Collections
+          description: Collections that the image belongs to
+          example:
+          - Steet pics
+          - Exclusive
+        id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Id
+          description: Unique identifier of the image.
+        src:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src
+          description: Url of the image (used as source for the AI)
+        height:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Height
+          description: Height of the image.
+        width:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Width
+          description: Width of the image.
+        n_faces:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: N Faces
+          description: Num of people faces that appears on the image.
+      additionalProperties: false
+      type: object
+      title: ImgOut
+    OpError:
       properties:
         id:
-          type: number
-        type:
+          type: integer
+          title: Id
+          description: Identifier of the resource that triggered the error.
+        msg:
           type: string
-          enum:
-            - add
-            - upd
-            - del
-            - multiple
+          title: Msg
+          description: Human-readable description of the error returned by the system.
+      type: object
+      required:
+      - id
+      - msg
+      title: OpError
+      description: Details of an error produced during the operation.
+    OpMethod:
+      type: string
+      enum:
+      - add
+      - upd
+      - del
+      - multiple
+      title: OpMethod
+      description: "Tipo de respuesta asociada a una operaci\xF3n con im\xE1genes."
+    OpResource:
+      type: string
+      enum:
+      - video
+      - image
+      - celebs
+      title: OpResource
+    Operation_Out:
+      properties:
+        method:
+          $ref: '#/components/schemas/OpMethod'
+          description: Operation type based on the HTTP method.
+        resource:
+          $ref: '#/components/schemas/OpResource'
+          description: Resource type involved in the operation.
         num_total:
-          type: number
-        num_processed:
-          type: number
-        num_saved:
-          type: number
+          type: integer
+          title: Num Total
+          description: Total of elements.
+        num_good:
+          type: integer
+          title: Num Good
+          description: Number of correctly processed elements.
+        num_bad:
+          type: integer
+          title: Num Bad
+          description: Number of failed processed elements.
+        is_started:
+          type: boolean
+          title: Is Started
+          description: Boolean indicating if the operation has started.
+        is_finished:
+          type: boolean
+          title: Is Finished
+          description: Boolean indicating if the operations has finished.
+        all_good:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: All Good
+          description: Boolean indicating that there is no failed elements yet.
         do_wait:
           type: boolean
+          title: Do Wait
+          description: Boolean for know if have to wait or not.
         do_urgent:
           type: boolean
-        do_all:
-          type: boolean
+          title: Do Urgent
+          description: Boolean for know if it is an urgent operation.
         do_strict:
           type: boolean
-        finished:
-          type: boolean
-        all_saved:
-          type: boolean
-        date_created:
+          title: Do Strict
+          description: Boolean for know if is required strict operations over DB.
+        idle_ms:
+          type: number
+          title: Idle Ms
+          description: Duration (milliseconds) between the operation has been created
+            and has started.
+        exec_ms:
+          type: number
+          title: Exec Ms
+          description: Duration (milliseconds) between the operation has been started
+            and has finished.
+        created_at:
           type: string
-          format: date
-        date_finished:
+          title: Created At
+          description: Creation datetime.
+        started_at:
           type: string
-          format: date
+          title: Started At
+          description: Start datetime.
+        finished_at:
+          type: string
+          title: Finished At
+          description: Finalization datetime.
         errors:
-          type: array
           items:
-            type: object
-            properties:
-              id:
-                type: number
-                description: Image ID
-              msg:
-                type: string
-                description: Error message
-    RESP_401:
+            $ref: '#/components/schemas/OpError'
+          type: array
+          title: Errors
+          description: List of errors that occurred during processing the operation.
       type: object
-      properties:
-        message:
-          type: string
-          enum:
-            - Unauthorized
-          default: Unauthorized
-        status:
-          type: string
-          enum:
-            - error
-          default: error
       required:
-        - message
-        - status
-    RESP_403:
+      - method
+      - resource
+      - num_total
+      - num_good
+      - num_bad
+      - is_started
+      - is_finished
+      - all_good
+      - do_wait
+      - do_urgent
+      - do_strict
+      - idle_ms
+      - exec_ms
+      - created_at
+      - started_at
+      - finished_at
+      - errors
+      title: Operation_Out
+      description: 'Output of:
+
+        - a synchronous (blocking) operation. POST /imgs?wait=true
+
+        - operation status.                   GET ops/<op_id>'
+    PendingOperation:
+      properties:
+        operation_id:
+          type: integer
+          title: Operation Id
+          description: ID assigned to the operation, or -1 if enqueuing failed
+        n_total:
+          type: integer
+          title: N Total
+          description: Total number of items attempted to enqueue
+        msg:
+          type: string
+          title: Msg
+          description: Status message (e.g., 'Operation enqueued successfully')
       type: object
-      title: SearchForImagesForbidden
-      properties:
-        message:
-          type: string
-          enum:
-            - Forbidden
-          default: Forbidden
-        status:
-          type: string
-          enum:
-            - error
-          default: error
       required:
-        - message
-        - status
-    RESP_404:
+      - operation_id
+      - n_total
+      - msg
+      title: PendingOperation
+      description: 'Immediate output of an asynchronous (queued) operation.
+
+
+        Processing takes place in the background; `operation_id = -1`
+
+        indicates that the job could not be enqueued.'
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
       type: object
-      properties:
-        message:
-          type: string
-          enum:
-            - Not Found
-          default: Not Found
-        status:
-          type: string
-          enum:
-            - error
-          default: error
       required:
-        - message
-        - status
-    RESP_500:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    image_search_response:
+      properties:
+        results:
+          items:
+            $ref: '#/components/schemas/ImgOut'
+          type: array
+          title: Results
+        count:
+          type: integer
+          title: Count
+        facets:
+          additionalProperties:
+            items:
+              additionalProperties:
+                type: integer
+              type: object
+            type: array
+          type: object
+          title: Facets
       type: object
-      properties:
-        message:
-          type: string
-          enum:
-            - Internal Server Error
-          default: Internal Server Error
-        status:
-          type: string
-          enum:
-            - error
-          default: error
       required:
-        - message
-        - status
-security:
-  - API-WESOG-SEARCH: []
+      - results
+      - count
+      - facets
+      title: image_search_response
+  securitySchemes:
+    APIKeyHeader:
+      type: apiKey
+      in: header
+      name: API-Key

@@ -9,35 +9,174 @@ icon: 'magnifying-glass'
 The search endpoint `GET /imgs` is the most powerful API endpoint, allowing the creation of complex queries using a custom syntax. This page explains how to use the Wesog Search API to construct advanced search queries.
 
 
-### Input: Request Parameters
+## Request Parameters
 
-The search endpoint (`HTTP GET /imgs`) has the following URL parameters:
+The search endpoint (`GET /imgs`) accepts the following URL parameters:
 
-- `q`: Query Filtering Formula. See more info [here](https://wesog.mintlify.app/documentation/search-filters). **Required**.
-- `sort_by`: Sorting criteria (Default: `id`)
-- `sort_order`: `asc` for ascending, `desc` for descending (Default: `asc`)
-- `page`: Page number. First page is 1 (Default: `1`)
-- `limit`: The number of images per page (default: `50`)
-- `fields`: The returning image fields (comma-separated) (default: `id`)
-- `facets`: 'Faceted Search. Facets (comma separated) that will appear in the search result. 20 is the defualt max number of options per facet.
-- `count`: If true, includes the exact number of images in the search results. (default: `false`)
-- `lang`: The language used the text search (default: `en`)
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `q` | String | Yes | - | Query Filtering Formula. See [Search Filters](/content/search/search-filters) for syntax details |
+| `sort_by` | String | No | `id` | Sorting criteria. Options: `id`, `similarity` (only with similarity filters) |
+| `sort_order` | String | No | `asc` | Sort order: `asc` (ascending) or `desc` (descending) |
+| `page` | Number | No | `1` | Page number for pagination (1-based) |
+| `limit` | Number | No | `50` | Number of images per page (max: 1000) |
+| `fields` | String | No | `id` | Comma-separated list of fields to return in response |
+| `facets` | String | No | - | Comma-separated list of facets for aggregated search results |
+| `count` | Boolean | No | `false` | Include exact total count of matching images |
+| `lang` | String | No | `en` | Language for text search (`en`, `es`, `fr`, `de`, `pt`, `it`) |
+
+<Note>
+The `q` parameter uses a special Query Filtering Formula syntax. Learn more about constructing complex queries in the [Search Filters documentation](/content/search/search-filters).
+</Note>
 
 
-### Output: Returned Response
+## Response Format
 
-The response is a JSON object containing the found images with the specified `fields` and additional information such as the total number of images found and the time taken.
+The search endpoint returns a JSON object with the following structure:
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `images` | Array | Array of image objects containing the requested `fields` |
+| `num_images` | Number | Total number of images matching the query (if `count=true`, otherwise -1) |
+| `facets` | Object | Aggregated facet results (if `facets` parameter specified) |
+| `time_taken` | String | Time taken to execute the search query |
+
+### Available Fields
+
+When using the `fields` parameter, you can request any combination of these image fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | String/Number | Unique identifier of the image |
+| `src` | String | URL of the original image |
+| `headline` | String | Short descriptive title |
+| `caption` | String | Detailed description |
+| `keywords` | Array | Associated keywords/tags |
+| `author` | String | Image creator |
+| `date` | String | Creation date (YYYY-MM-DD) |
+| `location` | String | Geographic location |
+| `city` | String | City name |
+| `country` | String | Country name |
+| `width` | Number | Image width in pixels |
+| `height` | Number | Image height in pixels |
+| `status` | String | Image status (Active, Withdrawn, etc.) |
+
+<Tip>
+Request only the fields you need to optimize response size and improve performance.
+</Tip>
+
+
+## Examples
+
+### Basic Search
+
+Search for images containing "elections" with basic metadata:
+
+```bash
+curl --request GET \
+  --url 'https://api.wesog.com/imgs?q=keyword%3Delections&fields=id,headline,author&limit=10' \
+  --header 'API-Key: <your-api-key>'
+```
 
 ```json
-// HTTP GET /imgs?q=t~us elections&sort_by=t~us elections&fields=id,headline
 {
   "images": [
-    {"id": 323, "headline": "Joe Biden drops his candidacy for president of the United States"},
-    {"id": 324, "headline": "Donald Trump getting shot in the ear"}
+    {
+      "id": "img_001",
+      "headline": "Presidential Election Results 2024",
+      "author": "John Smith"
+    },
+    {
+      "id": "img_002", 
+      "headline": "Voters at Polling Station",
+      "author": "Jane Doe"
+    }
   ],
-  "num_images": 2,
+  "num_images": -1,
   "facets": {},
-  "time_taken": "0.02s"
+  "time_taken": "0.05s"
 }
 ```
+
+### Advanced Search with Facets
+
+Search for images from the US with faceted results:
+
+```bash
+curl --request GET \
+  --url 'https://api.wesog.com/imgs?q=country%3DUnited%20States&fields=id,headline,city&facets=author,keywords&count=true' \
+  --header 'API-Key: <your-api-key>'
+```
+
+```json
+{
+  "images": [
+    {
+      "id": "img_100",
+      "headline": "New York City Skyline",
+      "city": "New York"
+    }
+  ],
+  "num_images": 1547,
+  "facets": {
+    "author": [
+      {"value": "John Smith", "count": 45},
+      {"value": "Jane Doe", "count": 32}
+    ],
+    "keywords": [
+      {"value": "cityscape", "count": 123},
+      {"value": "architecture", "count": 89}
+    ]
+  },
+  "time_taken": "0.12s"
+}
+```
+
+### Similarity Search
+
+Search for images similar to an uploaded reference image:
+
+```bash
+curl --request GET \
+  --url 'https://api.wesog.com/imgs?q=image%3D<image_hash>&sort_by=similarity&fields=id,headline&limit=5' \
+  --header 'API-Key: <your-api-key>'
+```
+
+## Quick Reference
+
+<CardGroup cols={2}>
+  <Card title="Query Syntax" icon="code" href="/content/search/search-filters">
+    Learn the Query Filtering Formula syntax for complex searches
+  </Card>
+  <Card title="Search Filters" icon="filter" href="/content/search/search-filters">
+    Explore all available search filters and operators
+  </Card>
+</CardGroup>
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Text Search">
+    Use `keyword=searchterm` or `text~searchterm` to find images by keywords or caption content.
+    
+    **Example**: `q=keyword=sunset` finds images tagged with "sunset"
+  </Accordion>
+  
+  <Accordion title="Location-based Search">
+    Filter images by geographic location using `country`, `city`, or `location` filters.
+    
+    **Example**: `q=country=France && city=Paris`
+  </Accordion>
+  
+  <Accordion title="Date Range Search">
+    Search images within specific date ranges using date operators.
+    
+    **Example**: `q=date>=2024-01-01 && date<=2024-12-31`
+  </Accordion>
+  
+  <Accordion title="Metadata Filtering">
+    Combine multiple metadata filters for precise results.
+    
+    **Example**: `q=author=John && status=Active && keyword=landscape`
+  </Accordion>
+</AccordionGroup>

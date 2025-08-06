@@ -1,13 +1,13 @@
 ---
 title: Overview
-description: 'How to monitoring operations'
+description: 'How to monitor operations'
 icon: 'chart-line'
 ---
 
 Operations represent tasks that users can submit to the Wesog system for asynchronous execution—that is, so the client isn’t blocked while the server completes the assigned task. This way of organizing work becomes especially crucial when handling image ingestion, since a given tenant can request the system to upload thousands of different images at once without having to wait or block the system until all uploads are finished.
 
-# Structure of an Operation
-Una operación se describe viene descrita por los campos que se muestran en la siguiente tabla:
+## Structure of an Operation
+An operation is described by the fields shown in the following table:
 
 | Attributes | Type  | Description |
 |-----------|------|-------------|
@@ -39,34 +39,36 @@ As operations are primarily used to monitor the progress of tasks, their associa
 
 Because these endpoints are not complex enough to require individual sections, they will all be explained together below.
 
-# Check Operation status
-Given a `GET /ops/{op_id}` request with the header `API-Key: <api-key>`, you can retrieve the status of a specific operation for a particular tenant.
+## Operations Actions
 
-## Example
+### Check Operation Status (`GET /ops/{op_id}`)
+Given a request with the header `API-Key: <api-key>`, you can retrieve the status of a specific operation for a particular tenant.
+
+#### Example
 ```bash
 curl --request GET \
   --url https://api.wesog.com/ops/{op_id} \
   --header 'API-Key: <api-key>'
 ```
 
-# See all operations
+### See all operations (`GET /ops`)
 This endpoint is the simplest, since you only need to send the access API key to the Wesog server; using that, the system can identify the tenant making the request and return all operations they’ve performed.
 
 When requesting all operations, no additional parameters beyond the API key in the request header are required, and the server responds with a JSON-formatted list of Operation objects, containing the various parameters shown in the table at the beginning of this section.
 
-## Example
+#### Example
 ```bash
 curl --request GET \
   --url https://api.wesog.com/ops \
   --header 'API-Key: <api-key>'
 ```
 
-# Abort current running operation
+### Abort current running operation (`DELETE /ops/{op_id}`)
 Once a task is started, even if it was indicated to run asynchronously, it may be necessary to abort it. To do this, a `DELETE /ops/{op_id}` call can be made, sending the header `API-Key: <api-key>`, and the Wesog server will cancel the operation if it has not yet finished.
 
-## Example
+#### Example
 ```bash
 curl --request DELETE \
-    --url https://api.wesog.com/ops/{op_id} \
-    --header 'API-Key: <api-key>'
+  --url https://api.wesog.com/ops/{op_id} \
+  --header 'API-Key: <api-key>'
 ```

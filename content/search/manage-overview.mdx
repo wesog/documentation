@@ -1,11 +1,11 @@
 ---
 title: Overview
-description: Get started with Wesgo Search asset management
+description: Get started with Wesog Search asset management
 icon: house
 ---
 
 
-Wesgo Search supports CRUD operations (Create, Read, Update, Delete) for asset management.
+Wesog Search supports CRUD operations (Create, Read, Update, Delete) for asset management.
 
 | Operation              | Endpoint       | Required image fields | Optional image fields    |
 |------------------------|----------------|-----------------------|--------------------------|
@@ -13,11 +13,23 @@ Wesgo Search supports CRUD operations (Create, Read, Update, Delete) for asset m
 | Update existing images | `PUT /imgs`    | `id`                  | Image metadata fields... |
 | Delete existing images | `DELETE /imgs` | `id`                  | No                       |
 
-Each operation can be executed with a single image or a **batch** of images.
+Each operation can be executed with a single image or a **batch** of images, and there are different sections for each group of operations.
+
+<CardGroup cols={3}>
+  <Card title="Upload images" icon="plus" href="/content/search/manage-upload">
+    Upload new images to Wesog Search
+  </Card>
+  <Card title="Update images" icon="pen" href="/content/search/manage-update">
+    Update existing image metadata
+  </Card>
+  <Card title="Delete images" icon="minus" href="/content/search/manage-delete">
+    Delete images from Wesog Search
+  </Card>
+</CardGroup>
 
 ## Relaxed vs Strict Mode
 
-Wesgo Search requires that each image must have a **unique identifier** (`id`). When performing new operations, it is important to manage interactions with existing content, ensuring no duplicate ids.
+Wesog Search requires that each image must have a **unique identifier** (`id`). When performing new operations, it is important to manage interactions with existing content, ensuring no duplicate ids.
 
 In Relaxed mode, operations adapt flexibly by overwriting or creating records as needed, whereas Strict mode, the operation only is executed if it meets the rule for unique IDs.
 
@@ -31,7 +43,7 @@ In Relaxed mode, operations adapt flexibly by overwriting or creating records as
 
 ## Error Management
 
-Handling errors such as undownloadable image URLs or duplicate image IDs (in strict mode) is crucial. Wesgo Search supports two modes:
+Handling errors such as undownloadable image URLs or duplicate image IDs (in strict mode) is crucial. Wesog Search supports two modes:
 
 | All or nothing (`do=all`) (default) | Subset (`do=subset`) (not yet implemented) |
 |----------------|--------|
