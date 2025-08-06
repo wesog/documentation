@@ -107,20 +107,21 @@ A valid request example to this endpoint for uploading an image would be the fol
 
 ```bash
 curl --request POST \
-  --url https://api.wesog.com/imgs/{item_id} \
+  --url https://api.wesog.com/imgs/image123 \
   --header 'API-Key: <api-key>' \
   --header 'Content-Type: application/json' \
   --data '{
+  "src": "https://cdn.example.com/image.jpg",
   "url_img_watermark": "https://cdn.example.com/image/wm.jpg",
   "url_img_thumbnail": "https://cdn.example.com/image/thumb.jpg",
   "title": "image123",
   "headline": "Sunset over the Hudson River",
   "caption": "A vibrant orange sunset reflecting on the river with the city skyline in silhouette.",
-  "alt_text": "<string>",
-  "ai_generated": true,
+  "alt_text": "Sunset cityscape view",
+  "ai_generated": false,
   "model_release": true,
   "property_release": true,
-  "nsfw": true,
+  "nsfw": false,
   "status": "Active",
   "date": "2024-10-19",
   "location": "123 Main St, near Central Park",
@@ -129,26 +130,25 @@ curl --request POST \
   "event": "Oscar awards 2024",
   "author": "Jane Doe",
   "provider": "Acme Inc.",
-  "shot": "Portrait",
-  "scene": "Town square",
-  "technique": "Drawing",
-  "medium": "Oil on canvas",
+  "shot": "Landscape",
+  "scene": "Urban sunset",
+  "technique": "Digital photography",
+  "medium": "Photography",
   "keywords": [
-    "Tree",
-    "Dog",
-    "Ball",
-    "Water"
+    "sunset",
+    "city",
+    "skyline",
+    "river"
   ],
   "categories": [
-    "Sport",
-    "Fashion",
-    "Politics"
+    "landscape",
+    "urban",
+    "nature"
   ],
   "collections": [
-    "Steet pics",
+    "Street pics",
     "Exclusive"
-  ],
-  "src": "<string>"
+  ]
 }'
 ```
 

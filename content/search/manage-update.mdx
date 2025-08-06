@@ -4,7 +4,7 @@ description: 'Update existing images'
 icon: 'pen'
 ---
 
-Once image information is stored on the servers where the Wesog database is maintained, it is possible to update this data As with the previous endpoint's output, the response codes you may receive are the same as those defined for the single-image update endpoint.ithout needing to delete existing images, thanks to this endpoint. This allows modifying the metadata associated with images, such as their title, description, tags, etc., without needing to re-upload the complete image.
+Once image information is stored on the servers where the Wesog database is maintained, it is possible to update this data without needing to delete existing images, thanks to this endpoint. This allows modifying the metadata associated with images, such as their title, description, tags, etc., without needing to re-upload the complete image.
 
 Like with deletion and upload operations, updating can be performed on a single image or on a **batch** of images (recommended for updating large quantities of images). For this purpose, two different endpoints have been implemented, as explained below:
 
@@ -97,48 +97,24 @@ While if the update is performed directly, all information related to the operat
 ### Example
 ```bash
 curl --request PUT \
-  --url https://api.wesog.com/imgs/{item_id} \
+  --url https://api.wesog.com/imgs/image123 \
   --header 'API-Key: <api-key>' \
   --header 'Content-Type: application/json' \
   --data '{
-  "url_img_watermark": "https://cdn.example.com/image/wm.jpg",
-  "url_img_thumbnail": "https://cdn.example.com/image/thumb.jpg",
-  "title": "image123",
-  "headline": "Sunset over the Hudson River",
-  "caption": "A vibrant orange sunset reflecting on the river with the city skyline in silhouette.",
-  "alt_text": "<string>",
-  "ai_generated": true,
-  "model_release": true,
-  "property_release": true,
-  "nsfw": true,
-  "status": "Active",
-  "date": "2024-10-19",
-  "location": "123 Main St, near Central Park",
-  "city": "New York",
-  "country": "United States",
-  "event": "Oscar awards 2024",
-  "author": "Jane Doe",
-  "provider": "Acme Inc.",
-  "shot": "Portrait",
-  "scene": "Town square",
-  "technique": "Drawing",
-  "medium": "Oil on canvas",
+  "src": "https://cdn.example.com/image.jpg",
+  "headline": "Updated: Sunset over the Hudson River",
+  "caption": "An updated vibrant orange sunset reflecting on the river with the city skyline in silhouette.",
   "keywords": [
-    "Tree",
-    "Dog",
-    "Ball",
-    "Water"
+    "sunset",
+    "city",
+    "skyline",
+    "river",
+    "updated"
   ],
   "categories": [
-    "Sport",
-    "Fashion",
-    "Politics"
-  ],
-  "collections": [
-    "Steet pics",
-    "Exclusive"
-  ],
-  "src": "<string>"
+    "landscape",
+    "urban"
+  ]
 }'
 ```
 ## Replace multiple images (`PUT /imgs`)

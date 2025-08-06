@@ -55,14 +55,8 @@ Deleting an image internally triggers an operation whose status can be queried. 
 ### Example
 ```bash
 curl --request DELETE \
-  --url https://api.wesog.com/imgs \
-  --header 'API-Key: <api-key>' \
-  --header 'Content-Type: application/json' \
-  --data '[
-  {
-    "id": "image123"
-  }
-]'
+  --url https://api.wesog.com/imgs/image123 \
+  --header 'API-Key: <api-key>'
 ```
 
 ## Delete multiple images (`DELETE /imgs`)

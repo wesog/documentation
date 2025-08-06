@@ -4,16 +4,9 @@ description: Get started with Wesog Search asset management
 icon: house
 ---
 
+Wesog Search provides a comprehensive API for managing your image assets with full CRUD operations (Create, Read, Update, Delete). This guide covers the essential concepts and best practices for effective asset management.
 
-Wesog Search supports CRUD operations (Create, Read, Update, Delete) for asset management.
-
-| Operation              | Endpoint       | Required image fields | Optional image fields    |
-|------------------------|----------------|-----------------------|--------------------------|
-| Upload new images      | `POST /imgs`   | `id`, `src`           | Image metadata fields... |
-| Update existing images | `PUT /imgs`    | `id`                  | Image metadata fields... |
-| Delete existing images | `DELETE /imgs` | `id`                  | No                       |
-
-Each operation can be executed with a single image or a **batch** of images, and there are different sections for each group of operations.
+## Quick Start
 
 <CardGroup cols={3}>
   <Card title="Upload images" icon="plus" href="/content/search/manage-upload">
@@ -27,50 +20,99 @@ Each operation can be executed with a single image or a **batch** of images, and
   </Card>
 </CardGroup>
 
-## Relaxed vs Strict Mode
+## Operations Overview
 
-Wesog Search requires that each image must have a **unique identifier** (`id`). When performing new operations, it is important to manage interactions with existing content, ensuring no duplicate ids.
+All operations support both single image and **batch processing** for efficient management of large image collections.
 
-In Relaxed mode, operations adapt flexibly by overwriting or creating records as needed, whereas Strict mode, the operation only is executed if it meets the rule for unique IDs.
+| Operation              | Endpoint       | Required Fields | Optional Fields          | Purpose                    |
+|------------------------|----------------|-----------------|--------------------------|----------------------------|
+| Upload new images      | `POST /imgs`   | `id`, `src`     | Image metadata fields    | Add images to the system   |
+| Update existing images | `PUT /imgs`    | `id`            | Image metadata fields    | Modify existing metadata   |
+| Delete existing images | `DELETE /imgs` | `id`            | None                     | Remove images from system  |
 
-| Operation              | Relaxed (not yet implemented)    | Strict (default)             |
-|------------------------|----------------------------------|------------------------------|
-| Upload new images      | Overwrite if `id` exists         | Error if `id` exists         |
-| Update existing images | Create if `id` doesn't exist (*) | Error if `id` doesn't exist  |
-| Delete existing images | Ignore if `id` doesn't exist     | Ignore if `id` doesn't exist |
+<Note>
+Each image must have a **unique identifier** (`id`). The `src` field should contain the publicly accessible URL of the image.
+</Note>
 
-> (*) Update existing images in Relaxed mode, only Create new images if `id` doesn't exist **and `src` is present**. Otherwise the image can not be created because the `src` is missing.
+## Key Concepts
 
-## Error Management
+Understanding these concepts will help you choose the right configuration for your use case:
 
-Handling errors such as undownloadable image URLs or duplicate image IDs (in strict mode) is crucial. Wesog Search supports two modes:
+### Execution Modes
 
-| All or nothing (`do=all`) (default) | Subset (`do=subset`) (not yet implemented) |
-|----------------|--------|
-| Operations are atomic; if one image fails, the entire operation fails. | Successfully processes valid images and returns error IDs and messages for failed ones. Useful for large-scale operations (e.g., initial ingestion). |
+<CardGroup cols={2}>
+  <Card title="Synchronous (Default)" icon="clock">
+    **Best for**: Small operations (< 10 uploads, < 50 updates, < 100 deletes)
+    
+    **Behavior**: Waits for completion before sending response
+  </Card>
+  <Card title="Asynchronous" icon="background">
+    **Best for**: Large batch operations
+    
+    **Behavior**: Returns immediately with operation ID for tracking
+  </Card>
+</CardGroup>
 
+### Processing Modes
 
-## Synchronous vs Asynchronous
+| Mode | Behavior | When to Use |
+|------|----------|-------------|
+| **Strict** (default) | Fails if ID conflicts occur | Production environments, data integrity critical |
+| **Relaxed** (not implemented) | Handles conflicts flexibly | Bulk imports, development |
 
-| Synchronous (`mode=sync`) (default) | Asynchronous (`mode=async`) |
-|-------------|--------------|
-| **Waits** for the operation to complete before sending the response. | **Immediately returns** the response with an operation ID; continues the operation in the background. The operation id can be used later for tracking the upload process. |
+<Tip>
+Start with **Strict + Synchronous** for small operations, then switch to **Strict + Asynchronous** for larger batches.
+</Tip>
 
-Synchronous mode is recommended for small operations, while asynchronous mode is better for larger operations to avoid timeouts. Considered small operations include:
-- Uploading fewer than 10 images
-- Updating fewer than 50 images
-- Deleting fewer than 100 images
+### Error Handling
 
+| Strategy | Description | Best For |
+|----------|-------------|----------|
+| **All or Nothing** (default) | Entire operation fails if any image fails | Critical operations requiring consistency |
+| **Subset** (not implemented) | Processes valid images, reports failures | Large-scale imports, fault tolerance needed |
 
-### Asynchronous Operation Statuses
+## Operation Monitoring
 
-Endpoints for tracking operation statuses:
+For asynchronous operations, you can track progress using the operations endpoints:
 
-| Operation              | Endpoint                  |
-|------------------------|---------------------------|
-| Get all operations     | `GET /ops`                |
-| Get a single operation | `GET /ops/{operation_id}` |
+| Endpoint | Purpose | Response |
+|----------|---------|----------|
+| `GET /ops` | List all operations | Array of operation objects |
+| `GET /ops/{operation_id}` | Get specific operation status | Single operation object with detailed status |
 
-- `finished=False` and `success=null`: Operation is still processing (`num_processed` < `num_total`).
-- `finished=True` and `success=True`: Operation completed successfully with database saving (`num_processed` = `num_total`).
-- `finished=True` and `success=False`: Operation aborted with no database changes. Check the message field using the operation ID for error details and retry accordingly.
+### Operation Status Indicators
+
+| Status | Description |
+|--------|-------------|
+| `finished=false`, `success=null` | **Processing** - Operation is still running |
+| `finished=true`, `success=true` | **Completed** - All items processed successfully |
+| `finished=true`, `success=false` | **Failed** - Operation aborted, check error details |
+
+<Warning>
+If an operation fails (`success=false`), no database changes are made. Check the error message and retry with corrected data.
+</Warning>
+
+## Advanced Configuration
+
+### Strict Mode Behavior
+
+| Operation | Strict Mode Behavior | Impact |
+|-----------|---------------------|---------|
+| **Upload** | Error if `id` already exists | Prevents accidental overwrites |
+| **Update** | Error if `id` doesn't exist | Ensures you're modifying existing data |
+| **Delete** | Ignores missing `id` | Safe deletion of potentially removed items |
+
+### Best Practices
+
+<CardGroup cols={2}>
+  <Card title="For Development" icon="code">
+    - Use synchronous mode for testing
+    - Start with small batches
+    - Validate data structure first
+  </Card>
+  <Card title="For Production" icon="shield">
+    - Use asynchronous for large operations
+    - Monitor operation status
+    - Implement retry logic for failures
+  </Card>
+</CardGroup>

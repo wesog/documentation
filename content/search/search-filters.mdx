@@ -1,50 +1,100 @@
 ---
 title: 'Filters'
-description: 'Create a boolean formula combining serveral filters and subfilters.'
+description: 'Create a boolean formula combining several filters and subfilters.'
 icon: filter
 ---
 
 The `q` url parameter of the search endpoint (`GET /imgs`) defines the **query filtering formula**. This parameter uses a special syntax that allows various filter combinations using boolean operators and supports subfilters for more granular searches.
 
 ## Filter Syntax
+
 Filters form the fundamental component of the query filtering formula. They adhere to the syntax outlined below:
 
+<CodeGroup>
 ```
 <filter acronym><filter operator><filter value>
 ```
+</CodeGroup>
+
+<CardGroup cols={3}>
+  <Card title="Filter Acronym" icon="tag">
+    Multiple acronyms can refer to the same filter
+    
+    Example: `k`, `key`, `keywords`
+  </Card>
+  <Card title="Filter Operator" icon="equals">
+    Defines how the filter is applied
+    
+    Example: `=`, `~`, `>`, `<`
+  </Card>
+  <Card title="Filter Value" icon="input-text">
+    The actual search criteria
+    
+    Example: `"sunset"`, `2024-01-01`
+  </Card>
+</CardGroup>
 
 ### Filter acronym
 Each filter can be identified by multiple acronyms. For example, the **keyword** filter can be referred to by the following acronyms: `k`, `key`, `keywords`.
 
 
-### Filter operator
-Wesog search supports several filters operators:
-- `~`: Similar. Used for AI semantic search (for text,image) and subwords search for the rest of filters.
-  - `~~`: "Very similar"
-  - `~~~`: "Super similar"
-- `=`: Equal.
-  - `==`: "Very equal"
-  - `===`: "Super equal"
-- Range comparison. For numeric filters, for dates, but also alphabetical order for single string filters.
-  - `<`: Less than.
-  - `>`: Greater than.
-  - `<=`: Greater or equal than. Aliases: `=<`, `≤`.
-  - `>=`: Less or equal than. Aliases: `=<`, `≥`.
-- Set comparison. 
-  - `=`: Must contain all of them.
-  - `∩`: Must contain at least one of them. (Intersection).
+### Filter Operators
+
+<AccordionGroup>
+  <Accordion title="Similarity Operators">
+    - `~`: Similar (AI semantic search for text/image, subword search for others)
+    - `~~`: Very similar  
+    - `~~~`: Super similar
+  </Accordion>
+  
+  <Accordion title="Equality Operators">
+    - `=`: Equal
+    - `==`: Very equal
+    - `===`: Super equal
+  </Accordion>
+  
+  <Accordion title="Range Comparison">
+    For numeric filters, dates, and alphabetical order:
+    - `<`: Less than
+    - `>`: Greater than  
+    - `<=`: Less or equal than (Aliases: `=<`, `≤`)
+    - `>=`: Greater or equal than (Aliases: `=<`, `≥`)
+  </Accordion>
+  
+  <Accordion title="Set Comparison">
+    - `=`: Must contain all of them
+    - `∩`: Must contain at least one of them (Intersection)
+  </Accordion>
+</AccordionGroup>
 
 
-### Filter value
-Each filter has a different format. Here are some examples:
-- Date: `YEAR-MONTH-DAY`. Eg. `d=2005-5-13`
-- Keyword: Comma separated. Eg. `k=blue, sky`
-- City: Single string. Eg. `cit=Paris`
+### Filter Values
+
+<Note>
+Each filter has a specific format for its values. Here are common examples:
+</Note>
+
+<CodeGroup>
+```text Date Format
+YEAR-MONTH-DAY
+Example: d=2005-5-13
+```
+
+```text Keywords
+Comma separated values
+Example: k=blue, sky
+```
+
+```text Location
+Single string value
+Example: city=Paris
+```
+</CodeGroup>
 
 
 ## Available Filters and Subfilters
 
-List of avaliable filters and subfilters along with their prefixes:
+List of available filters and subfilters along with their prefixes:
 
 
 | Filter                | Available Acronyms     | Available Operators                | Value format    | Examples            |
@@ -56,7 +106,7 @@ List of avaliable filters and subfilters along with their prefixes:
 | **ID**                | `id`                   | `=`, `<`, `>`, `<=`, `>=`, `∩`     | Numeric         | `id=1234`           |
 | Aspect **R**atio      | `r`,        `ratio`    | `=`, `<`, `>`, `<=`, `>=`, `∩`     | Numeric         | `r<1.5`             |
 | **N**um of people     | `n`,        `n_people` | `=`, `<`, `>`, `<=`, `>=`, `∩`     | Numeric         | `n=3`               |
-| **AI** generated      | `ai`                   | `=`                                | Boolean         | `bw=true`           |
+| **AI** generated      | `ai`                   | `=`                                | Boolean         | `ai=true`           |
 | **M**odel **R**elease | `mr`                   | `=`                                | Boolean         |                     |
 | **P**roperty **R**elease | `pr`                | `=`                                | Boolean         |                     |
 | **NSFW**              | `nsfw`                 | `=`                                | Boolean         | `nsfw=false`        |
@@ -79,13 +129,22 @@ List of avaliable filters and subfilters along with their prefixes:
 | **C**olor             | `c`, `color`           | `=`                                | Color           | `c=#ff0000`         |
 
 
-**Examples:**
+**Quick Examples:**
 
-- Text filter `t~us elections` searches for images semantically similar to "us elections".
-- Text filter `t=us elections` perfoms a fulltext searches for images containing "us elections" in their title, headline or caption.
-- Keyword filter `k=us elections` searches for images tagged with the keyword "us elections".
-- Date filter `d=1998-*-*` searches for photographies taken in 1998.
-- Date filter `d>2020-03-11` searches for photographies post pandemic.
+<CardGroup cols={2}>
+  <Card title="Semantic Search" icon="brain">
+    `t~us elections` - Finds images semantically similar to "us elections"
+  </Card>
+  <Card title="Exact Search" icon="magnifying-glass">
+    `t=us elections` - Finds images containing exact text "us elections"
+  </Card>
+  <Card title="Keyword Search" icon="tag">
+    `k=us elections` - Finds images tagged with "us elections"
+  </Card>
+  <Card title="Date Range" icon="calendar">
+    `d>2020-03-11` - Finds photographs after March 11, 2020
+  </Card>
+</CardGroup>
 
 
 
@@ -93,9 +152,9 @@ List of avaliable filters and subfilters along with their prefixes:
 
 ## Filter with subfilters
 
-<Warning>Subfilters are not ready yet. It will be available in future realeases of Wesog Search.</Warning>
+<Warning>Subfilters are not ready yet. They will be available in future releases of Wesog Search.</Warning>
 
-Some filters (image `i`, person `p`, author `a`) can have subfilters. Subfilter specifies further properties of a filter. Subfilters are defined after the the filter containg. the "subfilter query formula" between sqare brakets.
+Some filters (image `i`, person `p`, author `a`) can have subfilters. Subfilter specifies further properties of a filter. Subfilters are defined after the filter containing the "subfilter query formula" between square brackets.
 
 **Examples:**
 
@@ -108,73 +167,94 @@ Some filters (image `i`, person `p`, author `a`) can have subfilters. Subfilter 
 - ``
 
 
-## Combining Filters with Boolean Operators
+## Boolean Operators
 
-You can combine filters using the following Boolean operators:
+<Tip>
+You can combine filters using Boolean logic to create complex search queries.
+</Tip>
 
-- `&&`: Logical **AND**
-- `||`: Logical **OR**
-- `!`: Logical **NOT**
+<CardGroup cols={3}>
+  <Card title="AND Operator" icon="ampersand">
+    `&&` - Both conditions must be true
+    
+    Example: `t=beach && c=blue`
+  </Card>
+  <Card title="OR Operator" icon="bars">
+    `||` - Either condition can be true
+    
+    Example: `t=beach || t=mountain`
+  </Card>
+  <Card title="NOT Operator" icon="x">
+    `!` - Excludes the condition
+    
+    Example: `t=beach && !c=blue`
+  </Card>
+</CardGroup>
 
-Parentheses `()` can be used to group filters and control the order of operations.
+<Note>
+Use parentheses `()` to group filters and control the order of operations.
+</Note>
 
-**Examples:**
+## Advanced Query Examples
 
-- `t=beach && c=blue` searches for images of beaches **and** the color blue.
-- `t=beach || t=mountain` searches for images of beaches **or** mountains.
-- `t=beach && !c=blue` searches for images of beaches **but not** the color blue.
-- `t=beach && (!c=blue || c=yellow)` searches for images of beaches with the colors blue or yellow.
-
-
-## Examples
-
-
-1. **Search for images of cats or dogs, excluding black and white images:**
-```
-(t=cats || t=dogs) && !m=bw_photo
-```
-
-2. **Search for images of Barack Obama aged between 40 and 50, taken in Washington D.C.:**
-```
-p=barack obama[a≥40 && a≤50] && l=Washington D.C.
-```
-
-3. **Search for images of anonymous females aged 20-30, who are smiling or wearing glasses:**
-```
-p=anyone[g=female && a≥30 && a≤40 && (k=smiling || k=wearing glasses)]
-```
-
-4. **Search for images of Taylor Swift or Selena Gomez performing on stage, featuring the color red:**
-```
-( p=taylor swift[t=performing] || p=selena gomez[t=performing] ) && c=red
-```
-
-5. **Search for images taken in Paris or London of buildings with Gothic architecture:**
-```
-(l=Paris || l=London) && k=gothic architecture
-```
-
-6. **Search for images similar to image REF 54321 with a "sunset" modification, excluding images with people:**
-```
-i=54321[t=sunset] && n=0
-```
-
-7. **Search for images of anonymous males aged 30-40, running or jumping, taken in New York City:**
-```
-p=anyone[g=male && a≥30 && a≤40 && (t=running || t=jumping)] && l=New York City
-```
-
-8. **Search for 16:9 aspect ratio images of beaches at sunset, taken in 2020:**
-```
-r=16:9 && t=beach && t=sunset && d=2020-*-*
-```
-
-9. **Search for images with the keyword "nature," medium type "photograph" or "illustration," and aspect ratio 4:3:**
-```
-k=nature && (m=photograph || m=illustration) && r:4:3
-```
-
-10. **Search for images of people celebrating with more than 5 people, taken in 2019:**
-```
-t=celebrating && n>5 && d=2019-*-*
-```
+<AccordionGroup>
+  <Accordion title="Basic Text and Color Search">
+    **Query:** `t=beach && c=blue`
+    
+    **Description:** Search for images of beaches **and** the color blue.
+  </Accordion>
+  
+  <Accordion title="Multiple Options with Exclusion">
+    **Query:** `(t=cats || t=dogs) && !m=bw_photo`
+    
+    **Description:** Search for images of cats or dogs, excluding black and white images.
+  </Accordion>
+  
+  <Accordion title="Celebrity with Age and Location">
+    **Query:** `p=barack obama[a≥40 && a≤50] && l=Washington D.C.`
+    
+    **Description:** Search for images of Barack Obama aged between 40 and 50, taken in Washington D.C.
+  </Accordion>
+  
+  <Accordion title="Anonymous Person Demographics">
+    **Query:** `p=anyone[g=female && a≥30 && a≤40 && (k=smiling || k=wearing glasses)]`
+    
+    **Description:** Search for images of anonymous females aged 30-40, who are smiling or wearing glasses.
+  </Accordion>
+  
+  <Accordion title="Celebrity Performance with Color">
+    **Query:** `( p=taylor swift[t=performing] || p=selena gomez[t=performing] ) && c=red`
+    
+    **Description:** Search for images of Taylor Swift or Selena Gomez performing on stage, featuring the color red.
+  </Accordion>
+  
+  <Accordion title="Location-based Architecture Search">
+    **Query:** `(l=Paris || l=London) && k=gothic architecture`
+    
+    **Description:** Search for images taken in Paris or London of buildings with Gothic architecture.
+  </Accordion>
+  
+  <Accordion title="Similar Image with Modifications">
+    **Query:** `i=54321[t=sunset] && n=0`
+    
+    **Description:** Search for images similar to image REF 54321 with a "sunset" modification, excluding images with people.
+  </Accordion>
+  
+  <Accordion title="Activity-based Demographics">
+    **Query:** `p=anyone[g=male && a≥30 && a≤40 && (t=running || t=jumping)] && l=New York City`
+    
+    **Description:** Search for images of anonymous males aged 30-40, running or jumping, taken in New York City.
+  </Accordion>
+  
+  <Accordion title="Aspect Ratio with Scene and Date">
+    **Query:** `r=16:9 && t=beach && t=sunset && d=2020-*-*`
+    
+    **Description:** Search for 16:9 aspect ratio images of beaches at sunset, taken in 2020.
+  </Accordion>
+  
+  <Accordion title="Multiple Criteria Combination">
+    **Query:** `k=nature && (m=photograph || m=illustration) && r:4:3`
+    
+    **Description:** Search for images with the keyword "nature," medium type "photograph" or "illustration," and aspect ratio 4:3.
+  </Accordion>
+</AccordionGroup>
