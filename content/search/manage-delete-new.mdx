@@ -22,13 +22,6 @@ The other parameters that can be sent as Query Parameters are:
 | `urgent` | Boolean | No | Enqueue the operation associated at head of operation's queue |
 | `strict` | Boolean | No | Enables 'Strict' mode. When true, fails if image ID doesn't exist. When false, ignores missing IDs (default: false) |
 
-### Request Example
-```bash
-curl --request DELETE \
-  --url https://api.wesog.com/imgs/image123 \
-  --header 'API-Key: <api-key>'
-```
-
 ### Responses
 Deleting an image internally triggers an operation whose status can be queried. Accordingly, the endpoint returns all information associated with that operation, enabling the client to identify the generated operation ID and check its status thereafter.
 
@@ -37,8 +30,9 @@ If the image has been deleted successfully, all information related to the opera
 
 ```json
 {
+  "op_id": 12345,
   "method": "del",
-  "resource": "video",
+  "resource": "images",
   "num_total": 1,
   "num_good": 1,
   "num_bad": 0,
@@ -82,7 +76,12 @@ If some error has occurred during the data validation stage, this will be shown 
 }
 ```
 
-
+### Request Example
+```bash
+curl --request DELETE \
+  --url https://api.wesog.com/imgs/image123 \
+  --header 'API-Key: <api-key>'
+```
 
 ## Delete multiple images (`DELETE /imgs`)
 This endpoint allows you to delete data for multiple images at once. It's useful for efficiently removing large quantities of images.
@@ -118,26 +117,6 @@ Thus, the structure of the JSON objects that should comprise the list is:
 |-------|------|----------|-------------|
 | `id` | String/Number | Yes | Unique identifier of the image to delete |
 
-### Request Example
-Here is an example of how to use the Wesog Search API for deleting multiple images:
-
-```bash
-curl --request DELETE \
-  --url https://api.wesog.com/imgs \
-  --header 'API-Key: <api-key>' \
-  --header 'Content-Type: application/json' \
-  --data '[
-  {
-    "id": "image123"
-  },
-  {
-    "id": "image456"
-  },
-  {
-    "id": "image789"
-  }
-]'
-```
 ### Responses
 #### Images were deleted successfully (Response Code: 200)
 Similar to the scenario where only a single image is requested to be deleted from the Wesog service, in the case of deleting multiple images, if they were processed and removed from the system (or were processed and discarded due to some type of internal error), a response will be provided with a message including all relevant information related to the image deletion process.
@@ -166,4 +145,25 @@ This error occurs just like in the case of the individual image, when the format
     }
   ]
 }
+```
+
+### Request Example
+Here is an example of how to use the Wesog Search API for deleting multiple images:
+
+```bash
+curl --request DELETE \
+  --url https://api.wesog.com/imgs \
+  --header 'API-Key: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --data '[
+  {
+    "id": "image123"
+  },
+  {
+    "id": "image456"
+  },
+  {
+    "id": "image789"
+  }
+]'
 ```

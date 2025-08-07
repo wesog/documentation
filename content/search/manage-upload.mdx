@@ -52,57 +52,7 @@ Finally, it is necessary to specify the image metadata, among which the most imp
 | `categories` | Array | No | General categories |
 | `collections` | Array | No | Collections the image belongs to |
 
-### Responses
-The different types of responses depend on whether the image upload process has been performed synchronously, if the task has been accepted but is pending asynchronous execution, or if some type of error has occurred during data validation:
-
-If the image has been uploaded successfully, all information related to the operation created to manage the image upload will be returned, for example:
-
-```json
-{
-  "op_id": 12345,
-  "method": "add",
-  "resource": "images",
-  "num_total": 1,
-  "num_good": 1,
-  "num_bad": 0,
-  "is_started": true,
-  "all_good": true,
-  "do_wait": false,
-  "do_urgent": false,
-  "do_strict": false,
-  "idle_ms": 0,
-  "exec_ms": 1500,
-  "created_at": "2024-10-19T12:00:00Z",
-  "started_at": "2024-10-19T12:00:01Z",
-  "finished_at": "2024-10-19T12:00:02Z",
-  "errors": []
-}
-```
-
-If the request has simply been accepted but is pending asynchronous execution, an object with the ID of the operation created to manage the image upload will be returned, for example:
-```json
-{
-  "operation_id": 123,
-  "n_total": 123,
-  "msg": "<string>"
-}
-```
-
-And if, on the other hand, some error has occurred during the data validation stage, this will be shown with an error message indicating the reason for the failure, for example:
-```json
-{
-  "detail": [
-    {
-      "loc": [
-        "<string>"
-      ],
-      "msg": "<string>",
-      "type": "<string>"
-    }
-  ]
-}
-```
-### Example
+### Request Example
 A valid request example to this endpoint for uploading an image would be the following:
 
 ```bash
@@ -152,6 +102,56 @@ curl --request POST \
 }'
 ```
 
+### Responses
+#### Image was uploaded successfully (Response Code: 201)
+The different types of responses depend on whether the image upload process has been performed synchronously, if the task has been accepted but is pending asynchronous execution, or if some type of error has occurred during data validation:
+
+If the image has been uploaded successfully, all information related to the operation created to manage the image upload will be returned, for example:
+
+```json
+{
+  "method": "add",
+  "resource": "images",
+  "num_total": 1,
+  "num_good": 1,
+  "num_bad": 0,
+  "is_started": true,
+  "all_good": true,
+  "do_wait": false,
+  "do_urgent": false,
+  "do_strict": false,
+  "idle_ms": 0,
+  "exec_ms": 1500,
+  "created_at": "2024-10-19T12:00:00Z",
+  "started_at": "2024-10-19T12:00:01Z",
+  "finished_at": "2024-10-19T12:00:02Z",
+  "errors": []
+}
+```
+#### Image upload accepted but pending (Response Code: 202)
+If the request has simply been accepted but is pending asynchronous execution, an object with the ID of the operation created to manage the image upload will be returned, for example:
+```json
+{
+  "operation_id": 123,
+  "n_total": 123,
+  "msg": "<string>"
+}
+```
+
+#### Error in data validation (Response Code: 422)
+And if, on the other hand, some error has occurred during the data validation stage, this will be shown with an error message indicating the reason for the failure, for example:
+```json
+{
+  "detail": [
+    {
+      "loc": ["<field_name>"],
+      "msg": "<error_message>",
+      "type": "<error_type>"
+    }
+  ]
+}
+```
+
 ## Upload multiple images (`POST /imgs`)
 
 The multiple image upload method or endpoint allows sending a collection of JSON objects in a single message, with each object representing a different image with its own metadata. The entire upload process execution is treated as a general operation that may or may not be executed synchronously or asynchronously, depending on the parameters sent in the request.
@@ -194,32 +194,7 @@ The following table shows the fields that can be sent in each object of the list
 | `categories` | Array/String | No | General categories (array or semicolon-separated string) |
 | `collections` | Array | No | Collections the image belongs to |
 
-### Responses
-The type of response that can be received when requesting the upload of multiple images is the same as in the case of uploading a single image, since internally an operation is created that encompasses the entire image upload process. The response contains detailed information about the created operation:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `method` | String | Type of operation (e.g., "add", "upd", "del") |
-| `resource` | String | Resource being operated on (e.g., "video", "images") |
-| `num_total` | Number | Total number of items in the operation |
-| `num_good` | Number | Number of items successfully processed |
-| `num_bad` | Number | Number of items that failed to process |
-| `is_started` | Boolean | Whether the operation has started execution |
-| `is_finished` | Boolean | Whether the operation has completed |
-| `all_good` | Boolean | Whether all items were successfully processed |
-| `do_wait` | Boolean | Whether the operation was executed in synchronous mode |
-| `do_urgent` | Boolean | Whether the operation was prioritized in the queue |
-| `do_strict` | Boolean | Whether strict mode was enabled for the operation |
-| `idle_ms` | Number | Time in milliseconds the operation waited before starting |
-| `exec_ms` | Number | Time in milliseconds the operation took to execute |
-| `created_at` | String | Timestamp when the operation was created |
-| `started_at` | String | Timestamp when the operation started execution |
-| `finished_at` | String | Timestamp when the operation finished |
-| `errors` | Array | List of error objects with `id` and `msg` fields for failed items |
-
-
-### Example
-
+### Request Example
 Here is an example of how to use the Wesog Search API for uploading multiple images:
 
 ```bash
@@ -265,4 +240,54 @@ curl --request POST \
     ]
   }
 ]'
+```
+### Responses
+#### Images were uploaded successfully (Response Code: 201)
+
+Similar to the scenario where only a single new image is requested to be sent to the Wesog service, in the case of sending multiple images, if they were processed and included within the system (or were processed and discarded due to some type of internal error), a response will be provided with a message including all relevant information related to the image upload process.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `method` | String | Type of operation (e.g., "add", "upd", "del") |
+| `resource` | String | Resource being operated on (e.g., "video", "images") |
+| `num_total` | Number | Total number of items in the operation |
+| `num_good` | Number | Number of items successfully processed |
+| `num_bad` | Number | Number of items that failed to process |
+| `is_started` | Boolean | Whether the operation has started execution |
+| `is_finished` | Boolean | Whether the operation has completed |
+| `all_good` | Boolean | Whether all items were successfully processed |
+| `do_wait` | Boolean | Whether the operation was executed in synchronous mode |
+| `do_urgent` | Boolean | Whether the operation was prioritized in the queue |
+| `do_strict` | Boolean | Whether strict mode was enabled for the operation |
+| `idle_ms` | Number | Time in milliseconds the operation waited before starting |
+| `exec_ms` | Number | Time in milliseconds the operation took to execute |
+| `created_at` | String | Timestamp when the operation was created |
+| `started_at` | String | Timestamp when the operation started execution |
+| `finished_at` | String | Timestamp when the operation finished |
+| `errors` | Array | List of error objects with `id` and `msg` fields for failed items |
+
+#### Images upload accepted but pending (Response Code: 202)
+The process of uploading a set of images usually requires more time than uploading a single original image, depending on the amount of data sent to the service. For this reason, the type of response that will be shown predominantly in a short period of time after making the ingestion request will be this one. As seen previously when dealing with the process of uploading a single image, the operation ID, total number of images being processed, and a secondary message providing more information about the operation's progress are sent, if necessary.
+
+```json
+{
+  "operation_id": 123,
+  "n_total": 123,
+  "msg": "<string>"
+}
+```
+
+#### Error in validation data (Response Code: 422)
+This error occurs just like in the case of the individual image, when the format of the sent message does not match the expected format, described in the request section. This happens mainly when necessary fields such as `src` or `id` are not included.
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["<field_name>"],
+      "msg": "<error_message>",
+      "type": "<error_type>"
+    }
+  ]
+}
 ```

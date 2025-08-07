@@ -41,14 +41,46 @@ Because these endpoints are not complex enough to require individual sections, t
 
 ## Operations Endpoints
 
-### Check Operation Status
+### Check Operation Status (`GET /ops/{op_id}`)
 Given a `GET /ops/{op_id}` request with the header `API-Key: <api-key>`, you can retrieve the status of a specific operation for a particular tenant.
 
-#### Example
+#### Request Example
 ```bash
 curl --request GET \
   --url https://api.wesog.com/ops/{op_id} \
   --header 'API-Key: <api-key>'
+```
+
+#### Response
+The response will be a JSON object containing the operation details, including the fields described in the table without the `op_id` field, which is the one you queried. The `errors` field will contain any errors that occurred during the operation, if applicable.
+
+##### Receive operation status (Response code: 200)
+Here you can see an example of response JSON object:
+```json
+{
+  "method": "add",
+  "resource": "images",
+  "num_total": 100,
+  "num_good": 95,
+  "num_bad": 5,
+  "is_started": true,
+  "is_finished": false,
+  "all_good": false,
+  "do_wait": false,
+  "do_urgent": true,
+  "do_strict": true,
+  "idle_ms": 0,
+  "exec_ms": 1500,
+  "created_at": "2023-10-01T12:00:00Z",
+  "started_at": "2023-10-01T12:00:01Z",
+  "finished_at": null,
+  "errors": [
+    {
+      "code": "413",
+      "message": "Invalid image format for image123"
+    }
+  ]
+}
 ```
 
 ### See all operations (`GET /ops`)
@@ -56,7 +88,7 @@ This endpoint is the simplest, since you only need to send the access API key to
 
 When requesting all operations, no additional parameters beyond the API key in the request header are required, and the server responds with a JSON-formatted list of Operation objects, containing the various parameters shown in the table at the beginning of this section.
 
-#### Example
+#### Request Example
 ```bash
 curl --request GET \
   --url https://api.wesog.com/ops \
@@ -66,7 +98,7 @@ curl --request GET \
 ### Abort current running operation (`DELETE /ops/{op_id}`)
 Once a task is started, even if it was indicated to run asynchronously, it may be necessary to abort it. To do this, a `DELETE /ops/{op_id}` call can be made, sending the header `API-Key: <api-key>`, and the Wesog server will cancel the operation if it has not yet finished.
 
-#### Example
+#### Request Example
 ```bash
 curl --request DELETE \
   --url https://api.wesog.com/ops/{op_id} \

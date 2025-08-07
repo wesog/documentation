@@ -22,7 +22,7 @@ The other parameters that can be sent as query parameters are:
 | `urgent` | Boolean | No | Enqueue the operation associated at head of operation's queue |
 | `strict` | Boolean | No | Enables 'Strict' mode. When true, fails if image ID doesn't exist. When false, ignores missing IDs (default: false) |
 
-Additionally, in the body section a JSON object is expected that contains the new values for the image fields. This allows updating only the necessary metadata without needing to re-upload the complete image.
+Additionally, in the body section a JSON object is expected that contains the new values for the image fields. This operation is a PUT, so the parameters that are not included in the body will be removed from the image metadata. This allows updating only the necessary metadata without needing to re-upload the complete image.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -55,46 +55,7 @@ Additionally, in the body section a JSON object is expected that contains the ne
 
 As can be verified, most fields are optional, since in case they are not directly indicated, an incremental update will be performed, maintaining the existing values that are not modified. This allows great flexibility when updating image metadata without needing to send all the information each time.
 
-### Responses
-Updating an image internally triggers an operation whose status can be queried. Accordingly, the endpoint returns all information associated with that operation, enabling the client to identify the generated operation ID and check its status thereafter. In this way, in case the update has been accepted but not completed, only a message with the following format will be returned:
-```json
-{
-  "op_id": 12345,
-  "status": "accepted",
-  "message": "Image update accepted, processing in progress."
-}
-```
-While if the update is performed directly, all information related to the operation that was created to carry out the image update will be sent. This information includes the following fields:
-
-| Field | Type  | Description |
-|-----------|------|-------------|
-| `op_id` | Number | Unique identifier of the operation |
-| `method` | String | Type of operation: add, upd, del, or multiple |
-| `resource` | String | Resource being operated on (e.g., images) |
-| `num_total` | Number | Total number of items in the operation |
-| `num_good` | Number | Number of items successfully processed |
-| `num_bad` | Number | Number of items that failed to process |
-| `is_started` | Boolean | Whether the operation has started execution |
-| `all_good` | Boolean | Whether all items were successfully processed |
-| `do_wait` | Boolean | Whether the operation was executed in synchronous mode |
-| `do_urgent` | Boolean | Whether the operation was prioritized in the queue |
-| `do_strict` | Boolean | Whether strict mode was enabled for the operation |
-| `idle_ms` | Number | Time in milliseconds the operation waited before starting |
-| `exec_ms` | Number | Time in milliseconds the operation took to execute |
-| `created_at` | String | Timestamp when the operation was created |
-| `started_at` | String | Timestamp when the operation started execution |
-| `finished_at` | String | Timestamp when the operation finished |
-| `errors` | Array | List of errors that occurred during processing |
-
-### Code Responses
-| Status Code | Description | Response Body |
-|-------------|-------------|---------------|
-| `200` | OK - Resource successfully updated | Operation details |
-| `202` | Accepted - Request accepted for processing | Operation ID for tracking |
-| `422` | Unprocessable Entity - Validation errors | Error details |
-| `500` | Internal Server Error - Unexpected server error | Error message |
-
-### Example
+### Request Example
 ```bash
 curl --request PUT \
   --url https://api.wesog.com/imgs/image123 \
@@ -117,6 +78,60 @@ curl --request PUT \
   ]
 }'
 ```
+
+### Responses
+Updating an image internally triggers an operation whose status can be queried. Accordingly, the endpoint returns all information associated with that operation, enabling the client to identify the generated operation ID and check its status thereafter.
+
+#### Image was updated successfully (Response Code: 200)
+If the image has been updated successfully, all information related to the operation created to manage the image update will be returned, for example:
+
+```json
+{
+  "method": "upd",
+  "resource": "images",
+  "num_total": 1,
+  "num_good": 1,
+  "num_bad": 0,
+  "is_started": true,
+  "all_good": true,
+  "do_wait": false,
+  "do_urgent": false,
+  "do_strict": false,
+  "idle_ms": 0,
+  "exec_ms": 1200,
+  "created_at": "2024-10-19T12:00:00Z",
+  "started_at": "2024-10-19T12:00:01Z",
+  "finished_at": "2024-10-19T12:00:02Z",
+  "errors": []
+}
+```
+
+#### Image update accepted but pending (Response Code: 202)
+If the request has simply been accepted but is pending asynchronous execution, an object with the ID of the operation created to manage the image update will be returned, for example:
+
+```json
+{
+  "operation_id": 123,
+  "n_total": 1,
+  "msg": "Image update accepted, processing in progress."
+}
+```
+
+#### Error in data validation (Response Code: 422)
+If some error has occurred during the data validation stage, this will be shown with an error message indicating the reason for the failure, for example:
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["<field_name>"],
+      "msg": "<error_message>",
+      "type": "<error_type>"
+    }
+  ]
+}
+```
+
 ## Replace multiple images (`PUT /imgs`)
 This endpoint allows you to replace data for multiple images at once. It’s useful for efficiently updating large quantities of images.
 
@@ -157,40 +172,8 @@ Thus, the structure of the JSON objects that should comprise the list is:
 | `id` | String/Number | Yes | Unique identifier of the image to update |
 | Other fields | Various | No | Any field from the image schema that needs to be updated |
 
-### Responses
-Since when requesting the update of multiple images, internally a single operation is created that encompasses the update process of all elements, the response format generated by the Wesog Search service is the same as in the case of the individual image update endpoint. Nevertheless, for completeness, the table of fields returned in the response is included here:
-
-The responses received from this endpoint have the same format as in the case of the previous endpoint exactly:
-| Field | Type  | Description |
-|-----------|------|-------------|
-| `op_id` | Number | Unique identifier of the operation |
-| `method` | String | Type of operation: add, upd, del, or multiple |
-| `resource` | String | Resource being operated on (e.g., images) |
-| `num_total` | Number | Total number of items in the operation |
-| `num_good` | Number | Number of items successfully processed |
-| `num_bad` | Number | Number of items that failed to process |
-| `is_started` | Boolean | Whether the operation has started execution |
-| `all_good` | Boolean | Whether all items were successfully processed |
-| `do_wait` | Boolean | Whether the operation was executed in synchronous mode |
-| `do_urgent` | Boolean | Whether the operation was prioritized in the queue |
-| `do_strict` | Boolean | Whether strict mode was enabled for the operation |
-| `idle_ms` | Number | Time in milliseconds the operation waited before starting |
-| `exec_ms` | Number | Time in milliseconds the operation took to execute |
-| `created_at` | String | Timestamp when the operation was created |
-| `started_at` | String | Timestamp when the operation started execution |
-| `finished_at` | String | Timestamp when the operation finished |
-| `errors` | Array | List of errors that occurred during processing |
-
-### Code Responses
-As with the previous endpoint’s output, the response codes you may receive are the same as those defined for the single-image deletion endpoint.
-| Status Code | Description | Response Body |
-|-------------|-------------|---------------|
-| `200` | OK - Resource successfully updated | Operation details |
-| `202` | Accepted - Request accepted for processing | Operation ID for tracking |
-| `422` | Unprocessable Entity - Validation errors | Error details |
-| `500` | Internal Server Error - Unexpected server error | Error message |
-
-### Example
+### Request Example
+Here is an example of how to use the Wesog Search API for updating multiple images:
 
 ```bash
 curl --request PUT \
@@ -199,45 +182,63 @@ curl --request PUT \
   --header 'Content-Type: application/json' \
   --data '[
   {
+    "id": "image123",
+    "src": "https://cdn.example.com/image.jpg",
     "url_img_watermark": "https://cdn.example.com/image/wm.jpg",
     "url_img_thumbnail": "https://cdn.example.com/image/thumb.jpg",
-    "title": "image123",
-    "headline": "Sunset over the Hudson River",
-    "caption": "A vibrant orange sunset reflecting on the river with the city skyline in silhouette.",
-    "alt_text": "<string>",
-    "ai_generated": true,
-    "model_release": true,
-    "property_release": true,
-    "nsfw": true,
+    "headline": "Updated: Sunset over the Hudson River",
+    "caption": "An updated vibrant orange sunset reflecting on the river with the city skyline in silhouette.",
     "status": "Active",
     "date": "2024-10-19",
     "location": "123 Main St, near Central Park",
     "city": "New York",
     "country": "United States",
-    "event": "Oscar awards 2024",
     "author": "Jane Doe",
-    "provider": "Acme Inc.",
-    "shot": "Portrait",
-    "scene": "Town square",
-    "technique": "Drawing",
-    "medium": "Oil on canvas",
     "keywords": [
-      "Tree",
-      "Dog",
-      "Ball",
-      "Water"
+      "sunset",
+      "city",
+      "skyline",
+      "river",
+      "updated"
     ],
     "categories": [
-      "Sport",
-      "Fashion",
-      "Politics"
+      "landscape",
+      "urban"
     ],
     "collections": [
-      "Steet pics",
+      "Street pics",
       "Exclusive"
-    ],
-    "id": "<string>",
-    "src": "<string>"
+    ]
   }
 ]'
+```
+
+### Responses
+#### Images were updated successfully (Response Code: 200)
+Similar to the scenario where only a single image is requested to be updated to the Wesog service, in the case of updating multiple images, if they were processed and updated within the system (or were processed and discarded due to some type of internal error), a response will be provided with a message including all relevant information related to the image update process.
+
+#### Images update accepted but pending (Response Code: 202)
+The process of updating a set of images usually requires more time than updating a single image, depending on the amount of data sent to the service. For this reason, the type of response that will be shown predominantly in a short period of time after making the update request will be this one. As seen previously when dealing with the process of updating a single image, the operation ID, total number of images being processed, and a secondary message providing more information about the operation's progress are sent, if necessary.
+
+```json
+{
+  "operation_id": 123,
+  "n_total": 3,
+  "msg": "Images update accepted, processing in progress."
+}
+```
+
+#### Error in validation data (Response Code: 422)
+This error occurs just like in the case of the individual image, when the format of the sent message does not match the expected format, described in the request section. This happens mainly when necessary fields such as `id` are not included.
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["<field_name>"],
+      "msg": "<error_message>",
+      "type": "<error_type>"
+    }
+  ]
+}
 ```

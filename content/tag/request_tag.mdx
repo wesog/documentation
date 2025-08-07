@@ -23,19 +23,7 @@ In the following table, you’ll find the various parameters that can be sent to
 | `ocr` | Boolean | No | Extract text from image (default: false) |
 | `colors` | Boolean | No | Extract dominant colors (default: false) |
 
-## Code Responses
-
-Upon receiving the data via the HTTP request, the system processes the image and accompanying textual information, then returns a response with a status code. This code lets the user determine—without inspecting the message body—whether the image was processed successfully or whether an error occurred, and if so, whether the error was due to the input data format or an internal server issue.
-
-| Status Code | Description | Response Body |
-|-------------|-------------|---------------|
-| `200` | Success | Tagged image data |
-| `422` | Entity Unprocessable | Error details |
-| `500` | Internal Server Error | Server error details |
-
-Of the two error responses the endpoint can return, the 422 status provides more detail: it is issued when either a field not defined in the parameter table is sent, or a required field is omitted. By contrast, the 500 error simply indicates that some internal process within Wesog’s servers has failed. In the latter case, the fix will likely need to be carried out by the Wesog development team, whereas a 422 error typically results from incorrect API usage.
-
-## Example
+## Request Example
 In the following example, a request to the endpoint for keyword generation is shown. In this case, it assumes that the image referenced in the `curl` command is available so that the system can process it correctly:
 
 ```{bash}
@@ -56,6 +44,8 @@ In the following example, a request to the endpoint for keyword generation is sh
     --form image=@example-file
 ```
 
+## Responses
+### Image was tagged (Response Code: 200)
 After a brief period during which the server processes the request, a response is returned in the following form:
 
 ```json
@@ -64,5 +54,19 @@ After a brief period during which the server processes the request, a response i
   "processing_time": "1.2s",
   "language": "en",
   "mode": "editorial"
+}
+```
+
+### Input Data not following defined format (Response Code: 422)
+If required fields are missing or malformed, the API responds with:
+```json
+{
+  "detail": [
+    {
+      "loc": ["<field_name>"],
+      "msg": "<error_message>",
+      "type": "<error_type>"
+    }
+  ]
 }
 ```
