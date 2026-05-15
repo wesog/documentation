@@ -31,7 +31,7 @@
     {
       "name": "API Reference",
       "url": "api-reference",
-      "openapi": "https://api.wesog.com/openapi.json"
+      "openapi": "https://api.wesog.com/api/public/openapi.json"
     }
   ],
   "anchors": [

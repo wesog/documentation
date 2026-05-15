@@ -1,0 +1,42 @@
+---
+title: "API Domains"
+description: "Public API domains currently exposed by Wesog."
+icon: "squares-2x2"
+---
+
+The public documentation surface is organised by **domains**.
+
+Each public domain exposes:
+
+- an OpenAPI document
+- an interactive Swagger UI reference
+
+Wesog uses a **private-first** publication policy. A domain should become public only if it has real customer integration value.
+
+## Public domains
+
+### Tools
+
+- Swagger UI: `https://api.wesog.com/api/domains/tools/docs`
+- OpenAPI: `https://api.wesog.com/api/domains/tools/openapi.json`
+
+Use this domain when documenting published tools and tool execution flows.
+
+### Workflows
+
+- Swagger UI: `https://api.wesog.com/api/domains/workflows/docs`
+- OpenAPI: `https://api.wesog.com/api/domains/workflows/openapi.json`
+
+Use this domain for workflow definitions, instantiation and execution references that are part of the public product surface.
+
+## Private or authenticated-only domains
+
+Some domains exist only for authenticated/internal usage and should not be treated as public product docs:
+
+- Library
+- Subscriptions
+- Storage
+- Data Sync
+- Governance
+
+These can still have interactive references, but they should be linked from operator/internal docs, not from public onboarding pages.

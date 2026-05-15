@@ -1,0 +1,29 @@
+---
+title: "Tool Matrix"
+description: "Central matrix of priority tools, example maturity and source confidence."
+icon: "table"
+---
+
+This matrix helps distinguish between:
+
+- examples confirmed directly by backend tests or explicit code paths
+- examples inferred from published frontend/backoffice behavior
+
+Use the tool-specific Swagger UI page as the runtime source of truth when the published schema changes.
+
+| Tool | Main route | Example confidence | Notes |
+|------|------------|--------------------|-------|
+| `ocr` | `/api/v1/tools/ocr` | Confirmed | Backed by current backend tests with `input.image` and `outputs.rows[].text`. |
+| `image_tag` | `/api/v1/tools/image_tag` | Representative | Based on existing Tag docs and current tool model for combined caption/OCR/keywords. |
+| `caption` | `/api/v1/tools/caption` | Representative | Field families are confirmed by current frontend caption modal, but exact key names depend on the published schema. |
+| `image_celebrity_recognition` | `/api/v1/tools/image_celebrity_recognition` | Representative | Current frontend augments likely fields such as `use_wesog_entities`, language and entity scopes. |
+| `video_celebrity_recognition` | `/api/v1/tools/video_celebrity_recognition` | Representative | Backend explicitly augments timeline output support, but final request fields still depend on the published version. |
+
+## Recommendation
+
+When documenting or demoing a tool:
+
+1. Start from this matrix.
+2. Open the tool-specific Swagger UI page.
+3. Copy the currently published field names from the runtime schema.
+4. Keep Mintlify examples high-value and stable, not exhaustive.

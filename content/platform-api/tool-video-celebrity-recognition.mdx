@@ -1,0 +1,67 @@
+---
+title: "Tool Example: Video Celebrity Recognition"
+description: "Practical examples for video-based celebrity recognition and timeline outputs."
+icon: "video"
+---
+
+`video_celebrity_recognition` is the timeline-oriented variant of celebrity recognition.
+
+Unlike the image version, the most important part of this tool is usually not only the list of identities, but the timeline-like output that helps the user inspect where each person appears in the video.
+
+## Reference endpoints
+
+- Public Swagger UI: `https://api.wesog.com/api/tools/video_celebrity_recognition/docs`
+- Public OpenAPI: `https://api.wesog.com/api/tools/video_celebrity_recognition/openapi.json`
+- Tool run: `https://api.wesog.com/api/v1/tools/video_celebrity_recognition`
+- Poll run: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
+
+## Typical sync example
+
+Representative example:
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/tools/video_celebrity_recognition' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+    "input": {
+      "video": "https://example.com/news-clip.mp4",
+      "language": "es",
+      "use_wesog_entities": true
+    },
+    "client_context": {
+      "source": "docs"
+    },
+    "workflow_param_values": {}
+  }'
+```
+
+## Typical output shape
+
+The backend explicitly augments support for `celebrity_recognition_timeline`, so a representative output looks like:
+
+```json
+{
+  "outputs": {
+    "celebrity_recognition_timeline": [
+      {
+        "id": "Q1",
+        "label": "Example celebrity",
+        "segments": [
+          {
+            "start_ms": 2500,
+            "end_ms": 7100
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Notes
+
+- The exact input field may be `video`, `video_url`, `media` or a similar published alias.
+- The timeline output is especially important for frontend review widgets and analyst workflows.
+- Use the runtime Swagger UI page to confirm the final published field names for the current tool version.
+- If the API accepts the execution asynchronously, use the returned `run_id` to poll completion.

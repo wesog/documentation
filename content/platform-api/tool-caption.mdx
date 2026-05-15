@@ -1,0 +1,62 @@
+---
+title: "Tool Example: Caption"
+description: "Practical caption generation examples using the Tools API."
+icon: "text"
+---
+
+The `caption` tool is ideal for editorial and media workflows where you want a first natural-language description of an image with optional context.
+
+## Reference endpoints
+
+- Public Swagger UI: `https://api.wesog.com/api/tools/caption/docs`
+- Public OpenAPI: `https://api.wesog.com/api/tools/caption/openapi.json`
+- Tool run: `https://api.wesog.com/api/v1/tools/caption`
+- Poll run: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
+
+## Typical sync example
+
+The exact field names depend on the published tool version, but current frontend behavior shows that published caption tools usually revolve around:
+
+- one primary image/media field
+- optional language
+- optional mode
+- optional context such as date, event, city or country
+
+Representative example:
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/tools/caption' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+    "input": {
+      "image": "https://example.com/editorial-image.jpg",
+      "language": "English",
+      "mode": "Editorial",
+      "event": "Champions League final",
+      "city": "Madrid",
+      "country": "Spain"
+    },
+    "client_context": {
+      "source": "docs"
+    },
+    "workflow_param_values": {}
+  }'
+```
+
+## Typical output shape
+
+```json
+{
+  "outputs": {
+    "caption": "Players celebrate on the pitch after the final whistle in Madrid."
+  }
+}
+```
+
+## Notes
+
+- The exact primary media field may be `image`, `image_url` or another published name.
+- The tool-specific Swagger UI page is the canonical source of truth for the currently active schema.
+- Use the extra context fields only if they are present in the published version.
+- If the initial `POST` returns `202 Accepted`, keep the returned `run_id` and poll `GET /api/v1/tools/runs/{run_id}`.

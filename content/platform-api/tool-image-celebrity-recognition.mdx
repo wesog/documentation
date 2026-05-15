@@ -1,0 +1,60 @@
+---
+title: "Tool Example: Image Celebrity Recognition"
+description: "Practical examples for image-based celebrity recognition tools."
+icon: "user-circle"
+---
+
+`image_celebrity_recognition` is the clearest identity-oriented image tool in the current frontend. It is used to detect known people and can be enriched with Wesog entity scopes.
+
+## Reference endpoints
+
+- Public Swagger UI: `https://api.wesog.com/api/tools/image_celebrity_recognition/docs`
+- Public OpenAPI: `https://api.wesog.com/api/tools/image_celebrity_recognition/openapi.json`
+- Tool run: `https://api.wesog.com/api/v1/tools/image_celebrity_recognition`
+- Poll run: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
+
+## Typical sync example
+
+The current frontend augments this tool with fields such as `use_wesog_entities`, `language`, `category_entity_ids` and `collection_entity_ids` when they are missing, which makes them good candidates for the initial docs example:
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/tools/image_celebrity_recognition' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+    "input": {
+      "image": "https://example.com/celebrity-photo.jpg",
+      "use_wesog_entities": true,
+      "language": "es",
+      "category_entity_ids": ["politics", "sports"],
+      "collection_entity_ids": ["editorial-celebrities"]
+    },
+    "client_context": {
+      "source": "docs"
+    },
+    "workflow_param_values": {}
+  }'
+```
+
+## Typical output shape
+
+```json
+{
+  "outputs": {
+    "celebrity_recognition": [
+      {
+        "id": "Q1",
+        "label": "Example celebrity",
+        "score": 0.98
+      }
+    ]
+  }
+}
+```
+
+## Notes
+
+- Depending on the published version, the media field can be `image`, `image_url` or a similar alias.
+- Some versions may expose richer identity metadata or face bounding boxes.
+- Use the tool-specific Swagger UI page to confirm the final field names for your tenant.
+- If the request returns `202 Accepted`, continue through the polling endpoint.

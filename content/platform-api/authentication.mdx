@@ -1,0 +1,45 @@
+---
+title: "Authentication"
+description: "How developers should authenticate when using Wesog APIs and interactive references."
+icon: "key"
+---
+
+Wesog should default to authenticated API usage.
+
+Public docs pages can stay readable without authentication, but the actual API calls should require credentials so requests can be logged, attributed and governed correctly.
+
+## Preferred auth mode
+
+For developers and external integrations, the preferred auth mode is:
+
+```text
+X-API-Key: <TENANT_API_KEY>
+```
+
+This is the best default for:
+
+- tool execution
+- workflow operations
+- usage attribution
+- quota enforcement
+- auditability
+
+## Alternative auth mode
+
+The platform also accepts JWT bearer auth for authenticated product sessions:
+
+```text
+Authorization: Bearer <JWT>
+```
+
+This is useful for authenticated frontend flows and operator tooling.
+
+## Public docs, protected execution
+
+The recommended model is:
+
+- keep Mintlify pages public
+- keep public Swagger/OpenAPI references readable
+- require `X-API-Key` or `Authorization` when the developer presses `Try it`
+
+That gives a good onboarding experience without opening request execution as an anonymous surface.

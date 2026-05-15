@@ -1,0 +1,61 @@
+---
+title: "Tool Example: OCR"
+description: "Practical OCR integration examples using the Tools API."
+icon: "scan"
+---
+
+The `ocr` tool is the clearest first integration because its payload is small and the published test coverage already shows the expected pattern.
+
+## Reference endpoints
+
+- Public Swagger UI: `https://api.wesog.com/api/tools/ocr/docs`
+- Public OpenAPI: `https://api.wesog.com/api/tools/ocr/openapi.json`
+- Tool run: `https://api.wesog.com/api/v1/tools/ocr`
+- Poll run: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
+
+## Confirmed sync example
+
+This payload shape is backed by current backend tests.
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/tools/ocr' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+    "input": {
+      "image": "storage://examples/ocr.png"
+    },
+    "client_context": {
+      "source": "docs"
+    },
+    "workflow_param_values": {}
+  }'
+```
+
+## Expected output shape
+
+The exact output depends on the published workflow, but the current backend tests expect rows like this:
+
+```json
+{
+  "run_id": "run-ocr",
+  "status": "succeeded",
+  "warnings": [],
+  "timings_ms": 12,
+  "outputs": {
+    "rows": [
+      {
+        "text": "texto ocr"
+      }
+    ],
+    "item_keys": ["root"]
+  }
+}
+```
+
+## Notes
+
+- `image` is typically the primary media field.
+- Storage refs such as `storage://...` are a good default for production usage.
+- If your published version exposes additional OCR language fields, the tool-specific Swagger UI page will show them.
+- If the run is accepted asynchronously, poll the returned `run_id` through `GET /api/v1/tools/runs/{run_id}`.

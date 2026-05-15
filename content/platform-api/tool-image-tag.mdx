@@ -1,0 +1,67 @@
+---
+title: "Tool Example: Image Tag"
+description: "Practical tagging examples for combined caption, OCR and keywords flows."
+icon: "tags"
+---
+
+`image_tag` is the best example of a compound tool because it combines several capabilities in one request:
+
+- caption generation
+- OCR extraction
+- keyword/tag generation
+- optional color extraction
+
+## Reference endpoints
+
+- Public Swagger UI: `https://api.wesog.com/api/tools/image_tag/docs`
+- Public OpenAPI: `https://api.wesog.com/api/tools/image_tag/openapi.json`
+- Tool run: `https://api.wesog.com/api/v1/tools/image_tag`
+- Poll run: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
+
+## Typical sync example
+
+This example is based on the legacy Tag API parameters that are already documented in the repo, adapted to the current Tools wrapper:
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/tools/image_tag' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+    "input": {
+      "image": "https://example.com/photo.jpg",
+      "lang": "en",
+      "mode": "editorial",
+      "event": "Press conference",
+      "city": "Madrid",
+      "country": "Spain",
+      "caption": true,
+      "keywords": true,
+      "ocr": true,
+      "colors": false
+    },
+    "client_context": {
+      "source": "docs"
+    },
+    "workflow_param_values": {}
+  }'
+```
+
+## Typical output shape
+
+```json
+{
+  "outputs": {
+    "caption": "Government spokesperson speaking at a press conference.",
+    "ocr": "WESOG SUMMIT 2026",
+    "keywords": ["politics", "press conference", "government", "speaker"],
+    "colors": ["#102030", "#d1d5db"]
+  }
+}
+```
+
+## Notes
+
+- The exact media field may be `image`, `image_url` or another published alias.
+- Some tenant versions may hide `colors` or other optional switches.
+- The Swagger UI page is the canonical source for the fields enabled in the currently published version.
+- If the initial request is accepted asynchronously, poll with the returned `run_id`.

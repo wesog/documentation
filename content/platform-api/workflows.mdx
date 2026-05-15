@@ -1,0 +1,88 @@
+---
+title: "Workflows API"
+description: "Public workflow-related API surfaces and example requests."
+icon: "flowchart"
+---
+
+The workflows surface should expose the parts of the platform that are meaningful for customer integrations:
+
+- workflow definitions
+- workflow instances
+- execution tracking
+
+## Canonical domain reference
+
+- Workflows Swagger UI: `https://api.wesog.com/api/domains/workflows/docs`
+- Workflows OpenAPI: `https://api.wesog.com/api/domains/workflows/openapi.json`
+
+## Example: list workflows
+
+```bash
+curl -X GET 'https://api.wesog.com/api/v1/workflows' \
+  -H 'X-API-Key: <TENANT_API_KEY>'
+```
+
+## Example: create workflow instance
+
+This example is aligned with `WorkflowInstanceCreateRequest`.
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/workflow-instances' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+    "workflow_id": "workflow-123",
+    "name": "Demo instance",
+    "description": "Created from public docs example",
+    "workflow_param_values": {},
+    "credential_bindings": {},
+    "slot_bindings": {},
+    "node_overrides": {},
+    "input_manifest": {},
+    "channel_bindings": [],
+    "form_layout": {},
+    "execution_profile": "one_shot",
+    "launch_mode": "instantiate"
+  }'
+```
+
+## Example: inspect one workflow instance
+
+```bash
+curl -X GET 'https://api.wesog.com/api/v1/workflow-instances/<INSTANCE_ID>' \
+  -H 'X-API-Key: <TENANT_API_KEY>'
+```
+
+## Example: list executions across workflows
+
+The platform already exposes a global executions view for workflows:
+
+```bash
+curl -X GET 'https://api.wesog.com/api/v1/workflows/executions?status=failed&limit=50' \
+  -H 'X-API-Key: <TENANT_API_KEY>'
+```
+
+This route is useful for:
+
+- operational dashboards
+- external monitoring
+- retry or incident tooling
+- support workflows
+
+## Example: list executions for one workflow
+
+```bash
+curl -X GET 'https://api.wesog.com/api/v1/workflows/<WORKFLOW_ID>/executions' \
+  -H 'X-API-Key: <TENANT_API_KEY>'
+```
+
+## Example: inspect one execution
+
+```bash
+curl -X GET 'https://api.wesog.com/api/v1/workflows/<WORKFLOW_ID>/executions/<EXECUTION_ID>' \
+  -H 'X-API-Key: <TENANT_API_KEY>'
+```
+
+## Operational note
+
+For integrations that trigger tools asynchronously, the workflows executions surface is the natural place to monitor progress after the initial API call returns.

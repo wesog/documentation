@@ -1,3 +1,9 @@
+# Legacy static snapshot.
+# The canonical API contract is generated at runtime by Core and exposed through:
+# - /api/public/openapi.json
+# - /api/domains/{domain}/openapi.json
+# - /api/tools/{tool_slug}/openapi.json
+# - /api/v1/tools/{tool_slug}/openapi.json
 openapi: 3.1.0
 info:
   title: Wesog API

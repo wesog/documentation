@@ -1,0 +1,82 @@
+---
+title: "Reference Model"
+description: "How Mintlify, OpenAPI and Swagger UI fit together in Wesog."
+icon: "book-open"
+---
+
+Wesog uses a three-layer documentation model:
+
+## 1. Mintlify
+
+Mintlify is the **human-facing documentation portal**.
+
+It is where we explain:
+
+- product concepts
+- onboarding steps
+- integration guides
+- examples
+- architectural context
+- links to interactive references
+
+Mintlify should be the first destination for demos, customer onboarding and external readers.
+
+## 2. OpenAPI JSON
+
+Core generates OpenAPI dynamically for the platform and for specific API domains.
+
+These OpenAPI documents are the **machine-readable contract** used by:
+
+- Swagger UI or similar interactive UIs
+- SDK/code generation
+- contract validation
+- external docs tooling
+
+## 3. Swagger UI
+
+Swagger UI is the **interactive technical reference**.
+
+It is useful when developers need to:
+
+- inspect request and response schemas
+- test an endpoint quickly
+- validate auth and payloads
+- compare the current implementation with examples
+
+## Routing recommendation
+
+Use this convention consistently:
+
+- `docs...` for editorial documentation
+- `api.../openapi.json` for the spec
+- `api.../docs` for interactive technical docs rendered with Swagger UI
+
+Examples:
+
+- `https://docs.wesog.com/...`
+- `https://api.wesog.com/api/public/openapi.json`
+- `https://api.wesog.com/api/domains/tools/docs`
+- `https://api.wesog.com/api/tools/caption/docs`
+- `https://api.wesog.com/api/v1/tools/caption/docs`
+
+## Tool-level vs domain-level docs
+
+Wesog supports both:
+
+- **Domain-level docs**
+  Useful for product areas such as Tools, Workflows or Library.
+- **Tool-level docs**
+  Useful for a concrete published tool, such as `caption`, `ocr` or `celebrity-recognition`.
+
+Tool-level docs are ideal when the frontend opens API documentation from a specific tool form.
+
+Domain-level docs are ideal for Mintlify indexes and platform-level integration sections.
+
+## Publication policy
+
+The recommended policy is **private-first**:
+
+- expose a public docs route only when it has clear customer value
+- keep the OpenAPI spec canonical in Core
+- require API key or bearer auth for the actual endpoint calls
+- let the interactive reference stay public only as a read-only console until the developer authenticates manually

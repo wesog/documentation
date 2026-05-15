@@ -1,0 +1,94 @@
+---
+title: "Tool-level API Docs"
+description: "How tool-specific interactive API docs are generated and used."
+icon: "sparkles"
+---
+
+Each published tool can expose its own API reference.
+
+This is useful because the tool form shown in the frontend usually maps directly to:
+
+- a single execution endpoint with deferred fallback
+- a polling endpoint for accepted runs
+- a filtered OpenAPI document
+- a dedicated Swagger UI page
+
+## Canonical endpoints
+
+For a tool with slug `caption`:
+
+- Public Tool Swagger UI: `https://api.wesog.com/api/tools/caption/docs`
+- Public Tool OpenAPI: `https://api.wesog.com/api/tools/caption/openapi.json`
+- Authenticated Tool Swagger UI: `https://api.wesog.com/api/v1/tools/caption/docs`
+- Authenticated Tool OpenAPI: `https://api.wesog.com/api/v1/tools/caption/openapi.json`
+- Tool run: `https://api.wesog.com/api/v1/tools/caption`
+- Tool run polling: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
+
+## Expected UX
+
+Recommended UX in the frontend:
+
+1. The user opens a tool form.
+2. The `API` shortcut opens the public tool-specific Swagger UI reference.
+3. The interactive reference shows only the operations relevant to that tool.
+4. The developer enters the tenant API key manually in the auth panel before trying requests.
+
+## Why this matters
+
+Tool-level docs are especially useful for:
+
+- demos
+- customer onboarding
+- embedding API help next to the form
+- ensuring the UI and API stay aligned
+
+## Authentication
+
+The docs page can be public while the API execution remains protected.
+
+The expected auth modes are:
+
+- `X-API-Key: <TENANT_API_KEY>`
+- `Authorization: Bearer <JWT>`
+
+For developers and production integrations, the preferred option is the tenant API key because it preserves request logging, tenant attribution and platform security controls.
+
+## Priority tool guides
+
+Use these guides for the first concrete integration examples:
+
+- [Tool Matrix](./tool-matrix)
+- [OCR](./tool-ocr)
+- [Image Tag](./tool-image-tag)
+- [Caption](./tool-caption)
+- [Image Celebrity Recognition](./tool-image-celebrity-recognition)
+- [Video Celebrity Recognition](./tool-video-celebrity-recognition)
+
+The exact published schema can vary by tool version and tenant. Treat the tool-specific Swagger UI page as the runtime source of truth for field names and allowed shapes.
+
+## Generic execution wrapper
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/tools/caption' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+    "input": {
+      "image_url": "https://example.com/image.jpg"
+    },
+    "client_context": {
+      "source": "docs"
+    },
+    "workflow_param_values": {}
+  }'
+```
+
+If the tool finishes within `timeout_ms`, the API returns the final result with `200 OK`.
+If it takes longer, the same endpoint returns `202 Accepted` with a `run_id` and `poll_path`.
+
+## Polling wrapper
+
+```bash
+curl -X GET 'https://api.wesog.com/api/v1/tools/runs/<RUN_ID>' \
+  -H 'X-API-Key: <TENANT_API_KEY>'
+```

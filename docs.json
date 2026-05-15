@@ -30,6 +30,29 @@
         "tab": "Guides",
         "anchors": [
           {
+            "anchor": "Platform API",
+            "icon": "code",
+            "groups": [
+              {
+                "group": "Documentation Model",
+                "pages": [
+                  "content/platform/intro",
+                  "content/platform-api/reference-model",
+                  "content/platform-api/domains",
+                  "content/platform-api/authentication",
+                  "content/platform-api/tools",
+                  "content/platform-api/tool-matrix",
+                  "content/platform-api/tool-ocr",
+                  "content/platform-api/tool-image-tag",
+                  "content/platform-api/tool-caption",
+                  "content/platform-api/tool-image-celebrity-recognition",
+                  "content/platform-api/tool-video-celebrity-recognition",
+                  "content/platform-api/workflows"
+                ]
+              }
+            ]
+          },
+          {
             "anchor": "Wesog Search",
             "icon": "magnifying-glass",
             "groups": [
@@ -86,7 +109,7 @@
       },
       {
         "tab": "API Reference",
-        "openapi": "https://api.wesog.com/openapi.json"
+        "openapi": "https://api.wesog.com/api/public/openapi.json"
       }
     ]
   }
