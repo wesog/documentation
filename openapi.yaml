@@ -583,18 +583,20 @@ paths:
         required: false
         schema:
           type: string
-          description: Query filtering formula, must be url-encoded. Image similarity
-            uses i~, i~~, i~~~ for semantic similarity search and i=, i==, i=== for
+          description: Query filtering formula, must be url-encoded. Similarity uses
+            i~, i~~, i~~~ for semantic similarity search and i=, i==, i=== for
             visual duplicate-detection search. i==== requests an additional, more
-            precise but slower duplicate-verification pass on the top candidate; this
-            mode is currently restricted to selected tenants.
+            precise duplicate-verification pass on the top candidate, slightly slower
+            than the other comparisons but not significantly so; this mode is
+            currently restricted to selected tenants.
           default: ''
           title: Q
-        description: Query filtering formula, must be url-encoded. Image similarity
-          uses i~, i~~, i~~~ for semantic similarity search and i=, i==, i=== for
+        description: Query filtering formula, must be url-encoded. Similarity uses
+          i~, i~~, i~~~ for semantic similarity search and i=, i==, i=== for
           visual duplicate-detection search. i==== requests an additional, more precise
-          but slower duplicate-verification pass on the top candidate; this mode is
-          currently restricted to selected tenants.
+          duplicate-verification pass on the top candidate, slightly slower than the
+          other comparisons but not significantly so; this mode is currently
+          restricted to selected tenants.
       - name: page
         in: query
         required: false
