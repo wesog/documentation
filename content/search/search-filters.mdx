@@ -51,6 +51,7 @@ Each filter can be identified by multiple acronyms. For example, the **keyword**
     - `=`: Equal
     - `==`: Very equal
     - `===`: Super equal
+    - `====`: Exact duplicate (image only). The most precise duplicate-detection mode available, at the cost of being noticeably slower than `=`, `==` or `===`. Currently available only to selected tenants.
   </Accordion>
   
   <Accordion title="Range Comparison">
@@ -100,7 +101,7 @@ List of available filters and subfilters along with their prefixes:
 | Filter                | Available Acronyms     | Available Operators                | Value format    | Examples            |
 |-----------------------|------------------------|------------------------------------|-----------------|---------------------|
 | **T**ext              | `t`, `txt`, `text`     | `~`, `~~`, `~~~`                   | Free text       | `t~a red car`       |
-| **I**mage             | `i`, `img`, `image`    | `=`, `==`, `===`, `~`, `~~`, `~~~` | Image reference | `i~123456`          |
+| **I**mage             | `i`, `img`, `image`    | `=`, `==`, `===`, `====`, `~`, `~~`, `~~~` | Image reference | `i~123456`          |
 | **P**erson            | `p`,        `person`   | `~`, `~~`, `~~~`                   | ImgRef_faceNum  | `p=taylor swift`    |
 | **D**ate              | `d`,        `date`     | `=`, `<`, `>`, `<=`, `>=`          | YEAR-MONTH-DAY  | `d>2020-01-01`      |
 | **ID**                | `id`                   | `=`, `<`, `>`, `<=`, `>=`, `∩`     | Numeric         | `id=1234`           |

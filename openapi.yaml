@@ -12,8 +12,8 @@ paths:
       tags:
       - Roles
       summary: Get my role
-      description: Get information about my role like client name, role name... (using
-        the provided api key)
+      description: Get information about my role like client name, role name... (using the provided api
+        key)
       operationId: read_me_me_get
       responses:
         '200':
@@ -95,26 +95,95 @@ paths:
     post:
       tags:
       - Wesog Tag
-      summary: Tag Image
+      summary: Tag an image
+      description: 'Analyze a single image and return visual metadata. The request must provide exactly
+        one input source: either `image` or `image_url`. This endpoint does not accept batches or multiple
+        files in the same call.'
       operationId: tag_image_tag_image_post
       requestBody:
         content:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Body_tag_image_tag_image_post'
+              oneOf:
+              - required:
+                - image
+              - required:
+                - image_url
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Binary image file to analyze. Use this or `image_url`, but not both.
+                image_url:
+                  type: string
+                  format: uri
+                  description: Publicly reachable image URL to analyze instead of uploading a file.
+                lang:
+                  type: string
+                  description: Language used for language-dependent outputs such as caption or keywords.
+                  default: en
+                  example: en
+                mode:
+                  type: string
+                  description: Tagging profile. Currently the default documented mode is `editorial`.
+                  default: editorial
+                  example: editorial
+                date:
+                  type: string
+                  description: Optional image context date, typically in ISO format `YYYY-MM-DD`. Helps
+                    downstream people and caption enrichment.
+                  default: ''
+                  example: '2025-10-16'
+                event:
+                  type: string
+                  description: Optional event name associated with the image, used as context for enriched
+                    outputs.
+                  default: ''
+                  example: Carabao Cup winners presentation
+                city:
+                  type: string
+                  description: Optional city associated with the image context.
+                  default: ''
+                  example: London
+                country:
+                  type: string
+                  description: Optional country associated with the image context.
+                  default: ''
+                  example: United Kingdom
+                caption:
+                  type: boolean
+                  description: When `true`, include an AI-generated caption in the response.
+                  default: false
+                keywords:
+                  type: boolean
+                  description: When `true`, include generated keyword tags in the response.
+                  default: false
+                ocr:
+                  type: boolean
+                  description: When `true`, include OCR text extracted from the image.
+                  default: false
+                colors:
+                  type: boolean
+                  description: When `true`, include dominant colors and black-and-white detection.
+                  default: false
+              type: object
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
-        '422':
-          description: Validation Error
+              schema:
+                $ref: '#/components/schemas/TagImageResponse'
+        '400':
+          description: Invalid input combination.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+                $ref: '#/components/schemas/TagErrorResponse'
+        '422':
+          description: Validation error in multipart form fields.
       security:
       - APIKeyHeader: []
   /query_imgs:
@@ -122,9 +191,8 @@ paths:
       tags:
       - Query Images
       summary: Upload 1 query image
-      description: Upload 1 image file to be used in a reverse image search. This
-        endpoint returns an image hash that can be used as a reference later in the
-        search query.
+      description: Upload 1 image file to be used in a reverse image search. This endpoint returns an
+        image hash that can be used as a reference later in the search query.
       operationId: upload_query_image_query_imgs_post
       requestBody:
         content:
@@ -146,22 +214,16 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
       - APIKeyHeader: []
-  /imgs/{item_id}:
+  /imgs/{image_id}:
     get:
       tags:
       - Images
       summary: Get 1 image
       description: Get a image by its ID.
-      operationId: get_1_imgs__item_id__get
+      operationId: get_1_imgs__image_id__get
       security:
       - APIKeyHeader: []
       parameters:
-      - name: item_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Item Id
       - name: fields
         in: query
         required: false
@@ -171,22 +233,19 @@ paths:
             enum:
             - image_id
             - src
+            - src_path
             - url_img_watermark
             - url_img_thumbnail
-            - height
-            - width
-            - aspect_ratio
-            - n_faces
             - title
             - headline
             - caption
+            - alt_text
             - ai_generated
             - model_release
             - property_release
             - nsfw
-            - date
-            - orientation
             - status
+            - date
             - location
             - city
             - country
@@ -195,11 +254,14 @@ paths:
             - provider
             - shot
             - scene
-            - medium
             - technique
+            - medium
             - keywords
             - categories
             - collections
+            - height
+            - width
+            - n_faces
             type: string
           description: 'List of fields to retrieve. Example: fields=title&fields=description'
           default:
@@ -220,7 +282,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImgOut'
+                $ref: '#/components/schemas/image'
         '422':
           description: Validation Error
           content:
@@ -232,16 +294,10 @@ paths:
       - Images
       summary: Create 1 image
       description: Create a image by its ID.
-      operationId: post_1_imgs__item_id__post
+      operationId: post_1_imgs__image_id__post
       security:
       - APIKeyHeader: []
       parameters:
-      - name: item_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Item Id
       - name: wait
         in: query
         required: false
@@ -283,7 +339,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ImgNew_withoutID'
+              $ref: '#/components/schemas/Create_1_image'
       responses:
         '200':
           description: Successful Response
@@ -313,16 +369,10 @@ paths:
       - Images
       summary: Replace 1 image
       description: Completely replace existing image in DB.
-      operationId: put_1_imgs__item_id__put
+      operationId: put_1_imgs__image_id__put
       security:
       - APIKeyHeader: []
       parameters:
-      - name: item_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Item Id
       - name: wait
         in: query
         required: false
@@ -364,7 +414,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ImgNew_withoutID'
+              $ref: '#/components/schemas/Create_1_image'
       responses:
         '200':
           description: image successfully replaced
@@ -384,21 +434,85 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Images
+      summary: Modify 1 image
+      description: Partially update certain fields of an existing image by its ID.
+      operationId: patch_1_imgs__image_id__patch
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Wait for completion?
+          default: false
+          title: Wait
+        description: Wait for completion?
+      - name: urgent
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Enqueue at head of queue if True
+          default: false
+          title: Urgent
+        description: Enqueue at head of queue if True
+      - name: strict
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Use strict mode if True
+          default: false
+          title: Strict
+        description: Use strict mode if True
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          description: en|es|pt|fr|ru
+          default: es
+          title: Lang
+        description: en|es|pt|fr|ru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Update_1_image'
+      responses:
+        '200':
+          description: image successfully modified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation_Out'
+        '202':
+          description: image modification accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingOperation'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
     delete:
       tags:
       - Images
       summary: Delete 1 image
       description: Remove existing image by ID from the database.
-      operationId: delete_1_imgs__item_id__delete
+      operationId: delete_1_imgs__image_id__delete
       security:
       - APIKeyHeader: []
       parameters:
-      - name: item_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Item Id
       - name: wait
         in: query
         required: false
@@ -450,8 +564,8 @@ paths:
       tags:
       - Images
       summary: Search N images
-      description: Do simple image listing or do advanced image search with filters,
-        sorting, pagination, facets and counting
+      description: Do simple image listing or do advanced image search with filters, sorting, pagination,
+        facets and counting
       operationId: get_n_imgs_get
       security:
       - APIKeyHeader: []
@@ -461,12 +575,16 @@ paths:
         required: false
         schema:
           type: string
-          description: 'Query filtering formula, must be url-encoded. Example: (id=123
-            && type=A) || status:active'
+          description: Query filtering formula, must be url-encoded. Image similarity uses i~, i~~, i~~~
+            for CLIP semantic search and i=, i==, i=== for SSCD visual similarity. Use i==== to request
+            the expensive SAME duplicate verification after the highest SSCD candidate; SAME only runs
+            when the tenant has clients.same_search_enabled=true.
           default: ''
           title: Q
-        description: 'Query filtering formula, must be url-encoded. Example: (id=123
-          && type=A) || status:active'
+        description: Query filtering formula, must be url-encoded. Image similarity uses i~, i~~, i~~~
+          for CLIP semantic search and i=, i==, i=== for SSCD visual similarity. Use i==== to request
+          the expensive SAME duplicate verification after the highest SSCD candidate; SAME only runs when
+          the tenant has clients.same_search_enabled=true.
       - name: page
         in: query
         required: false
@@ -519,12 +637,12 @@ paths:
           - similarity
           - sim
           type: string
-          description: Sorting criterion. Note that sort_by=similarity only works
-            if there are present "similary filters" on the Query Filtering Formula.
+          description: Sorting criterion. Note that sort_by=similarity only works if there are present
+            "similary filters" on the Query Filtering Formula.
           default: ''
           title: Sort By
-        description: Sorting criterion. Note that sort_by=similarity only works if
-          there are present "similary filters" on the Query Filtering Formula.
+        description: Sorting criterion. Note that sort_by=similarity only works if there are present "similary
+          filters" on the Query Filtering Formula.
       - name: sort_order
         in: query
         required: false
@@ -546,22 +664,19 @@ paths:
             enum:
             - image_id
             - src
+            - src_path
             - url_img_watermark
             - url_img_thumbnail
-            - height
-            - width
-            - aspect_ratio
-            - n_faces
             - title
             - headline
             - caption
+            - alt_text
             - ai_generated
             - model_release
             - property_release
             - nsfw
-            - date
-            - orientation
             - status
+            - date
             - location
             - city
             - country
@@ -570,11 +685,14 @@ paths:
             - provider
             - shot
             - scene
-            - medium
             - technique
+            - medium
             - keywords
             - categories
             - collections
+            - height
+            - width
+            - n_faces
             type: string
           description: 'Array of fields to retrieve. Example: fields=image_id&fields=src'
           default:
@@ -707,7 +825,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/ImgNew'
+                $ref: '#/components/schemas/Create_N_images'
               title: Items
       responses:
         '200':
@@ -785,7 +903,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/ImgNew'
+                $ref: '#/components/schemas/Create_N_images'
               title: Items
       responses:
         '200':
@@ -796,6 +914,79 @@ paths:
                 $ref: '#/components/schemas/Operation_Out'
         '202':
           description: images replacement accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingOperation'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Images
+      summary: Modify N images
+      description: Partially update certain fields of existing images in the DB.
+      operationId: patch_n_imgs_patch
+      security:
+      - APIKeyHeader: []
+      parameters:
+      - name: wait
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Wait for completion?
+          default: false
+          title: Wait
+        description: Wait for completion?
+      - name: urgent
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Enqueue at head of queue if True
+          default: false
+          title: Urgent
+        description: Enqueue at head of queue if True
+      - name: strict
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Use strict mode if True
+          default: false
+          title: Strict
+        description: Use strict mode if True
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          description: en|es|pt|fr|ru
+          default: es
+          title: Lang
+        description: en|es|pt|fr|ru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Update_N_images'
+              title: Items
+      responses:
+        '200':
+          description: images successfully modified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation_Out'
+        '202':
+          description: images modification accepted
           content:
             application/json:
               schema:
@@ -849,7 +1040,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/ImgDel'
+                $ref: '#/components/schemas/ImagesIdMandatory'
               title: Items
       responses:
         '200':
@@ -875,52 +1066,69 @@ components:
     Body_tag_image_tag_image_post:
       properties:
         image:
-          type: string
-          format: binary
+          anyOf:
+          - type: string
+            format: binary
+          - type: 'null'
           title: Image
+          description: Binary image file to analyze. Mutually exclusive with `image_url`.
+        image_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Image Url
+          description: Remote image URL to analyze. Mutually exclusive with `image`.
         lang:
           type: string
           title: Lang
+          description: Language used for language-dependent outputs such as generated caption and keywords.
           default: en
         mode:
           type: string
           title: Mode
+          description: Tagging profile to apply. The endpoint currently uses `editorial` as default mode.
           default: editorial
         date:
           type: string
           title: Date
+          description: Optional contextual date for the image, ideally in ISO `YYYY-MM-DD` format.
           default: ''
         event:
           type: string
           title: Event
+          description: Optional contextual event name associated with the image.
           default: ''
         city:
           type: string
           title: City
+          description: Optional contextual city associated with the image.
           default: ''
         country:
           type: string
           title: Country
+          description: Optional contextual country associated with the image.
           default: ''
         caption:
           type: boolean
           title: Caption
+          description: If `true`, the response includes an AI-generated caption.
           default: false
         keywords:
           type: boolean
           title: Keywords
+          description: If `true`, the response includes generated keyword tags.
           default: false
         ocr:
           type: boolean
           title: Ocr
+          description: If `true`, the response includes OCR text extracted from the image.
           default: false
         colors:
           type: boolean
           title: Colors
+          description: If `true`, the response includes dominant colors and black-and-white detection.
           default: false
       type: object
-      required:
-      - image
       title: Body_tag_image_tag_image_post
     Body_upload_query_image_query_imgs_post:
       properties:
@@ -928,11 +1136,306 @@ components:
           type: string
           format: binary
           title: Image
-          description: "Binary image (JPG / PNG \u2264 5 MB)"
+          description: Binary image (JPG / PNG ≤ 5 MB)
       type: object
       required:
       - image
       title: Body_upload_query_image_query_imgs_post
+    Create_1_image:
+      properties:
+        src:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src
+        src_path:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src Path
+        url_img_watermark:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Watermark
+        url_img_thumbnail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Thumbnail
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+        headline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Headline
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+        alt_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alt Text
+        ai_generated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ai Generated
+        model_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Model Release
+        property_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Property Release
+        nsfw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Nsfw
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+        date:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date
+        location:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Location
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+        country:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+        event:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event
+        author:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+        shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
+        scene:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scene
+        technique:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Technique
+        medium:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Medium
+        keywords:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+        categories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+        collections:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Collections
+      type: object
+      title: Create_1_image
+    Create_N_images:
+      properties:
+        id:
+          type: string
+          title: Id
+        src:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src
+        src_path:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src Path
+        url_img_watermark:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Watermark
+        url_img_thumbnail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Thumbnail
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+        headline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Headline
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+        alt_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alt Text
+        ai_generated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ai Generated
+        model_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Model Release
+        property_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Property Release
+        nsfw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Nsfw
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+        date:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date
+        location:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Location
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+        country:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+        event:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event
+        author:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+        shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
+        scene:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scene
+        technique:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Technique
+        medium:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Medium
+        keywords:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+        categories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+        collections:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Collections
+      type: object
+      required:
+      - id
+      title: Create_N_images
     HTTPValidationError:
       properties:
         detail:
@@ -942,664 +1445,15 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
-    ImgDel:
+    ImagesIdMandatory:
       properties:
         id:
           type: string
           title: Id
-          description: Unique identifier of the image.
       type: object
       required:
       - id
-      title: ImgDel
-    ImgNew:
-      properties:
-        url_img_watermark:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Url Img Watermark
-          description: URL of the watermarked image.
-          example: https://cdn.example.com/image/wm.jpg
-        url_img_thumbnail:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Url Img Thumbnail
-          description: URL of the thumbnail image.
-          example: https://cdn.example.com/image/thumb.jpg
-        title:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Title
-          description: A shorthand reference for the image.
-          example: image123
-        headline:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Headline
-          description: Short text describing the image.
-          example: Sunset over the Hudson River
-        caption:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Caption
-          description: Long text describing the image.
-          example: A vibrant orange sunset reflecting on the river with the city skyline
-            in silhouette.
-        alt_text:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Alt Text
-          description: Text describing the visual appearance of an image (Accessibility).
-        ai_generated:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Ai Generated
-          description: Image generated by Artificial Intelligence.
-        model_release:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Model Release
-          description: image with model release.
-        property_release:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Property Release
-          description: image with property release.
-        nsfw:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Nsfw
-          description: Image Not Safe For Work.
-        status:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Status
-          description: Current status of the image.
-          example: Active
-        date:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Date
-          description: Date of the image creation in year-month-day format. Capture
-            date for photographies.
-          example: '2024-10-19'
-        location:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Location
-          description: A detailed description of the location, complementing the specified
-            country and city with additional details such as street address or notable
-            landmarks.
-          example: 123 Main St, near Central Park
-        city:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: City
-          description: Name of the country.
-          example: New York
-        country:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Country
-          description: Name of the country.
-          example: United States
-        event:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Event
-          description: Related event
-          example: Oscar awards 2024
-        author:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Author
-          description: The name of the individual or entity responsible for creating
-            the image, such as a photographer or painter.
-          example: Jane Doe
-        provider:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Provider
-          description: The identifier of the provider, which can be either a unique
-            numeric ID or a descriptive name.
-          example: Acme Inc.
-        shot:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Shot
-          description: Type of photography shot.
-          example: Portrait
-        scene:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Scene
-          description: Spot, place, visual location
-          example: Town square
-        technique:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Technique
-          description: The specific method or process used in creating the artwork,
-            reflecting the artist's unique approach or the traditional methods tied
-            to certain mediums.
-          example: Drawing
-        medium:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Medium
-          description: The material or substance used in the creation of the artwork
-            or object. This field corresponds to various artistic mediums like oils,
-            acrylics, or digital formats.
-          example: Oil on canvas
-        keywords:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Keywords
-          description: Specific tags describing the image
-          example:
-          - Tree
-          - Dog
-          - Ball
-          - Water
-        categories:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Categories
-          description: General categories of the image
-          example:
-          - Sport
-          - Fashion
-          - Politics
-        collections:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Collections
-          description: Collections that the image belongs to
-          example:
-          - Steet pics
-          - Exclusive
-        id:
-          type: string
-          title: Id
-          description: Unique identifier of the image.
-        src:
-          type: string
-          title: Src
-          description: Url of the image (used as source for the AI)
-      additionalProperties: false
-      type: object
-      required:
-      - id
-      - src
-      title: ImgNew
-      description: Modelo para crear una nueva imagen (con ID).
-    ImgNew_withoutID:
-      properties:
-        url_img_watermark:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Url Img Watermark
-          description: URL of the watermarked image.
-          example: https://cdn.example.com/image/wm.jpg
-        url_img_thumbnail:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Url Img Thumbnail
-          description: URL of the thumbnail image.
-          example: https://cdn.example.com/image/thumb.jpg
-        title:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Title
-          description: A shorthand reference for the image.
-          example: image123
-        headline:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Headline
-          description: Short text describing the image.
-          example: Sunset over the Hudson River
-        caption:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Caption
-          description: Long text describing the image.
-          example: A vibrant orange sunset reflecting on the river with the city skyline
-            in silhouette.
-        alt_text:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Alt Text
-          description: Text describing the visual appearance of an image (Accessibility).
-        ai_generated:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Ai Generated
-          description: Image generated by Artificial Intelligence.
-        model_release:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Model Release
-          description: image with model release.
-        property_release:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Property Release
-          description: image with property release.
-        nsfw:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Nsfw
-          description: Image Not Safe For Work.
-        status:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Status
-          description: Current status of the image.
-          example: Active
-        date:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Date
-          description: Date of the image creation in year-month-day format. Capture
-            date for photographies.
-          example: '2024-10-19'
-        location:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Location
-          description: A detailed description of the location, complementing the specified
-            country and city with additional details such as street address or notable
-            landmarks.
-          example: 123 Main St, near Central Park
-        city:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: City
-          description: Name of the country.
-          example: New York
-        country:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Country
-          description: Name of the country.
-          example: United States
-        event:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Event
-          description: Related event
-          example: Oscar awards 2024
-        author:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Author
-          description: The name of the individual or entity responsible for creating
-            the image, such as a photographer or painter.
-          example: Jane Doe
-        provider:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Provider
-          description: The identifier of the provider, which can be either a unique
-            numeric ID or a descriptive name.
-          example: Acme Inc.
-        shot:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Shot
-          description: Type of photography shot.
-          example: Portrait
-        scene:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Scene
-          description: Spot, place, visual location
-          example: Town square
-        technique:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Technique
-          description: The specific method or process used in creating the artwork,
-            reflecting the artist's unique approach or the traditional methods tied
-            to certain mediums.
-          example: Drawing
-        medium:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Medium
-          description: The material or substance used in the creation of the artwork
-            or object. This field corresponds to various artistic mediums like oils,
-            acrylics, or digital formats.
-          example: Oil on canvas
-        keywords:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Keywords
-          description: Specific tags describing the image
-          example:
-          - Tree
-          - Dog
-          - Ball
-          - Water
-        categories:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Categories
-          description: General categories of the image
-          example:
-          - Sport
-          - Fashion
-          - Politics
-        collections:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Collections
-          description: Collections that the image belongs to
-          example:
-          - Steet pics
-          - Exclusive
-        src:
-          type: string
-          title: Src
-          description: Unique identifier of the image.
-      additionalProperties: false
-      type: object
-      required:
-      - src
-      title: ImgNew_withoutID
-    ImgOut:
-      properties:
-        url_img_watermark:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Url Img Watermark
-          description: URL of the watermarked image.
-          example: https://cdn.example.com/image/wm.jpg
-        url_img_thumbnail:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Url Img Thumbnail
-          description: URL of the thumbnail image.
-          example: https://cdn.example.com/image/thumb.jpg
-        title:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Title
-          description: A shorthand reference for the image.
-          example: image123
-        headline:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Headline
-          description: Short text describing the image.
-          example: Sunset over the Hudson River
-        caption:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Caption
-          description: Long text describing the image.
-          example: A vibrant orange sunset reflecting on the river with the city skyline
-            in silhouette.
-        alt_text:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Alt Text
-          description: Text describing the visual appearance of an image (Accessibility).
-        ai_generated:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Ai Generated
-          description: Image generated by Artificial Intelligence.
-        model_release:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Model Release
-          description: image with model release.
-        property_release:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Property Release
-          description: image with property release.
-        nsfw:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Nsfw
-          description: Image Not Safe For Work.
-        status:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Status
-          description: Current status of the image.
-          example: Active
-        date:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Date
-          description: Date of the image creation in year-month-day format. Capture
-            date for photographies.
-          example: '2024-10-19'
-        location:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Location
-          description: A detailed description of the location, complementing the specified
-            country and city with additional details such as street address or notable
-            landmarks.
-          example: 123 Main St, near Central Park
-        city:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: City
-          description: Name of the country.
-          example: New York
-        country:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Country
-          description: Name of the country.
-          example: United States
-        event:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Event
-          description: Related event
-          example: Oscar awards 2024
-        author:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Author
-          description: The name of the individual or entity responsible for creating
-            the image, such as a photographer or painter.
-          example: Jane Doe
-        provider:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Provider
-          description: The identifier of the provider, which can be either a unique
-            numeric ID or a descriptive name.
-          example: Acme Inc.
-        shot:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Shot
-          description: Type of photography shot.
-          example: Portrait
-        scene:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Scene
-          description: Spot, place, visual location
-          example: Town square
-        technique:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Technique
-          description: The specific method or process used in creating the artwork,
-            reflecting the artist's unique approach or the traditional methods tied
-            to certain mediums.
-          example: Drawing
-        medium:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Medium
-          description: The material or substance used in the creation of the artwork
-            or object. This field corresponds to various artistic mediums like oils,
-            acrylics, or digital formats.
-          example: Oil on canvas
-        keywords:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Keywords
-          description: Specific tags describing the image
-          example:
-          - Tree
-          - Dog
-          - Ball
-          - Water
-        categories:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Categories
-          description: General categories of the image
-          example:
-          - Sport
-          - Fashion
-          - Politics
-        collections:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Collections
-          description: Collections that the image belongs to
-          example:
-          - Steet pics
-          - Exclusive
-        id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Id
-          description: Unique identifier of the image.
-        src:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Src
-          description: Url of the image (used as source for the AI)
-        height:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Height
-          description: Height of the image.
-        width:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Width
-          description: Width of the image.
-        n_faces:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: N Faces
-          description: Num of people faces that appears on the image.
-      additionalProperties: false
-      type: object
-      title: ImgOut
+      title: ImagesIdMandatory
     OpError:
       properties:
         id:
@@ -1624,7 +1478,7 @@ components:
       - del
       - multiple
       title: OpMethod
-      description: "Tipo de respuesta asociada a una operaci\xF3n con im\xE1genes."
+      description: Tipo de respuesta asociada a una operación con imágenes.
     OpResource:
       type: string
       enum:
@@ -1681,13 +1535,11 @@ components:
         idle_ms:
           type: number
           title: Idle Ms
-          description: Duration (milliseconds) between the operation has been created
-            and has started.
+          description: Duration (milliseconds) between the operation has been created and has started.
         exec_ms:
           type: number
           title: Exec Ms
-          description: Duration (milliseconds) between the operation has been started
-            and has finished.
+          description: Duration (milliseconds) between the operation has been started and has finished.
         created_at:
           type: string
           title: Created At
@@ -1757,6 +1609,665 @@ components:
         Processing takes place in the background; `operation_id = -1`
 
         indicates that the job could not be enqueued.'
+    TagErrorResponse:
+      properties:
+        error:
+          type: string
+          title: Error
+          description: Human-readable validation error.
+      type: object
+      required:
+      - error
+      title: TagErrorResponse
+    TagImageResponse:
+      properties:
+        height:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Height
+          description: Image height in pixels.
+        width:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Width
+          description: Image width in pixels.
+        ratio:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Ratio
+          description: Aspect ratio of the image.
+        orient:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Orient
+          description: Image orientation.
+        n_faces:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: N Faces
+          description: Number of detected faces.
+        shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
+          description: Predicted shot type.
+        illumination:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Illumination
+          description: Predicted lighting type.
+        shape:
+          anyOf:
+          - type: string
+          - items:
+              type: integer
+            type: array
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Shape
+          description: Predicted image shape/style or raw shape dimensions.
+        date:
+          anyOf:
+          - type: string
+            format: date
+          - type: string
+          - type: 'null'
+          title: Date
+          description: Image date when available.
+        people:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/TagPersonResponse'
+            type: array
+          - type: 'null'
+          title: People
+          description: Detected people metadata.
+        photo_or_illus:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Photo Or Illus
+          description: Whether the input is a photo or illustration.
+        type_of_photo:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Type Of Photo
+          description: Predicted photo subtype.
+        type_of_illus:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Type Of Illus
+          description: Predicted illustration subtype.
+        categories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+          description: General image categories.
+        colors:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Colors
+          description: Representative image colors when requested.
+        bw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Bw
+          description: Whether the image is black and white.
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+          description: Generated caption when requested.
+        keywords:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+          description: Generated keywords when requested.
+        ocr:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Ocr
+          description: Extracted OCR text when requested.
+      additionalProperties: true
+      type: object
+      title: TagImageResponse
+    TagPersonResponse:
+      properties:
+        face_box_as_dict:
+          anyOf:
+          - additionalProperties:
+              type: number
+            type: object
+          - type: 'null'
+          title: Face Box As Dict
+          description: Face bounding box coordinates.
+        celeb_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Celeb Name
+          description: Matched celebrity name if available.
+        gender:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Gender
+          description: Predicted gender.
+        nationality:
+          anyOf:
+          - type: string
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Nationality
+          description: Detected or linked nationality.
+        occupation:
+          anyOf:
+          - type: string
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Occupation
+          description: Detected or linked occupation.
+        race:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Race
+          description: Predicted ethnicity/race label.
+        age_group:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Age Group
+          description: Predicted age group.
+        current_age:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Current Age
+          description: Estimated or linked age.
+        face_expression:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Face Expression
+          description: Detected face expression.
+        date_birth:
+          anyOf:
+          - type: string
+            format: date
+          - type: string
+          - type: 'null'
+          title: Date Birth
+          description: Birth date when available.
+        date_death:
+          anyOf:
+          - type: string
+            format: date
+          - type: string
+          - type: 'null'
+          title: Date Death
+          description: Death date when available.
+        wesog_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Wesog Id
+          description: Internal Wesog identifier.
+      additionalProperties: true
+      type: object
+      title: TagPersonResponse
+    Update_1_image:
+      properties:
+        src:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src
+          description: Url of the image in high or medium resolution (used as source for the AI). Alternative
+            to `src_path`; provide exactly one of the two.
+          example: https://cdn.example.com/image/source.jpg
+        src_path:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src Path
+          description: Local filesystem path of the image (used as source for the AI). Alternative to
+            `src`; provide exactly one of the two.
+          example: /data/images/source.jpg
+        url_img_watermark:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Watermark
+          description: URL of the watermarked image.
+          example: https://cdn.example.com/image/wm.jpg
+        url_img_thumbnail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Thumbnail
+          description: URL of the thumbnail image.
+          example: https://cdn.example.com/image/thumb.jpg
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+          description: A shorthand reference for the image.
+          example: image123
+        headline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Headline
+          description: Short text describing the image.
+          example: Sunset over the Hudson River
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+          description: Long text describing the image.
+          example: A vibrant orange sunset reflecting on the river with the city skyline in silhouette.
+        alt_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alt Text
+          description: Text describing the visual appearance of an image (Accessibility).
+        ai_generated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ai Generated
+          description: Image generated by Artificial Intelligence.
+        model_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Model Release
+          description: image with model release.
+        property_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Property Release
+          description: image with property release.
+        nsfw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Nsfw
+          description: Image Not Safe For Work.
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+          description: Current status of the image.
+          example: Active
+        date:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date
+          description: Date of the image creation in year-month-day format. Capture date for photographies.
+          example: '2024-10-19'
+        location:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Location
+          description: A detailed description of the location, complementing the specified country and
+            city with additional details such as street address or notable landmarks.
+          example: 123 Main St, near Central Park
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Name of the country.
+          example: New York
+        country:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+          description: Name of the country.
+          example: United States
+        event:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event
+          description: Related event
+          example: Oscar awards 2024
+        author:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+          description: The name of the individual or entity responsible for creating the image, such as
+            a photographer or painter.
+          example: Jane Doe
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+          description: The identifier of the provider, which can be either a unique numeric ID or a descriptive
+            name.
+          example: Acme Inc.
+        shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
+          description: Type of photography shot.
+          example: Portrait
+        scene:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scene
+          description: Spot, place, visual location
+          example: Town square
+        technique:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Technique
+          description: The specific method or process used in creating the artwork, reflecting the artist's
+            unique approach or the traditional methods tied to certain mediums.
+          example: Drawing
+        medium:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Medium
+          description: The material or substance used in the creation of the artwork or object. This field
+            corresponds to various artistic mediums like oils, acrylics, or digital formats.
+          example: Oil on canvas
+        keywords:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+          description: Specific tags describing the image
+          example:
+          - Tree
+          - Dog
+          - Ball
+          - Water
+        categories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+          description: General categories of the image
+          example:
+          - Sport
+          - Fashion
+          - Politics
+        collections:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Collections
+          description: Collections that the image belongs to
+          example:
+          - Steet pics
+          - Exclusive
+      type: object
+      title: Update_1_image
+    Update_N_images:
+      properties:
+        id:
+          type: string
+          title: Id
+        src:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src
+          description: Url of the image in high or medium resolution (used as source for the AI). Alternative
+            to `src_path`; provide exactly one of the two.
+          example: https://cdn.example.com/image/source.jpg
+        src_path:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src Path
+          description: Local filesystem path of the image (used as source for the AI). Alternative to
+            `src`; provide exactly one of the two.
+          example: /data/images/source.jpg
+        url_img_watermark:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Watermark
+          description: URL of the watermarked image.
+          example: https://cdn.example.com/image/wm.jpg
+        url_img_thumbnail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Thumbnail
+          description: URL of the thumbnail image.
+          example: https://cdn.example.com/image/thumb.jpg
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+          description: A shorthand reference for the image.
+          example: image123
+        headline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Headline
+          description: Short text describing the image.
+          example: Sunset over the Hudson River
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+          description: Long text describing the image.
+          example: A vibrant orange sunset reflecting on the river with the city skyline in silhouette.
+        alt_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alt Text
+          description: Text describing the visual appearance of an image (Accessibility).
+        ai_generated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ai Generated
+          description: Image generated by Artificial Intelligence.
+        model_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Model Release
+          description: image with model release.
+        property_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Property Release
+          description: image with property release.
+        nsfw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Nsfw
+          description: Image Not Safe For Work.
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+          description: Current status of the image.
+          example: Active
+        date:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date
+          description: Date of the image creation in year-month-day format. Capture date for photographies.
+          example: '2024-10-19'
+        location:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Location
+          description: A detailed description of the location, complementing the specified country and
+            city with additional details such as street address or notable landmarks.
+          example: 123 Main St, near Central Park
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Name of the country.
+          example: New York
+        country:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+          description: Name of the country.
+          example: United States
+        event:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event
+          description: Related event
+          example: Oscar awards 2024
+        author:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+          description: The name of the individual or entity responsible for creating the image, such as
+            a photographer or painter.
+          example: Jane Doe
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+          description: The identifier of the provider, which can be either a unique numeric ID or a descriptive
+            name.
+          example: Acme Inc.
+        shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
+          description: Type of photography shot.
+          example: Portrait
+        scene:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scene
+          description: Spot, place, visual location
+          example: Town square
+        technique:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Technique
+          description: The specific method or process used in creating the artwork, reflecting the artist's
+            unique approach or the traditional methods tied to certain mediums.
+          example: Drawing
+        medium:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Medium
+          description: The material or substance used in the creation of the artwork or object. This field
+            corresponds to various artistic mediums like oils, acrylics, or digital formats.
+          example: Oil on canvas
+        keywords:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+          description: Specific tags describing the image
+          example:
+          - Tree
+          - Dog
+          - Ball
+          - Water
+        categories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+          description: General categories of the image
+          example:
+          - Sport
+          - Fashion
+          - Politics
+        collections:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Collections
+          description: Collections that the image belongs to
+          example:
+          - Steet pics
+          - Exclusive
+      type: object
+      required:
+      - id
+      title: Update_N_images
     ValidationError:
       properties:
         loc:
@@ -1778,11 +2289,244 @@ components:
       - msg
       - type
       title: ValidationError
+    image:
+      properties:
+        image_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Image Id
+        src:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src
+          description: Url of the image in high or medium resolution (used as source for the AI). Alternative
+            to `src_path`; provide exactly one of the two.
+          example: https://cdn.example.com/image/source.jpg
+        src_path:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Src Path
+          description: Local filesystem path of the image (used as source for the AI). Alternative to
+            `src`; provide exactly one of the two.
+          example: /data/images/source.jpg
+        url_img_watermark:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Watermark
+          description: URL of the watermarked image.
+          example: https://cdn.example.com/image/wm.jpg
+        url_img_thumbnail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url Img Thumbnail
+          description: URL of the thumbnail image.
+          example: https://cdn.example.com/image/thumb.jpg
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+          description: A shorthand reference for the image.
+          example: image123
+        headline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Headline
+          description: Short text describing the image.
+          example: Sunset over the Hudson River
+        caption:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Caption
+          description: Long text describing the image.
+          example: A vibrant orange sunset reflecting on the river with the city skyline in silhouette.
+        alt_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alt Text
+          description: Text describing the visual appearance of an image (Accessibility).
+        ai_generated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ai Generated
+          description: Image generated by Artificial Intelligence.
+        model_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Model Release
+          description: image with model release.
+        property_release:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Property Release
+          description: image with property release.
+        nsfw:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Nsfw
+          description: Image Not Safe For Work.
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+          description: Current status of the image.
+          example: Active
+        date:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date
+          description: Date of the image creation in year-month-day format. Capture date for photographies.
+          example: '2024-10-19'
+        location:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Location
+          description: A detailed description of the location, complementing the specified country and
+            city with additional details such as street address or notable landmarks.
+          example: 123 Main St, near Central Park
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+          description: Name of the country.
+          example: New York
+        country:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+          description: Name of the country.
+          example: United States
+        event:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event
+          description: Related event
+          example: Oscar awards 2024
+        author:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+          description: The name of the individual or entity responsible for creating the image, such as
+            a photographer or painter.
+          example: Jane Doe
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+          description: The identifier of the provider, which can be either a unique numeric ID or a descriptive
+            name.
+          example: Acme Inc.
+        shot:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Shot
+          description: Type of photography shot.
+          example: Portrait
+        scene:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scene
+          description: Spot, place, visual location
+          example: Town square
+        technique:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Technique
+          description: The specific method or process used in creating the artwork, reflecting the artist's
+            unique approach or the traditional methods tied to certain mediums.
+          example: Drawing
+        medium:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Medium
+          description: The material or substance used in the creation of the artwork or object. This field
+            corresponds to various artistic mediums like oils, acrylics, or digital formats.
+          example: Oil on canvas
+        keywords:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Keywords
+          description: Specific tags describing the image
+          example:
+          - Tree
+          - Dog
+          - Ball
+          - Water
+        categories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Categories
+          description: General categories of the image
+          example:
+          - Sport
+          - Fashion
+          - Politics
+        collections:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Collections
+          description: Collections that the image belongs to
+          example:
+          - Steet pics
+          - Exclusive
+        height:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Height
+          description: Height of the image.
+        width:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Width
+          description: Width of the image.
+        n_faces:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: N Faces
+          description: Num of people faces that appears on the image.
+      type: object
+      title: image
     image_search_response:
       properties:
         results:
           items:
-            $ref: '#/components/schemas/ImgOut'
+            $ref: '#/components/schemas/image'
           type: array
           title: Results
         count:
