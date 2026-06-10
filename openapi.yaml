@@ -12,8 +12,8 @@ paths:
       tags:
       - Roles
       summary: Get my role
-      description: Get information about my role like client name, role name... (using the provided api
-        key)
+      description: Get information about my role like client name, role name... (using
+        the provided api key)
       operationId: read_me_me_get
       responses:
         '200':
@@ -96,9 +96,9 @@ paths:
       tags:
       - Wesog Tag
       summary: Tag an image
-      description: 'Analyze a single image and return visual metadata. The request must provide exactly
-        one input source: either `image` or `image_url`. This endpoint does not accept batches or multiple
-        files in the same call.'
+      description: 'Analyze a single image and return visual metadata. The request
+        must provide exactly one input source: either `image` or `image_url`. This
+        endpoint does not accept batches or multiple files in the same call.'
       operationId: tag_image_tag_image_post
       requestBody:
         content:
@@ -114,31 +114,35 @@ paths:
                 image:
                   type: string
                   format: binary
-                  description: Binary image file to analyze. Use this or `image_url`, but not both.
+                  description: Binary image file to analyze. Use this or `image_url`,
+                    but not both.
                 image_url:
                   type: string
                   format: uri
-                  description: Publicly reachable image URL to analyze instead of uploading a file.
+                  description: Publicly reachable image URL to analyze instead of
+                    uploading a file.
                 lang:
                   type: string
-                  description: Language used for language-dependent outputs such as caption or keywords.
+                  description: Language used for language-dependent outputs such as
+                    caption or keywords.
                   default: en
                   example: en
                 mode:
                   type: string
-                  description: Tagging profile. Currently the default documented mode is `editorial`.
+                  description: Tagging profile. Currently the default documented mode
+                    is `editorial`.
                   default: editorial
                   example: editorial
                 date:
                   type: string
-                  description: Optional image context date, typically in ISO format `YYYY-MM-DD`. Helps
-                    downstream people and caption enrichment.
+                  description: Optional image context date, typically in ISO format
+                    `YYYY-MM-DD`. Helps downstream people and caption enrichment.
                   default: ''
                   example: '2025-10-16'
                 event:
                   type: string
-                  description: Optional event name associated with the image, used as context for enriched
-                    outputs.
+                  description: Optional event name associated with the image, used
+                    as context for enriched outputs.
                   default: ''
                   example: Carabao Cup winners presentation
                 city:
@@ -153,11 +157,13 @@ paths:
                   example: United Kingdom
                 caption:
                   type: boolean
-                  description: When `true`, include an AI-generated caption in the response.
+                  description: When `true`, include an AI-generated caption in the
+                    response.
                   default: false
                 keywords:
                   type: boolean
-                  description: When `true`, include generated keyword tags in the response.
+                  description: When `true`, include generated keyword tags in the
+                    response.
                   default: false
                 ocr:
                   type: boolean
@@ -165,7 +171,8 @@ paths:
                   default: false
                 colors:
                   type: boolean
-                  description: When `true`, include dominant colors and black-and-white detection.
+                  description: When `true`, include dominant colors and black-and-white
+                    detection.
                   default: false
               type: object
         required: true
@@ -191,8 +198,9 @@ paths:
       tags:
       - Query Images
       summary: Upload 1 query image
-      description: Upload 1 image file to be used in a reverse image search. This endpoint returns an
-        image hash that can be used as a reference later in the search query.
+      description: Upload 1 image file to be used in a reverse image search. This
+        endpoint returns an image hash that can be used as a reference later in the
+        search query.
       operationId: upload_query_image_query_imgs_post
       requestBody:
         content:
@@ -564,8 +572,8 @@ paths:
       tags:
       - Images
       summary: Search N images
-      description: Do simple image listing or do advanced image search with filters, sorting, pagination,
-        facets and counting
+      description: Do simple image listing or do advanced image search with filters,
+        sorting, pagination, facets and counting
       operationId: get_n_imgs_get
       security:
       - APIKeyHeader: []
@@ -575,16 +583,18 @@ paths:
         required: false
         schema:
           type: string
-          description: Query filtering formula, must be url-encoded. Image similarity uses i~, i~~, i~~~
-            for CLIP semantic search and i=, i==, i=== for SSCD visual similarity. Use i==== to request
-            the expensive SAME duplicate verification after the highest SSCD candidate; SAME only runs
-            when the tenant has clients.same_search_enabled=true.
+          description: Query filtering formula, must be url-encoded. Image similarity
+            uses i~, i~~, i~~~ for semantic similarity search and i=, i==, i=== for
+            visual duplicate-detection search. i==== requests an additional, more
+            precise but slower duplicate-verification pass on the top candidate; this
+            mode is currently restricted to selected tenants.
           default: ''
           title: Q
-        description: Query filtering formula, must be url-encoded. Image similarity uses i~, i~~, i~~~
-          for CLIP semantic search and i=, i==, i=== for SSCD visual similarity. Use i==== to request
-          the expensive SAME duplicate verification after the highest SSCD candidate; SAME only runs when
-          the tenant has clients.same_search_enabled=true.
+        description: Query filtering formula, must be url-encoded. Image similarity
+          uses i~, i~~, i~~~ for semantic similarity search and i=, i==, i=== for
+          visual duplicate-detection search. i==== requests an additional, more precise
+          but slower duplicate-verification pass on the top candidate; this mode is
+          currently restricted to selected tenants.
       - name: page
         in: query
         required: false
@@ -637,12 +647,12 @@ paths:
           - similarity
           - sim
           type: string
-          description: Sorting criterion. Note that sort_by=similarity only works if there are present
-            "similary filters" on the Query Filtering Formula.
+          description: Sorting criterion. Note that sort_by=similarity only works
+            if there are present "similary filters" on the Query Filtering Formula.
           default: ''
           title: Sort By
-        description: Sorting criterion. Note that sort_by=similarity only works if there are present "similary
-          filters" on the Query Filtering Formula.
+        description: Sorting criterion. Note that sort_by=similarity only works if
+          there are present "similary filters" on the Query Filtering Formula.
       - name: sort_order
         in: query
         required: false
@@ -1081,17 +1091,20 @@ components:
         lang:
           type: string
           title: Lang
-          description: Language used for language-dependent outputs such as generated caption and keywords.
+          description: Language used for language-dependent outputs such as generated
+            caption and keywords.
           default: en
         mode:
           type: string
           title: Mode
-          description: Tagging profile to apply. The endpoint currently uses `editorial` as default mode.
+          description: Tagging profile to apply. The endpoint currently uses `editorial`
+            as default mode.
           default: editorial
         date:
           type: string
           title: Date
-          description: Optional contextual date for the image, ideally in ISO `YYYY-MM-DD` format.
+          description: Optional contextual date for the image, ideally in ISO `YYYY-MM-DD`
+            format.
           default: ''
         event:
           type: string
@@ -1121,12 +1134,14 @@ components:
         ocr:
           type: boolean
           title: Ocr
-          description: If `true`, the response includes OCR text extracted from the image.
+          description: If `true`, the response includes OCR text extracted from the
+            image.
           default: false
         colors:
           type: boolean
           title: Colors
-          description: If `true`, the response includes dominant colors and black-and-white detection.
+          description: If `true`, the response includes dominant colors and black-and-white
+            detection.
           default: false
       type: object
       title: Body_tag_image_tag_image_post
@@ -1535,11 +1550,13 @@ components:
         idle_ms:
           type: number
           title: Idle Ms
-          description: Duration (milliseconds) between the operation has been created and has started.
+          description: Duration (milliseconds) between the operation has been created
+            and has started.
         exec_ms:
           type: number
           title: Exec Ms
-          description: Duration (milliseconds) between the operation has been started and has finished.
+          description: Duration (milliseconds) between the operation has been started
+            and has finished.
         created_at:
           type: string
           title: Created At
@@ -1850,16 +1867,16 @@ components:
           - type: string
           - type: 'null'
           title: Src
-          description: Url of the image in high or medium resolution (used as source for the AI). Alternative
-            to `src_path`; provide exactly one of the two.
+          description: Url of the image in high or medium resolution (used as source
+            for the AI). Alternative to `src_path`; provide exactly one of the two.
           example: https://cdn.example.com/image/source.jpg
         src_path:
           anyOf:
           - type: string
           - type: 'null'
           title: Src Path
-          description: Local filesystem path of the image (used as source for the AI). Alternative to
-            `src`; provide exactly one of the two.
+          description: Local filesystem path of the image (used as source for the
+            AI). Alternative to `src`; provide exactly one of the two.
           example: /data/images/source.jpg
         url_img_watermark:
           anyOf:
@@ -1895,7 +1912,8 @@ components:
           - type: 'null'
           title: Caption
           description: Long text describing the image.
-          example: A vibrant orange sunset reflecting on the river with the city skyline in silhouette.
+          example: A vibrant orange sunset reflecting on the river with the city skyline
+            in silhouette.
         alt_text:
           anyOf:
           - type: string
@@ -1938,15 +1956,17 @@ components:
           - type: string
           - type: 'null'
           title: Date
-          description: Date of the image creation in year-month-day format. Capture date for photographies.
+          description: Date of the image creation in year-month-day format. Capture
+            date for photographies.
           example: '2024-10-19'
         location:
           anyOf:
           - type: string
           - type: 'null'
           title: Location
-          description: A detailed description of the location, complementing the specified country and
-            city with additional details such as street address or notable landmarks.
+          description: A detailed description of the location, complementing the specified
+            country and city with additional details such as street address or notable
+            landmarks.
           example: 123 Main St, near Central Park
         city:
           anyOf:
@@ -1974,16 +1994,16 @@ components:
           - type: string
           - type: 'null'
           title: Author
-          description: The name of the individual or entity responsible for creating the image, such as
-            a photographer or painter.
+          description: The name of the individual or entity responsible for creating
+            the image, such as a photographer or painter.
           example: Jane Doe
         provider:
           anyOf:
           - type: string
           - type: 'null'
           title: Provider
-          description: The identifier of the provider, which can be either a unique numeric ID or a descriptive
-            name.
+          description: The identifier of the provider, which can be either a unique
+            numeric ID or a descriptive name.
           example: Acme Inc.
         shot:
           anyOf:
@@ -2004,16 +2024,18 @@ components:
           - type: string
           - type: 'null'
           title: Technique
-          description: The specific method or process used in creating the artwork, reflecting the artist's
-            unique approach or the traditional methods tied to certain mediums.
+          description: The specific method or process used in creating the artwork,
+            reflecting the artist's unique approach or the traditional methods tied
+            to certain mediums.
           example: Drawing
         medium:
           anyOf:
           - type: string
           - type: 'null'
           title: Medium
-          description: The material or substance used in the creation of the artwork or object. This field
-            corresponds to various artistic mediums like oils, acrylics, or digital formats.
+          description: The material or substance used in the creation of the artwork
+            or object. This field corresponds to various artistic mediums like oils,
+            acrylics, or digital formats.
           example: Oil on canvas
         keywords:
           anyOf:
@@ -2063,16 +2085,16 @@ components:
           - type: string
           - type: 'null'
           title: Src
-          description: Url of the image in high or medium resolution (used as source for the AI). Alternative
-            to `src_path`; provide exactly one of the two.
+          description: Url of the image in high or medium resolution (used as source
+            for the AI). Alternative to `src_path`; provide exactly one of the two.
           example: https://cdn.example.com/image/source.jpg
         src_path:
           anyOf:
           - type: string
           - type: 'null'
           title: Src Path
-          description: Local filesystem path of the image (used as source for the AI). Alternative to
-            `src`; provide exactly one of the two.
+          description: Local filesystem path of the image (used as source for the
+            AI). Alternative to `src`; provide exactly one of the two.
           example: /data/images/source.jpg
         url_img_watermark:
           anyOf:
@@ -2108,7 +2130,8 @@ components:
           - type: 'null'
           title: Caption
           description: Long text describing the image.
-          example: A vibrant orange sunset reflecting on the river with the city skyline in silhouette.
+          example: A vibrant orange sunset reflecting on the river with the city skyline
+            in silhouette.
         alt_text:
           anyOf:
           - type: string
@@ -2151,15 +2174,17 @@ components:
           - type: string
           - type: 'null'
           title: Date
-          description: Date of the image creation in year-month-day format. Capture date for photographies.
+          description: Date of the image creation in year-month-day format. Capture
+            date for photographies.
           example: '2024-10-19'
         location:
           anyOf:
           - type: string
           - type: 'null'
           title: Location
-          description: A detailed description of the location, complementing the specified country and
-            city with additional details such as street address or notable landmarks.
+          description: A detailed description of the location, complementing the specified
+            country and city with additional details such as street address or notable
+            landmarks.
           example: 123 Main St, near Central Park
         city:
           anyOf:
@@ -2187,16 +2212,16 @@ components:
           - type: string
           - type: 'null'
           title: Author
-          description: The name of the individual or entity responsible for creating the image, such as
-            a photographer or painter.
+          description: The name of the individual or entity responsible for creating
+            the image, such as a photographer or painter.
           example: Jane Doe
         provider:
           anyOf:
           - type: string
           - type: 'null'
           title: Provider
-          description: The identifier of the provider, which can be either a unique numeric ID or a descriptive
-            name.
+          description: The identifier of the provider, which can be either a unique
+            numeric ID or a descriptive name.
           example: Acme Inc.
         shot:
           anyOf:
@@ -2217,16 +2242,18 @@ components:
           - type: string
           - type: 'null'
           title: Technique
-          description: The specific method or process used in creating the artwork, reflecting the artist's
-            unique approach or the traditional methods tied to certain mediums.
+          description: The specific method or process used in creating the artwork,
+            reflecting the artist's unique approach or the traditional methods tied
+            to certain mediums.
           example: Drawing
         medium:
           anyOf:
           - type: string
           - type: 'null'
           title: Medium
-          description: The material or substance used in the creation of the artwork or object. This field
-            corresponds to various artistic mediums like oils, acrylics, or digital formats.
+          description: The material or substance used in the creation of the artwork
+            or object. This field corresponds to various artistic mediums like oils,
+            acrylics, or digital formats.
           example: Oil on canvas
         keywords:
           anyOf:
@@ -2301,16 +2328,16 @@ components:
           - type: string
           - type: 'null'
           title: Src
-          description: Url of the image in high or medium resolution (used as source for the AI). Alternative
-            to `src_path`; provide exactly one of the two.
+          description: Url of the image in high or medium resolution (used as source
+            for the AI). Alternative to `src_path`; provide exactly one of the two.
           example: https://cdn.example.com/image/source.jpg
         src_path:
           anyOf:
           - type: string
           - type: 'null'
           title: Src Path
-          description: Local filesystem path of the image (used as source for the AI). Alternative to
-            `src`; provide exactly one of the two.
+          description: Local filesystem path of the image (used as source for the
+            AI). Alternative to `src`; provide exactly one of the two.
           example: /data/images/source.jpg
         url_img_watermark:
           anyOf:
@@ -2346,7 +2373,8 @@ components:
           - type: 'null'
           title: Caption
           description: Long text describing the image.
-          example: A vibrant orange sunset reflecting on the river with the city skyline in silhouette.
+          example: A vibrant orange sunset reflecting on the river with the city skyline
+            in silhouette.
         alt_text:
           anyOf:
           - type: string
@@ -2389,15 +2417,17 @@ components:
           - type: string
           - type: 'null'
           title: Date
-          description: Date of the image creation in year-month-day format. Capture date for photographies.
+          description: Date of the image creation in year-month-day format. Capture
+            date for photographies.
           example: '2024-10-19'
         location:
           anyOf:
           - type: string
           - type: 'null'
           title: Location
-          description: A detailed description of the location, complementing the specified country and
-            city with additional details such as street address or notable landmarks.
+          description: A detailed description of the location, complementing the specified
+            country and city with additional details such as street address or notable
+            landmarks.
           example: 123 Main St, near Central Park
         city:
           anyOf:
@@ -2425,16 +2455,16 @@ components:
           - type: string
           - type: 'null'
           title: Author
-          description: The name of the individual or entity responsible for creating the image, such as
-            a photographer or painter.
+          description: The name of the individual or entity responsible for creating
+            the image, such as a photographer or painter.
           example: Jane Doe
         provider:
           anyOf:
           - type: string
           - type: 'null'
           title: Provider
-          description: The identifier of the provider, which can be either a unique numeric ID or a descriptive
-            name.
+          description: The identifier of the provider, which can be either a unique
+            numeric ID or a descriptive name.
           example: Acme Inc.
         shot:
           anyOf:
@@ -2455,16 +2485,18 @@ components:
           - type: string
           - type: 'null'
           title: Technique
-          description: The specific method or process used in creating the artwork, reflecting the artist's
-            unique approach or the traditional methods tied to certain mediums.
+          description: The specific method or process used in creating the artwork,
+            reflecting the artist's unique approach or the traditional methods tied
+            to certain mediums.
           example: Drawing
         medium:
           anyOf:
           - type: string
           - type: 'null'
           title: Medium
-          description: The material or substance used in the creation of the artwork or object. This field
-            corresponds to various artistic mediums like oils, acrylics, or digital formats.
+          description: The material or substance used in the creation of the artwork
+            or object. This field corresponds to various artistic mediums like oils,
+            acrylics, or digital formats.
           example: Oil on canvas
         keywords:
           anyOf:

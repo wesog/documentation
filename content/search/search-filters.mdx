@@ -151,6 +151,53 @@ List of available filters and subfilters along with their prefixes:
 
 
 
+## Duplicate Verification Response (`i====`)
+
+When a query uses the `====` operator, the response includes everything a normal search response includes (`results`, `count`, `facets`, ...), plus an extra `same_verification` object describing the outcome of the duplicate verification step.
+
+Because `====` only verifies the single best match, the `results`, `count` and `facets` fields are adjusted to reflect that:
+
+- If the top candidate **is** confirmed as an exact duplicate, `results` contains only that one item, `count` is `1`, and `facets` is empty.
+- If it is **not** confirmed as a duplicate, or verification could not be completed, `results` is empty, `count` is `0`, and `facets` is empty.
+
+<ResponseField name="same_verification" type="object">
+  <Expandable title="properties">
+    <ResponseField name="status" type="string">
+      One of:
+      - `same_shot`: the top candidate was confirmed as an exact duplicate.
+      - `not_same_shot`: the top candidate was checked but not confirmed as a duplicate.
+      - `no_non_self_candidates`: after excluding the queried image itself, no candidates were left to verify.
+      - `query_image_unavailable`: the query image could not be retrieved.
+      - `candidate_src_missing` / `candidate_image_unavailable`: the top candidate's image could not be located or retrieved.
+      - `same_model_error`: the verification step failed unexpectedly.
+    </ResponseField>
+    <ResponseField name="query_value" type="string">
+      The image reference used in the `i====` query.
+    </ResponseField>
+    <ResponseField name="candidate_id" type="string">
+      ID of the top candidate that was verified (when applicable).
+    </ResponseField>
+    <ResponseField name="result" type="object">
+      Present only when `status` is `same_shot` or `not_same_shot`.
+      <Expandable title="properties">
+        <ResponseField name="is_same_shot" type="boolean">
+          Whether the candidate is considered the same image/shot as the query.
+        </ResponseField>
+        <ResponseField name="is_same_scene" type="boolean">
+          Whether the candidate is considered the same scene as the query.
+        </ResponseField>
+        <ResponseField name="same_shot_score" type="number">
+          Confidence score behind the `is_same_shot` decision.
+        </ResponseField>
+        <ResponseField name="do_human_check" type="boolean">
+          Whether the score falls in a borderline range where manual review is recommended.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+
 ## Filter with subfilters
 
 <Warning>Subfilters are not ready yet. They will be available in future releases of Wesog Search.</Warning>
