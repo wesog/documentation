@@ -155,7 +155,7 @@ List of available filters and subfilters along with their prefixes:
 
 When a query uses the `====` operator, the response is a normal search response (`results`, `count`, `facets`), but adjusted to reflect that `====` only verifies the single best match:
 
-- If the top candidate **is** confirmed as an exact duplicate, `results` contains only that one item, `count` is `1`, and `facets` is empty.
+- If a duplicate version is detected, it will be indicated in results; in that case, count is 1 and facets is empty.
 - If it is **not** confirmed as a duplicate, or verification could not be completed, `results` is empty, `count` is `0`, and `facets` is empty.
 
 
