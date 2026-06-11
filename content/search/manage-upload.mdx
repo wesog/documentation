@@ -8,6 +8,10 @@ Uploading images to the Wesog Search platform expands the tool’s search capabi
 
 Ingestion can be performed either synchronously or asynchronously. However, since this process involves not only operations on our available hardware but also external requests to fetch the images, we recommend using the asynchronous mode, which will create an operation that can be queried afterwards.
 
+<Note>
+Wesog Search does **not** extract metadata embedded in the image file itself (e.g. EXIF/IPTC data such as date taken, author, location, etc.). Any such information must be sent explicitly as part of the request body (`title`, `date`, `author`, `location`, `keywords`, etc.) so that it can be indexed and used for search and filtering.
+</Note>
+
 ## Upload single image (`POST /imgs/{item_id}`)
 
 ### Parameters
