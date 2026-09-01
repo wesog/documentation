@@ -13,45 +13,121 @@ The `ocr` tool is the clearest first integration because its payload is small an
 - Tool run: `https://api.wesog.com/api/v1/tools/ocr`
 - Poll run: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
 
-## Confirmed sync example
+<!-- AUTO-GENERATED:TOOL-SCHEMA START -->
+<!-- Regenerate with: python3 documentation/scripts/generate_tool_docs_from_api.py -->
 
-This payload shape is backed by current backend tests.
+## Input schema
+
+This top-level request schema is generated from the published `input` schema currently exposed by Core.
+
+```json
+{
+  "type": "object",
+  "required": [
+    "image"
+  ],
+  "properties": {
+    "image": {
+      "type": "string",
+      "format": "uri",
+      "description": "Storage ref, external URL or data URL with the image to process."
+    },
+    "lang": {
+      "type": "string",
+      "description": "OCR language hint when supported by the published version."
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "description": "Optional timeout override in milliseconds. If omitted, the API waits about 5000 ms before returning 202 Accepted."
+    }
+  }
+}
+```
+
+## Input fields
+
+| Field | Type | Required | Notes |
+|------|------|----------|-------|
+| `image` | `string` | Yes | Storage ref, external URL or data URL with the image to process. |
+| `lang` | `string` | No | OCR language hint when supported by the published version. |
+
+## Output schema
+
+The `200` response returns the workflow output object directly. If the run exceeds the wait timeout, the API returns `202 Accepted` with a polling envelope.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "item_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
+```
+
+## Output fields
+
+| Field | Type | Notes |
+|------|------|-------|
+| `rows` | `array` | OCR rows returned by the published workflow. |
+| `item_keys` | `array` | Stable item identifiers for the tool output rows. |
+
+## Request example
 
 ```bash
 curl -X POST 'https://api.wesog.com/api/v1/tools/ocr' \
   -H 'Content-Type: application/json' \
   -H 'X-API-Key: <TENANT_API_KEY>' \
   -d '{
-    "input": {
-      "image": "storage://examples/ocr.png"
-    },
-    "client_context": {
-      "source": "docs"
-    },
-    "workflow_param_values": {}
-  }'
+  "image": "https://example.com/editorial-image.jpg",
+  "lang": "en"
+}'
 ```
 
-## Expected output shape
-
-The exact output depends on the published workflow, but the current backend tests expect rows like this:
+## Completed response example
 
 ```json
 {
-  "run_id": "run-ocr",
-  "status": "succeeded",
-  "warnings": [],
-  "timings_ms": 12,
-  "outputs": {
-    "rows": [
-      {
-        "text": "texto ocr"
-      }
-    ],
-    "item_keys": ["root"]
-  }
+  "rows": [
+    {
+      "text": "WESOG SUMMIT 2026"
+    }
+  ],
+  "item_keys": [
+    "root"
+  ]
 }
 ```
+
+## Deferred response contract
+
+```json
+{
+  "run_id": "run-ocr-queued",
+  "status": "running",
+  "response_mode": "accepted",
+  "poll_path": "/api/v1/tools/runs/run-ocr-queued"
+}
+```
+
+<!-- AUTO-GENERATED:TOOL-SCHEMA END -->
+
+Polling that `run_id` later returns the terminal payload.
 
 ## Notes
 

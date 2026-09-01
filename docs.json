@@ -109,7 +109,7 @@
       },
       {
         "tab": "API Reference",
-        "openapi": "https://api.wesog.com/api/public/openapi.json"
+        "openapi": "https://api.wesog.com/openapi.json"
       }
     ]
   }

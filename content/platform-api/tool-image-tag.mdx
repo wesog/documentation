@@ -18,46 +18,185 @@ icon: "tags"
 - Tool run: `https://api.wesog.com/api/v1/tools/image_tag`
 - Poll run: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
 
-## Typical sync example
+<!-- AUTO-GENERATED:TOOL-SCHEMA START -->
+<!-- Regenerate with: python3 documentation/scripts/generate_tool_docs_from_api.py -->
 
-This example is based on the legacy Tag API parameters that are already documented in the repo, adapted to the current Tools wrapper:
+## Input schema
+
+This top-level request schema is generated from the published `input` schema currently exposed by Core.
+
+```json
+{
+  "type": "object",
+  "required": [
+    "image"
+  ],
+  "properties": {
+    "image": {
+      "type": "string",
+      "format": "uri",
+      "description": "Binary image file to analyze. Use this or image_url, but not both."
+    },
+    "image_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Publicly reachable image URL to analyze instead of uploading a file."
+    },
+    "lang": {
+      "type": "string",
+      "description": "Language used for language-dependent outputs such as caption or keywords."
+    },
+    "mode": {
+      "type": "string",
+      "description": "Tagging profile. Currently the default documented mode is editorial."
+    },
+    "date": {
+      "type": "string",
+      "description": "Optional image context date, typically in ISO format YYYY-MM-DD."
+    },
+    "event": {
+      "type": "string",
+      "description": "Optional event name associated with the image, used as context for enriched outputs."
+    },
+    "city": {
+      "type": "string",
+      "description": "Optional city associated with the image context."
+    },
+    "country": {
+      "type": "string",
+      "description": "Optional country associated with the image context."
+    },
+    "caption": {
+      "type": "boolean",
+      "description": "When true, include an AI-generated caption in the response."
+    },
+    "keywords": {
+      "type": "boolean",
+      "description": "When true, include generated keyword tags in the response."
+    },
+    "ocr": {
+      "type": "boolean",
+      "description": "When true, include OCR text extracted from the image."
+    },
+    "colors": {
+      "type": "boolean",
+      "description": "When true, include dominant colors and black-and-white detection."
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "description": "Optional timeout override in milliseconds. If omitted, the API waits about 5000 ms before returning 202 Accepted."
+    }
+  }
+}
+```
+
+## Input fields
+
+| Field | Type | Required | Notes |
+|------|------|----------|-------|
+| `image` | `string` | Yes | Binary image file to analyze. Use this or image_url, but not both. |
+| `image_url` | `string` | No | Publicly reachable image URL to analyze instead of uploading a file. |
+| `lang` | `string` | No | Language used for language-dependent outputs such as caption or keywords. |
+| `mode` | `string` | No | Tagging profile. Currently the default documented mode is editorial. |
+| `date` | `string` | No | Optional image context date, typically in ISO format YYYY-MM-DD. |
+| `event` | `string` | No | Optional event name associated with the image, used as context for enriched outputs. |
+| `city` | `string` | No | Optional city associated with the image context. |
+| `country` | `string` | No | Optional country associated with the image context. |
+| `caption` | `boolean` | No | When true, include an AI-generated caption in the response. |
+| `keywords` | `boolean` | No | When true, include generated keyword tags in the response. |
+| `ocr` | `boolean` | No | When true, include OCR text extracted from the image. |
+| `colors` | `boolean` | No | When true, include dominant colors and black-and-white detection. |
+
+## Output schema
+
+The `200` response returns the workflow output object directly. If the run exceeds the wait timeout, the API returns `202 Accepted` with a polling envelope.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "caption": {
+      "type": "string"
+    },
+    "ocr": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "colors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
+```
+
+## Output fields
+
+| Field | Type | Notes |
+|------|------|-------|
+| `caption` | `string` | Generated caption. |
+| `ocr` | `string` | OCR text extracted from the image. |
+| `keywords` | `array` | Generated keywords. |
+| `colors` | `array` | Detected color palette. |
+
+## Request example
 
 ```bash
 curl -X POST 'https://api.wesog.com/api/v1/tools/image_tag' \
   -H 'Content-Type: application/json' \
   -H 'X-API-Key: <TENANT_API_KEY>' \
   -d '{
-    "input": {
-      "image": "https://example.com/photo.jpg",
-      "lang": "en",
-      "mode": "editorial",
-      "event": "Press conference",
-      "city": "Madrid",
-      "country": "Spain",
-      "caption": true,
-      "keywords": true,
-      "ocr": true,
-      "colors": false
-    },
-    "client_context": {
-      "source": "docs"
-    },
-    "workflow_param_values": {}
-  }'
+  "image_url": "https://example.com/editorial-image.jpg",
+  "lang": "en",
+  "mode": "editorial",
+  "date": "example-date",
+  "event": "Champions League final",
+  "city": "Madrid",
+  "country": "Spain",
+  "caption": true,
+  "keywords": true,
+  "ocr": true,
+  "colors": false
+}'
 ```
 
-## Typical output shape
+## Completed response example
 
 ```json
 {
-  "outputs": {
-    "caption": "Government spokesperson speaking at a press conference.",
-    "ocr": "WESOG SUMMIT 2026",
-    "keywords": ["politics", "press conference", "government", "speaker"],
-    "colors": ["#102030", "#d1d5db"]
-  }
+  "caption": "Players celebrate on the pitch after the final whistle in Madrid.",
+  "ocr": "WESOG SUMMIT 2026",
+  "keywords": [
+    "politics",
+    "press conference",
+    "government"
+  ],
+  "colors": [
+    "#102030",
+    "#d1d5db"
+  ]
 }
 ```
+
+## Deferred response contract
+
+```json
+{
+  "run_id": "run-image-tag-queued",
+  "status": "running",
+  "response_mode": "accepted",
+  "poll_path": "/api/v1/tools/runs/run-image-tag-queued"
+}
+```
+
+<!-- AUTO-GENERATED:TOOL-SCHEMA END -->
 
 ## Notes
 

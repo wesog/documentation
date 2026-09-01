@@ -13,14 +13,18 @@ Mintlify is the entrypoint for guides, onboarding and product explanations.
 
 The API contract source of truth lives in Core and is exposed through runtime OpenAPI endpoints such as:
 
-- `https://api.wesog.com/api/public/openapi.json`
+- `https://api.wesog.com/openapi.json`
 - `https://api.wesog.com/api/domains/tools/openapi.json`
 - `https://api.wesog.com/api/tools/{tool_slug}/openapi.json`
 - `https://api.wesog.com/api/v1/tools/{tool_slug}/openapi.json`
 
+The legacy explicit alias still exists when needed:
+
+- `https://api.wesog.com/api/public/openapi.json`
+
 The matching interactive Swagger UI views are exposed through:
 
-- `https://api.wesog.com/api/public/docs`
+- `https://api.wesog.com/docs`
 - `https://api.wesog.com/api/domains/tools/docs`
 - `https://api.wesog.com/api/tools/{tool_slug}/docs`
 - `https://api.wesog.com/api/v1/tools/{tool_slug}/docs`
@@ -30,7 +34,7 @@ The matching interactive Swagger UI views are exposed through:
 The main API Reference tab in `docs.json` points to the **public runtime OpenAPI**:
 
 ```json
-"openapi": "https://api.wesog.com/api/public/openapi.json"
+"openapi": "https://api.wesog.com/openapi.json"
 ```
 
 This should stay aligned with the Core-generated contract and should not be replaced by the legacy static snapshot unless you are explicitly working offline.
@@ -52,6 +56,49 @@ Update Mintlify when:
 
 Do **not** rely on Mintlify pages alone to define the HTTP contract.
 
+## Regenerating per-tool schema sections
+
+The priority tool guides under `content/platform-api/` now contain an auto-generated block sourced from Core.
+
+When Core is running locally and exposing public tool docs, regenerate those sections with:
+
+```bash
+python3 documentation/scripts/generate_tool_docs_from_api.py --base-url http://127.0.0.1:3333
+```
+
+By default, the script refreshes:
+
+- `ocr`
+- `caption`
+- `image_tag`
+- `image_celebrity_recognition`
+- `video_celebrity_recognition`
+
+To regenerate only one tool:
+
+```bash
+python3 documentation/scripts/generate_tool_docs_from_api.py \
+  --base-url http://127.0.0.1:3333 \
+  --tool caption
+```
+
+The script reads:
+
+- `/api/tools/{tool_slug}/schema.json`
+
+and rewrites only the block between:
+
+- `<!-- AUTO-GENERATED:TOOL-SCHEMA START -->`
+- `<!-- AUTO-GENERATED:TOOL-SCHEMA END -->`
+
+This keeps the editorial intro, links and notes intact while refreshing:
+
+- request envelope schema
+- input/output field tables
+- request example
+- completed response example
+- deferred `202 Accepted` contract
+
 ## Local development
 
 Run Mintlify from this folder:
@@ -63,8 +110,8 @@ mintlify dev
 Typical local API endpoints:
 
 ```text
-http://127.0.0.1:3333/api/public/openapi.json
-http://127.0.0.1:3333/api/public/docs
+http://127.0.0.1:3333/openapi.json
+http://127.0.0.1:3333/docs
 http://127.0.0.1:3333/api/domains/tools/docs
 http://127.0.0.1:3333/api/tools/caption/docs
 ```
