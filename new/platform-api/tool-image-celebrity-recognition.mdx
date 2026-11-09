@@ -1,0 +1,207 @@
+---
+title: "Tool Example: Image Celebrity Recognition"
+description: "Practical examples for image-based celebrity recognition tools."
+icon: "user-circle"
+noindex: true
+---
+
+`image_celebrity_recognition` is the clearest identity-oriented image tool in the current frontend. It is used to detect known people and can be enriched with Wesog entity scopes.
+
+## Reference endpoints
+
+- Public Swagger UI: `https://api.wesog.com/api/tools/image_celebrity_recognition/docs`
+- Public OpenAPI: `https://api.wesog.com/api/tools/image_celebrity_recognition/openapi.json`
+- Tool run: `https://api.wesog.com/api/v1/tools/image_celebrity_recognition`
+- Poll run: `https://api.wesog.com/api/v1/tools/runs/{run_id}`
+
+{/* AUTO-GENERATED:TOOL-SCHEMA START */}
+{/* Regenerate with: python3 documentation/scripts/generate_tool_docs_from_api.py */}
+
+## Input schema
+
+This top-level request schema is generated from the published `input` schema currently exposed by Core.
+
+```json
+{
+  "type": "object",
+  "required": [
+    "image"
+  ],
+  "properties": {
+    "image": {
+      "type": "string",
+      "format": "uri",
+      "description": "Main image to inspect."
+    },
+    "use_wesog_entities": {
+      "type": "boolean",
+      "description": "Enables Wesog entity enrichment and scoping."
+    },
+    "language": {
+      "type": "string",
+      "description": "Language hint for labels or related metadata."
+    },
+    "category_entity_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Category filters for identity space."
+    },
+    "collection_entity_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Collection-level scope narrowing."
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "description": "Optional timeout override in milliseconds. If omitted, the API waits about 5000 ms before returning 202 Accepted."
+    }
+  }
+}
+```
+
+## Input fields
+
+| Field | Type | Required | Notes |
+|------|------|----------|-------|
+| `image` | `string` | Yes | Main image to inspect. |
+| `use_wesog_entities` | `boolean` | No | Enables Wesog entity enrichment and scoping. |
+| `language` | `string` | No | Language hint for labels or related metadata. |
+| `category_entity_ids` | `array` | No | Category filters for identity space. |
+| `collection_entity_ids` | `array` | No | Collection-level scope narrowing. |
+
+## Output schema
+
+The wrapper below reflects the live polling-aware tool contract and nests the tool-specific output schema under `outputs`.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "run_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed"
+      ]
+    },
+    "response_mode": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "accepted"
+      ]
+    },
+    "poll_path": {
+      "type": "string"
+    },
+    "timings_ms": {
+      "type": "integer"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "celebrity_recognition": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Output fields
+
+| Field | Type | Notes |
+|------|------|-------|
+| `celebrity_recognition` | `array` | Detected identities with score metadata. |
+
+## Request example
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/tools/image_celebrity_recognition' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+  "image": "https://example.com/editorial-image.jpg",
+  "use_wesog_entities": true,
+  "language": "English",
+  "category_entity_ids": [
+    "politics",
+    "sports"
+  ],
+  "collection_entity_ids": [
+    "editorial-celebrities"
+  ]
+}'
+```
+
+## Completed response example
+
+```json
+{
+  "run_id": "run-image-celebrity-recognition",
+  "status": "succeeded",
+  "response_mode": "completed",
+  "poll_path": "/api/v1/tools/runs/run-image-celebrity-recognition",
+  "timings_ms": 420,
+  "warnings": [],
+  "outputs": {
+    "celebrity_recognition": [
+      {
+        "id": "Q1",
+        "label": "Example celebrity",
+        "score": 0.98
+      }
+    ]
+  }
+}
+```
+
+## Deferred response contract
+
+```json
+{
+  "run_id": "run-image-celebrity-recognition-queued",
+  "status": "running",
+  "response_mode": "accepted",
+  "poll_path": "/api/v1/tools/runs/run-image-celebrity-recognition-queued"
+}
+```
+
+{/* AUTO-GENERATED:TOOL-SCHEMA END */}
+
+## Notes
+
+- Depending on the published version, the media field can be `image`, `image_url` or a similar alias.
+- Some versions may expose richer identity metadata or face bounding boxes.
+- Use the tool-specific Swagger UI page to confirm the final field names for your tenant.
+- If the request returns `202 Accepted`, continue through the polling endpoint.

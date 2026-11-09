@@ -15,7 +15,7 @@
   },
   "favicon": {
     "light": "/assets/favicon-black.svg",
-    "dark":  "/assets/favicon-white.svg"
+    "dark": "/assets/favicon-white.svg"
   },
   "footer": {
     "socials": {
@@ -25,68 +25,118 @@
     }
   },
   "navigation": {
-    "tabs": [
+    "versions": [
       {
-        "tab": "Guides",
-        "anchors": [
+        "version": "Actual",
+        "default": true,
+        "tabs": [
           {
-            "anchor": "Wesog Search",
-            "icon": "magnifying-glass",
-            "groups": [
+            "tab": "Guides",
+            "anchors": [
               {
-                "group": "Get Started",
-                "pages": [
-                  "content/search/intro",
-                  "content/search/feats"
+                "anchor": "Wesog Search",
+                "icon": "magnifying-glass",
+                "groups": [
+                  {
+                    "group": "Get Started",
+                    "pages": [
+                      "content/search/intro",
+                      "content/search/feats"
+                    ]
+                  },
+                  {
+                    "group": "Manage your content",
+                    "pages": [
+                      "content/search/manage-overview",
+                      "content/search/manage-upload",
+                      "content/search/manage-update",
+                      "content/search/manage-delete"
+                    ]
+                  },
+                  {
+                    "group": "Monitoring your operations",
+                    "pages": [
+                      "content/search/operations-overview"
+                    ]
+                  },
+                  {
+                    "group": "Search",
+                    "pages": [
+                      "content/search/search",
+                      "content/search/search-filters"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Manage your content",
-                "pages": [
-                  "content/search/manage-overview",
-                  "content/search/manage-upload",
-                  "content/search/manage-update",
-                  "content/search/manage-delete"
-                ]
-              },
-              {
-                "group": "Monitoring your operations",
-                "pages": [
-                  "content/search/operations-overview"
-                ]
-              },
-              {
-                "group": "Search",
-                "pages": [
-                  "content/search/search",
-                  "content/search/search-filters"
+                "anchor": "Wesog Tag",
+                "icon": "tag",
+                "groups": [
+                  {
+                    "group": "Get Started",
+                    "pages": [
+                      "content/tag/intro"
+                    ]
+                  },
+                  {
+                    "group": "How to use",
+                    "pages": [
+                      "content/tag/request_tag"
+                    ]
+                  }
                 ]
               }
             ]
           },
           {
-            "anchor": "Wesog Tag",
-            "icon": "tag",
-            "groups": [
-                {
-                  "group": "Get Started",
-                  "pages": [
-                    "content/tag/intro"
-                  ]
-                },
-                {
-                  "group": "How to use",
-                  "pages": [
-                    "content/tag/request_tag"
-                  ]
-                }
-            ]
+            "tab": "API Reference",
+            "openapi": "https://api.wesog.com/openapi.json"
           }
         ]
       },
       {
-        "tab": "API Reference",
-        "openapi": "https://api.wesog.com/openapi.json"
+        "version": "Nueva plataforma",
+        "tag": "Beta",
+        "tabs": [
+          {
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Get started",
+                "pages": [
+                  "new/platform/intro",
+                  "new/platform-api/reference-model",
+                  "new/platform-api/domains",
+                  "new/platform-api/authentication"
+                ]
+              },
+              {
+                "group": "Search",
+                "pages": [
+                  "new/platform-api/conversational-search"
+                ]
+              },
+              {
+                "group": "Tools",
+                "pages": [
+                  "new/platform-api/tools",
+                  "new/platform-api/tool-matrix",
+                  "new/platform-api/tool-ocr",
+                  "new/platform-api/tool-image-tag",
+                  "new/platform-api/tool-caption",
+                  "new/platform-api/tool-image-celebrity-recognition",
+                  "new/platform-api/tool-video-celebrity-recognition"
+                ]
+              },
+              {
+                "group": "Workflows",
+                "pages": [
+                  "new/platform-api/workflows"
+                ]
+              }
+            ]
+          }
+        ]
       }
     ]
   }

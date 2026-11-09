@@ -1,0 +1,69 @@
+---
+title: "Authentication"
+description: "How developers should authenticate when using Wesog APIs and interactive references."
+icon: "key"
+noindex: true
+---
+
+Wesog should default to authenticated API usage.
+
+Public docs pages can stay readable without authentication, but the actual API calls should require credentials so requests can be logged, attributed and governed correctly.
+
+## Preferred auth mode
+
+For developers and external integrations, the preferred auth mode is:
+
+```text
+X-API-Key: <TENANT_API_KEY>
+```
+
+This is the best default for:
+
+- tool execution
+- workflow operations
+- usage attribution
+- quota enforcement
+- auditability
+
+## Creating an API key
+
+An administrator of the organisation creates keys in Wesog, in the organisation's administration, section **API keys**. Each key has:
+
+- a **name**, to recognise it (for example "CMS integration");
+- optional **scopes**. With none selected ("Full access"), the key can call everything an API key may call. With scopes, it can only call what they cover:
+
+| Scope | What it opens |
+|---|---|
+| `search` | Searching, opening a result and the [conversational search](/new/platform-api/conversational-search) |
+| `read` | Any read-only request, searches included |
+| `workflows` | Workflows, executions, tools and reviews |
+| `library` | Library, storage, uploads and data |
+| `mcp` | The MCP server for AI agents |
+
+- optional **request limits** per minute and per month, never above the plan's.
+
+A request outside the key's scopes gets `403` with `{"code": "api_key_scope_denied"}`. Keys can be disabled or **rotated**: rotating creates a new key with the same settings, and the old one stops working at once.
+
+<Warning>
+Keep API keys on your servers. Never put them in a web page, a mobile app or a URL. When a browser needs to follow something live, such as a [conversational search](/new/platform-api/conversational-search) turn, your server passes it a short-lived ticket instead.
+</Warning>
+
+## Alternative auth mode
+
+The platform also accepts JWT bearer auth for authenticated product sessions:
+
+```text
+Authorization: Bearer <JWT>
+```
+
+This is useful for authenticated frontend flows and operator tooling.
+
+## Public docs, protected execution
+
+The recommended model is:
+
+- keep Mintlify pages public
+- keep public Swagger/OpenAPI references readable
+- require `X-API-Key` or `Authorization` when the developer presses `Try it`
+
+That gives a good onboarding experience without opening request execution as an anonymous surface.
