@@ -64,7 +64,6 @@ curl -X POST 'https://api.wesog.com/api/v1/assistant/turns' \
   -H 'Content-Type: application/json' \
   -H 'X-API-Key: <TENANT_API_KEY>' \
   -d '{
-    "kind": "search",
     "conversation_id": "",
     "message": "photos of a beach at sunset",
     "filters": {},
@@ -76,7 +75,6 @@ curl -X POST 'https://api.wesog.com/api/v1/assistant/turns' \
 
 | Field | Description |
 |---|---|
-| `kind` | Always `"search"`. |
 | `conversation_id` | `""` for a new conversation. To continue it ("now only videos"), send the `conversation_id` of the previous result. |
 | `message` | What the person asked. |
 | `resolution` | Answer to a clarification (see [Clarifications](#clarification)): `{"clarification_id": "…", "option_id": "…"}`, or `{"clarification_id": "…", "text": "…"}` for a free-text answer. |
@@ -270,7 +268,6 @@ Whether Wesog asks about ambiguous names depends on your organisation's settings
 | Field | Description |
 |---|---|
 | `clarification_id` | Send it back with the answer. |
-| `kind` | `person`: which person is meant; the options are the candidates. `scope`: the request did not say what to look for ("photos"); there are no options, only a free-text answer. |
 | `question` | The question to show, in the language of the request. |
 | `options` | One button per option: `label` and `description`. `thumbnail_url` (a portrait) and `photo_count` may be empty (`""` / `null`): show the button without them. |
 | `multiple` | `true`: the person may choose several options (for example both people). |
@@ -284,7 +281,6 @@ The answer is a **new turn** (step 1): same `conversation_id`, no `message`, and
 
 ```json One option
 {
-  "kind": "search",
   "conversation_id": "a41b…",
   "resolution": {"clarification_id": "cl_1", "option_id": "o1"}
 }
@@ -292,7 +288,6 @@ The answer is a **new turn** (step 1): same `conversation_id`, no `message`, and
 
 ```json Several options (multiple: true)
 {
-  "kind": "search",
   "conversation_id": "a41b…",
   "resolution": {"clarification_id": "cl_1", "option_ids": ["o1", "o2"]}
 }
@@ -300,7 +295,6 @@ The answer is a **new turn** (step 1): same `conversation_id`, no `message`, and
 
 ```json Free text
 {
-  "kind": "search",
   "conversation_id": "a41b…",
   "resolution": {"clarification_id": "cl_1", "text": "the singer"}
 }
