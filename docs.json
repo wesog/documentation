@@ -40,6 +40,7 @@
                   "content/platform-api/reference-model",
                   "content/platform-api/domains",
                   "content/platform-api/authentication",
+                  "content/platform-api/conversational-search",
                   "content/platform-api/tools",
                   "content/platform-api/tool-matrix",
                   "content/platform-api/tool-ocr",

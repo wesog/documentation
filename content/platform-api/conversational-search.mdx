@@ -1,0 +1,381 @@
+---
+title: "Conversational search API"
+description: "Run Wesog's conversational search from your own website with a tenant API key: start a turn, follow its progress and get the results, even across network cuts and page reloads."
+icon: "comments"
+---
+
+The conversational search lets a person ask in plain language ("photos of Pedro Sánchez smiling") and get an explanation, the matching photos and videos, or a question when the request is ambiguous.
+
+This page explains how to connect to it from **your own website** with a **tenant API key**.
+
+## How it works
+
+A **turn** is one request from the person and its answer. It runs in two steps:
+
+1. **Your server starts the turn** with your API key. Wesog answers at once with a `turn_id`, an `events_url` and a short-lived `ticket`.
+2. **The browser follows the turn** by opening `events_url` with the `ticket` (`EventSource`). It receives numbered progress events and, at the end, the result or an error.
+
+The turn keeps running on Wesog's side even if the connection drops, the page is reloaded or the tab changes. The browser reconnects by itself and only receives what it missed.
+
+```
+Your server ── POST /assistant/turns  (X-API-Key) ──────────▶ Wesog
+            ◀─ {turn_id, events_url, ticket} ────────────────
+Browser ───── GET events_url?ticket=… ──────────────────────▶ Wesog
+        ◀──── id:1 progress … id:2 progress … ✂ network cut
+Browser ───── GET events_url?ticket=…  (Last-Event-ID: 2) ──▶ Wesog
+        ◀──── id:3 progress … id:9 result
+```
+
+<Warning>
+The API key must stay on your server. Never send it to the browser or put it in a URL. The browser only gets the `ticket`, which is valid for one turn and expires after 2 minutes.
+</Warning>
+
+## Messages at a glance
+
+There are three parties: the **browser** (your web page), **your server** (holds the API key) and **Wesog**.
+
+| # | From → To | Message | When |
+|---|---|---|---|
+| 1 | Browser → your server | What the person typed, or the option they chose in a clarification (your own format) | Each time the person asks or answers |
+| 2 | Your server → Wesog | `POST /assistant/turns` with the API key: `message`, or `resolution` for a clarification answer | Once per turn |
+| 3 | Wesog → your server | `202` `{turn_id, conversation_id, events_url, ticket}` | At once |
+| 4 | Your server → browser | `events_url` and `ticket` (never the API key) | At once |
+| 5 | Browser → Wesog | `GET events_url?ticket=…` (`EventSource`); on reconnection the browser adds `Last-Event-ID` by itself | Until the turn ends |
+| 6 | Wesog → browser | `progress` events, then one `result` or one `error` | While the turn runs |
+| 7 | Browser → your server → Wesog | `POST /assistant/turns/{turn_id}/ticket` | Only when the ticket expired (`401`) |
+| 8 | Browser → your server → Wesog | `POST /assistant/turns/{turn_id}/cancel` | Only when the person presses "stop" |
+
+Every request to Wesog that carries the API key goes from **your server**. The browser only talks to Wesog to read the events, with the ticket.
+
+The whole conversation is kept by Wesog. Your side only stores the `conversation_id`. Send it with every new turn of the same conversation, including the answer to a clarification.
+
+## Before you start
+
+- **An API key of your organisation.** An administrator of the organisation creates it in Wesog, in the organisation's administration, section **API keys**. The key is shown only once: store it on your server.
+- **Scope.** A key with no scopes selected ("Full access") can call everything an API key may call. A key limited to scopes needs the **Search** scope (`search`) for these endpoints.
+- **Base URL:** `https://api.wesog.com/api/v1`
+
+Each turn counts towards your plan's search quota and towards the key's own request limits.
+
+## 1. Start a turn (your server)
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/assistant/turns' \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <TENANT_API_KEY>' \
+  -d '{
+    "kind": "search",
+    "conversation_id": "",
+    "message": "photos of a beach at sunset",
+    "filters": {},
+    "resource_types": [],
+    "limit": 20,
+    "platform_language": "en"
+  }'
+```
+
+| Field | Description |
+|---|---|
+| `kind` | Always `"search"`. |
+| `conversation_id` | `""` for a new conversation. To continue it ("now only videos"), send the `conversation_id` of the previous result. |
+| `message` | What the person asked. |
+| `resolution` | Answer to a clarification (see [Clarifications](#clarification)): `{"clarification_id": "…", "option_id": "…"}`, or `{"clarification_id": "…", "text": "…"}` for a free-text answer. |
+| `filters` | Optional filters, such as dates. |
+| `resource_types` | `[]` for everything, `["image"]` or `["video"]`. |
+| `limit` | How many results to return (up to 200). |
+| `platform_language` | Your interface language (`en`, `es`, `fr`, `de`, `it` or `pt`). Answers follow the language the person wrote in; this is used when that cannot be told. |
+| `client_turn_id` | Optional id of your own for the turn. |
+
+Answer `202`:
+
+```json
+{
+  "turn_id": "t_6f1c2a…",
+  "conversation_id": "a41b…",
+  "events_url": "/api/v1/assistant/turns/t_6f1c2a…/events",
+  "ticket": "k_…"
+}
+```
+
+| Status | Meaning |
+|---|---|
+| `401` | Missing or invalid API key. |
+| `403` | The key's scopes do not include `search`, or the organisation is deactivated. |
+| `429` | Too many requests or turns at once for this key. |
+| `503` | The conversational search is not available. |
+
+Pass `events_url` and `ticket` to the browser. Keep `turn_id` if you want to stop the turn later.
+
+## 2. Follow the turn (browser)
+
+```js
+const es = new EventSource(`https://api.wesog.com${eventsUrl}?ticket=${encodeURIComponent(ticket)}`);
+
+es.addEventListener("progress", (e) => showProgress(JSON.parse(e.data)));
+es.addEventListener("result", (e) => { es.close(); showResult(JSON.parse(e.data).response); });
+es.addEventListener("error", (e) => {
+  if (e.data) { es.close(); return showError(JSON.parse(e.data)); }     // the turn could not finish
+  if (es.readyState === EventSource.CONNECTING) return showReconnecting(); // network cut: it reconnects by itself
+  es.close();                                                            // 401 / 403 / 404: see below
+});
+```
+
+The stream is `text/event-stream`. Each event has a growing `id` (1, 2, 3…), an `event` name and JSON `data`:
+
+```
+id: 1
+event: progress
+data: {"type":"progress","step":"understanding"}
+
+id: 2
+event: progress
+data: {"type":"progress","step":"searching"}
+
+: ping
+
+id: 7
+event: result
+data: {"type":"result","response":{ … }}
+```
+
+- **`progress`:** what the search is doing (see [Progress steps](#progress-steps)).
+- **`result`:** the answer of the turn. It is always the last event.
+- **`error`:** the turn could not finish. It is always the last event.
+- **`: ping`:** a comment sent every 15 seconds to keep the connection open. `EventSource` ignores it.
+
+After `result` or `error` the server closes the stream. Call `es.close()`.
+
+| Status of the `GET` | Meaning | What to do |
+|---|---|---|
+| `401` | The ticket expired (2 minutes) | Ask your server for a new one ([step 4](#4-new-ticket)) and open the stream again. Events are replayed from the start. |
+| `403` | The turn belongs to another key or organisation | — |
+| `404` | Unknown turn, or expired (about 15 minutes after it ended) | Let the person ask again. |
+
+### Progress steps
+
+Show the latest step as "in progress". Ignore any step you do not know: new ones may appear.
+
+| `step` | Extra fields | Suggested text |
+|---|---|---|
+| `understanding` | — | "Reading your request" |
+| `delegating` | — | "Searching the archive" |
+| `people_searching` | — | "Looking for the people" |
+| `people_found` | `names` | "Found Pedro Sánchez" |
+| `role_lookup` | `posts` | "Checking who is the prime minister" |
+| `searching` | — | "Searching the photos" |
+| `results_ready` | `block` (a [results block](#results)) | Show the photos now: they arrive before the final text |
+| `answering` | — | "Writing the answer" |
+| `working` | `after`, `waited_s` | "Still searching… (12 s)" |
+
+### Errors
+
+```json
+{"type":"error","status":500,"detail":{"code":"turn_failed"},"trace_id":"…"}
+```
+
+| `detail.code` | Meaning | Suggested text |
+|---|---|---|
+| `turn_failed` | The search failed | "The search could not finish. Please try again." |
+| `cancelled` | Stopped by your server | — |
+| `abandoned` | Nobody followed the turn for several minutes | "The search stopped. Please run it again." |
+| `worker_lost` | The service restarted during the turn | "The search could not finish. Please try again." |
+| `subscription_*` (status `429`) | The plan's search quota is used up | Your usual quota message |
+| `clarification_not_pending` (status `409`) | A `resolution` was sent for a question that is no longer pending (the person had already moved on) | Send the person's text as a normal `message` |
+
+`trace_id` identifies the turn if you need to contact support.
+
+## 3. The result
+
+```json
+{
+  "conversation_id": "a41b…",
+  "turn_id": "t_6f1c2a…",
+  "blocks": [ … ]
+}
+```
+
+`blocks` is the list of things to show, in order. Ignore any block `type` you do not know.
+
+### `message`
+
+```json
+{"type": "message", "text": "I found 132 photos of beaches at sunset."}
+```
+
+A short explanation of what was searched, in the language of the request.
+
+### Results
+
+```json
+{
+  "type": "results",
+  "query": "beach at sunset",
+  "search": {
+    "total": 132,
+    "items": [
+      {
+        "resource_id": "r_9a…",
+        "resource_type": "image",
+        "title": "Sunset at La Concha",
+        "snippet": "…",
+        "thumbnail_url": "https://…",
+        "preview_url": "https://…",
+        "media_type": "image",
+        "content_type": "image/jpeg",
+        "created_at": "2024-07-02T19:41:00Z",
+        "own_tenant": true,
+        "metadata": {
+          "field_values": { "caption": "…", "keywords": ["…"], "city": "San Sebastián" },
+          "detected_identities": [ { "label": "…" } ]
+        }
+      }
+    ]
+  }
+}
+```
+
+| Field | Description |
+|---|---|
+| `resource_type` / `media_type` | `image`, `video` or `audio`. |
+| `thumbnail_url`, `preview_url` | Addresses of the small and large previews. Load them with `<img loading="lazy">`. The images are never inside the JSON. |
+| `own_tenant` | `false` for a public result of another organisation (read only). |
+| `metadata.field_values` | Descriptive fields of the resource (caption, keywords, place, duration…). Each resource has only some of them. |
+| `metadata.detected_identities` | People recognised in the resource. |
+
+If the same block already arrived in a `results_ready` progress event, replace it instead of adding it twice.
+
+### Clarification
+
+When the request is ambiguous, Wesog may ask **before searching**. The result then holds a `clarification` block and no results.
+
+<Note>
+Whether Wesog asks about ambiguous names depends on your organisation's settings. By default it searches the most likely person and names the alternatives in the `message` text ("I searched for Pedro Sánchez; you may also mean Marta Sánchez"). Questions about what to search (`kind: scope`) can always appear. Your page should handle both.
+</Note>
+
+```json
+{
+  "type": "clarification",
+  "clarification_id": "cl_1",
+  "kind": "person",
+  "question": "Which Sánchez do you mean?",
+  "allow_free_text": true,
+  "multiple": true,
+  "options": [
+    {"option_id": "o1", "label": "Pedro Sánchez", "description": "Prime Minister of Spain", "photo_count": null, "thumbnail_url": ""},
+    {"option_id": "o2", "label": "Marta Sánchez", "description": "Singer", "photo_count": null, "thumbnail_url": ""}
+  ]
+}
+```
+
+| Field | Description |
+|---|---|
+| `clarification_id` | Send it back with the answer. |
+| `kind` | `person`: which person is meant; the options are the candidates. `scope`: the request did not say what to look for ("photos"); there are no options, only a free-text answer. |
+| `question` | The question to show, in the language of the request. |
+| `options` | One button per option: `label` and `description`. `thumbnail_url` (a portrait) and `photo_count` may be empty (`""` / `null`): show the button without them. |
+| `multiple` | `true`: the person may choose several options (for example both people). |
+| `allow_free_text` | `true`: also show a text box, so the person can write the answer in their own words. |
+
+#### Sending the answer
+
+The answer is a **new turn** (step 1): same `conversation_id`, no `message`, and a `resolution`.
+
+<CodeGroup>
+
+```json One option
+{
+  "kind": "search",
+  "conversation_id": "a41b…",
+  "resolution": {"clarification_id": "cl_1", "option_id": "o1"}
+}
+```
+
+```json Several options (multiple: true)
+{
+  "kind": "search",
+  "conversation_id": "a41b…",
+  "resolution": {"clarification_id": "cl_1", "option_ids": ["o1", "o2"]}
+}
+```
+
+```json Free text
+{
+  "kind": "search",
+  "conversation_id": "a41b…",
+  "resolution": {"clarification_id": "cl_1", "text": "the singer"}
+}
+```
+
+</CodeGroup>
+
+Wesog then searches with the person fixed and does not ask again about that name in the same conversation. If the person ignores the question and types something new, send it as a normal turn with `message`. The pending question is then dropped, and a later `resolution` for it gets the error `clarification_not_pending`.
+
+#### Full example
+
+```text
+Turn 1   your server → POST /assistant/turns  {"message": "photos of sanchez smiling", "conversation_id": ""}
+         browser    ← progress … result: blocks = [message, clarification cl_1 (o1 Pedro Sánchez, o2 Marta Sánchez)]
+         The person presses "Pedro Sánchez".
+Turn 2   your server → POST /assistant/turns  {"conversation_id": "a41b…", "resolution": {"clarification_id": "cl_1", "option_id": "o1"}}
+         browser    ← progress … results_ready … result: blocks = [message, results]
+Turn 3   your server → POST /assistant/turns  {"conversation_id": "a41b…", "message": "now only videos"}
+         browser    ← progress … result: blocks = [message, results]   (the same person, only videos)
+```
+
+## 4. New ticket
+
+When a ticket expires (`401` on the stream), your server asks for a new one:
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/assistant/turns/<turn_id>/ticket' \
+  -H 'X-API-Key: <TENANT_API_KEY>'
+```
+
+```json
+{"ticket": "k_…"}
+```
+
+## 5. Stop a turn
+
+Closing the stream does **not** stop the turn, because it is meant to survive network cuts. To stop it, your server calls:
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/assistant/turns/<turn_id>/cancel' \
+  -H 'X-API-Key: <TENANT_API_KEY>'
+```
+
+The stream then ends with an `error` event with code `cancelled`. A turn that nobody follows for a few minutes stops by itself.
+
+## 6. Page reloads
+
+To keep a turn across a reload or a tab change, save `{turn_id, events_url}` in the browser's `sessionStorage` when it starts. Remove it when `result` or `error` arrives. After a reload, ask your server for a new ticket for that `turn_id` and open the stream again. The events are replayed from the start, so the screen rebuilds itself.
+
+## Proxies
+
+If your own server or a proxy sits between the browser and Wesog (nginx, Cloudflare…), it must not buffer `text/event-stream` responses. With nginx:
+
+```nginx
+location /wesog/turns/ {
+    proxy_pass https://api.wesog.com/api/v1/assistant/turns/;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_buffering off;
+    proxy_cache off;
+    gzip off;
+    proxy_read_timeout 300s;
+}
+```
+
+Serve your site over HTTP/2. With HTTP/1.1 a browser only opens 6 connections per domain, and each `EventSource` takes one.
+
+## Checklist
+
+- [ ] The API key is only on your server.
+- [ ] The browser opens `events_url` with the `ticket`.
+- [ ] Unknown `step` and block `type` values are ignored.
+- [ ] Photos are shown on `results_ready`, without waiting for the final text.
+- [ ] A network cut shows "Reconnecting…" and the turn goes on.
+- [ ] A reload resumes the running turn.
+- [ ] `401` on the stream gets a new ticket. `404` lets the person ask again.
+- [ ] The stop button calls `cancel` on your server.
+- [ ] No proxy buffers the stream.
