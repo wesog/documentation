@@ -193,7 +193,6 @@
                     "group": "Library",
                     "openapi": "new/openapi.json",
                     "pages": [
-                      "PATCH /library/tables/{source_table}/rows/{row_id}",
                       "POST /storage/folders",
                       "GET /storage/objects",
                       "POST /storage/upload",
@@ -202,9 +201,7 @@
                       "POST /storage/upload/multipart/abort",
                       "POST /storage/rename-object",
                       "POST /storage/copy-object",
-                      "GET /trash/library",
-                      "POST /trash/library/resources",
-                      "POST /trash/library/{trash_id}/restore"
+                      "GET /trash/library"
                     ]
                   },
                   {
@@ -215,7 +212,6 @@
                       "GET /workflows/{workflow_id}/executions",
                       "GET /workflow-instances",
                       "GET /workflow-instances/{instance_id}",
-                      "POST /workflow-instances/{instance_id}/launch",
                       "POST /workflow-instances/{instance_id}/api/requests",
                       "GET /workflow-instances/{instance_id}/api/requests/{request_id}"
                     ]
@@ -332,7 +328,6 @@
                     "group": "Biblioteca",
                     "openapi": "new/openapi.json",
                     "pages": [
-                      "PATCH /library/tables/{source_table}/rows/{row_id}",
                       "POST /storage/folders",
                       "GET /storage/objects",
                       "POST /storage/upload",
@@ -341,9 +336,7 @@
                       "POST /storage/upload/multipart/abort",
                       "POST /storage/rename-object",
                       "POST /storage/copy-object",
-                      "GET /trash/library",
-                      "POST /trash/library/resources",
-                      "POST /trash/library/{trash_id}/restore"
+                      "GET /trash/library"
                     ]
                   },
                   {
@@ -354,7 +347,6 @@
                       "GET /workflows/{workflow_id}/executions",
                       "GET /workflow-instances",
                       "GET /workflow-instances/{instance_id}",
-                      "POST /workflow-instances/{instance_id}/launch",
                       "POST /workflow-instances/{instance_id}/api/requests",
                       "GET /workflow-instances/{instance_id}/api/requests/{request_id}"
                     ]
