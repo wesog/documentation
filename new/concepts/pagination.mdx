@@ -14,6 +14,11 @@ Lists never come in one piece. There are two ways to ask for the next page, depe
 A search tells you where the next page starts: when `next_offset` is in the answer, send it as `offset`; when it is missing you have the last page.
 
 ```python
+import requests, os
+
+BASE = "https://api.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
 offset, found = 0, []
 while offset is not None:
     r = requests.post(f"{BASE}/library/search", headers=headers,

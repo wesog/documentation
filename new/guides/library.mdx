@@ -1,6 +1,6 @@
 ---
 title: "Upload and manage the Library"
-description: "Upload files, organise folders, change their data and delete or restore them."
+description: "Upload files, list and organise folders, copy and move them."
 icon: "folder-open"
 noindex: true
 ---
@@ -31,7 +31,7 @@ with open("IMG_0412.jpg", "rb") as f:
         data={"relative_path": "events/2026/madrid/IMG_0412.jpg"},
     )
 r.raise_for_status()
-print(r.json())   # {"relative_path": ..., "action": "created", "resource_id": 1048223}
+print(r.json())   # {"relative_path": ..., "action": "created", "resource_id": 1048223, "source_table": "storage_image"}
 ```
 
 ```javascript JavaScript
@@ -62,6 +62,11 @@ For files over 50 MB (videos):
 If something fails, `POST /storage/upload/multipart/abort` discards the parts.
 
 ```python
+import requests, os
+
+BASE = "https://api.wesog.com/api/v1"
+h = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
 init = requests.post(f"{BASE}/storage/upload/multipart/init", headers=h,
                      json={"relative_path": "events/final.mp4", "expected_size_bytes": size, "content_type": "video/mp4"}).json()
 with open("final.mp4", "rb") as f:
@@ -85,23 +90,6 @@ requests.post(f"{BASE}/storage/upload/multipart/complete", headers=h,
 
 The data of the files (and their search) follows them.
 
-## Change the data of a file
+## Change data, delete and restore
 
-`PATCH /library/tables/{source_table}/rows/{row_id}` changes the caption, keywords, headline, place... Send only what changes.
-
-```bash
-curl -X PATCH 'https://api.wesog.com/api/v1/library/tables/images/rows/1048223' \
-  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
-  -d '{"caption": "Rafael Nadal celebrates a point during the final in Madrid.", "keywords": ["tennis", "Nadal"]}'
-```
-
-`source_table` and `row_id` come from a search result (`resource_id` is the `row_id`). The names of the fields are the ones `GET` returns for that file; an unknown name is refused with `unknown_library_fields`.
-
-## Delete and restore
-
-`POST /trash/library/resources` with `{"resource_id": "1048223"}` moves a file to the trash: it disappears from search at once and stays recoverable for **30 days**.
-
-- `GET /trash/library` lists the trash.
-- `POST /trash/library/{trash_id}/restore` puts the file back.
-
-<Note>Deleting is safe to repeat with an `Idempotency-Key`. Emptying the trash for good is done in the app.</Note>
+Changing the caption or keywords of a file, deleting it and restoring it from the trash are done in the app today. API keys can **list** the trash (`GET /trash/library`) but cannot change or delete files yet.

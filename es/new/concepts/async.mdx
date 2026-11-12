@@ -12,7 +12,7 @@ Hay dos casos:
 | Lo inicias con | Lo sondeas con | Termina como |
 |---|---|---|
 | `POST /tools/{tool}` | `GET /tools/runs/{run_id}` | `succeeded`, `failed`, `timeout` o `cancelled` |
-| `POST /workflow-instances/{id}/api/requests` | `GET /workflow-instances/{id}/api/requests/{request_id}` | `completed` o `failed` |
+| `POST /workflow-instances/{id}/api/requests` | `GET /workflow-instances/{id}/api/requests/{request_id}` | `succeeded` o `failed` |
 
 ## Herramientas: respuesta ahora o después
 
@@ -22,6 +22,11 @@ Hay dos casos:
 - Si no: `202` con un `run_id` y un `poll_path`.
 
 ```python
+import os
+
+BASE = "https://api.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
 import time, requests
 
 r = requests.post(f"{BASE}/tools/image_tag", headers=headers,

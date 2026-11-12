@@ -66,6 +66,9 @@ curl -X POST 'https://api.wesog.com/api/v1/tools/caption' \
 ```
 
 ```python Python
+import os, requests
+
+
 with open("photo.jpg", "rb") as f:
     r = requests.post("https://api.wesog.com/api/v1/tools/caption",
                       headers={"X-API-Key": os.environ["WESOG_API_KEY"]},

@@ -14,6 +14,11 @@ Las listas nunca llegan de una sola vez. Hay dos formas de pedir la página sigu
 Una búsqueda te dice dónde empieza la página siguiente: cuando `next_offset` viene en la respuesta, envíalo como `offset`; cuando falta, tienes la última página.
 
 ```python
+import requests, os
+
+BASE = "https://api.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
 offset, found = 0, []
 while offset is not None:
     r = requests.post(f"{BASE}/library/search", headers=headers,

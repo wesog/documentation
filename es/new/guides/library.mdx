@@ -1,6 +1,6 @@
 ---
 title: "Subir y gestionar la Biblioteca"
-description: "Sube archivos, organiza carpetas, cambia sus datos y bórralos o restáuralos."
+description: "Sube archivos, lista y organiza carpetas, cópialos y muévelos."
 icon: "folder-open"
 noindex: true
 ---
@@ -31,7 +31,7 @@ with open("IMG_0412.jpg", "rb") as f:
         data={"relative_path": "events/2026/madrid/IMG_0412.jpg"},
     )
 r.raise_for_status()
-print(r.json())   # {"relative_path": ..., "action": "created", "resource_id": 1048223}
+print(r.json())   # {"relative_path": ..., "action": "created", "resource_id": 1048223, "source_table": "storage_image"}
 ```
 
 ```javascript JavaScript
@@ -62,6 +62,11 @@ Para archivos de más de 50 MB (vídeos):
 Si algo falla, `POST /storage/upload/multipart/abort` descarta las partes.
 
 ```python
+import requests, os
+
+BASE = "https://api.wesog.com/api/v1"
+h = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
 init = requests.post(f"{BASE}/storage/upload/multipart/init", headers=h,
                      json={"relative_path": "events/final.mp4", "expected_size_bytes": size, "content_type": "video/mp4"}).json()
 with open("final.mp4", "rb") as f:
@@ -85,23 +90,6 @@ requests.post(f"{BASE}/storage/upload/multipart/complete", headers=h,
 
 Los datos de los archivos (y su búsqueda) los acompañan.
 
-## Cambiar los datos de un archivo
+## Cambiar datos, borrar y restaurar
 
-`PATCH /library/tables/{source_table}/rows/{row_id}` cambia la descripción, las palabras clave, el titular, el lugar... Envía solo lo que cambia.
-
-```bash
-curl -X PATCH 'https://api.wesog.com/api/v1/library/tables/images/rows/1048223' \
-  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
-  -d '{"caption": "Rafael Nadal celebrates a point during the final in Madrid.", "keywords": ["tennis", "Nadal"]}'
-```
-
-`source_table` y `row_id` salen de un resultado de búsqueda (`resource_id` es el `row_id`). Los nombres de los campos son los que devuelve `GET` para ese archivo; un nombre desconocido se rechaza con `unknown_library_fields`.
-
-## Borrar y restaurar
-
-`POST /trash/library/resources` con `{"resource_id": "1048223"}` mueve un archivo a la papelera: desaparece de la búsqueda al instante y se puede recuperar durante **30 días**.
-
-- `GET /trash/library` lista la papelera.
-- `POST /trash/library/{trash_id}/restore` devuelve el archivo a su sitio.
-
-<Note>Borrar se puede repetir sin riesgo con una `Idempotency-Key`. Vaciar la papelera de forma definitiva se hace en la aplicación.</Note>
+Cambiar la descripción o las palabras clave de un archivo, borrarlo y restaurarlo de la papelera se hace hoy en la aplicación. Las claves API pueden **listar** la papelera (`GET /trash/library`), pero todavía no pueden modificar ni borrar archivos.

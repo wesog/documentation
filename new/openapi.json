@@ -540,7 +540,7 @@
             }
           }
         },
-        "description": "Returns all the stored data of one file: title, caption, keywords, people, place, dates and technical fields. `source_table` and `row_id` come from a search result (`source_table`, `resource_id`). Use `fields` to ask only for some.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `search`, `read`, `library`.",
+        "description": "Returns all the stored data of one file: title, caption, keywords, people, place, dates and technical fields. `source_table` and `row_id` come from a search result (`source_table` and `entity_id`) or from an upload (`source_table` and `resource_id`). Use `fields` to ask only for some.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `search`, `read`, `library`.",
         "x-wesog-scopes": [
           "search",
           "read",
@@ -550,310 +550,17 @@
           {
             "lang": "cURL",
             "label": "cURL",
-            "source": "curl -X GET 'https://api.wesog.com/api/v1/library/tables/images/rows/1048223?fields=headline,caption,keywords,city,country' \\\n  -H 'X-API-Key: $WESOG_API_KEY'"
+            "source": "curl -X GET 'https://api.wesog.com/api/v1/library/tables/storage_image/rows/1048223?fields=headline,caption,keywords,city,country' \\\n  -H 'X-API-Key: $WESOG_API_KEY'"
           },
           {
             "lang": "Python",
             "label": "Python",
-            "source": "import os, requests\n\nurl = \"https://api.wesog.com/api/v1/library/tables/images/rows/1048223\"\nheaders = {\"X-API-Key\": os.environ[\"WESOG_API_KEY\"]}\nparams = {\"fields\": \"headline,caption,keywords,city,country\"}\nresponse = requests.get(url, headers=headers, params=params)\nresponse.raise_for_status()\nprint(response.status_code, response.text[:500] if response.status_code == 204 else response.json())"
+            "source": "import os, requests\n\nurl = \"https://api.wesog.com/api/v1/library/tables/storage_image/rows/1048223\"\nheaders = {\"X-API-Key\": os.environ[\"WESOG_API_KEY\"]}\nparams = {\"fields\": \"headline,caption,keywords,city,country\"}\nresponse = requests.get(url, headers=headers, params=params)\nresponse.raise_for_status()\nprint(response.status_code, response.text[:500] if response.status_code == 204 else response.json())"
           },
           {
             "lang": "JavaScript",
             "label": "JavaScript",
-            "source": "const url = \"https://api.wesog.com/api/v1/library/tables/images/rows/1048223?fields=headline,caption,keywords,city,country\";\nconst headers = { \"X-API-Key\": process.env.WESOG_API_KEY };\nconst response = await fetch(url, { method: \"GET\", headers });\nif (!response.ok) throw new Error(await response.text());\nconsole.log(response.status, response.status === 204 ? \"\" : await response.json());"
-          }
-        ]
-      },
-      "patch": {
-        "tags": [
-          "Library"
-        ],
-        "summary": "Update the data of a file",
-        "operationId": "updateMetadata",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "source_table",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Source Table"
-            }
-          },
-          {
-            "name": "row_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Row Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "caption": {
-                    "type": "string"
-                  },
-                  "keywords": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "additionalProperties": true
-              },
-              "example": {
-                "caption": "Rafael Nadal celebrates a point during the final in Madrid.",
-                "keywords": [
-                  "tennis",
-                  "Nadal",
-                  "Madrid"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": 1048223,
-                  "caption": "Rafael Nadal celebrates a point during the final in Madrid.",
-                  "keywords": [
-                    "tennis",
-                    "Nadal",
-                    "Madrid"
-                  ]
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "integer"
-                    },
-                    "caption": {
-                      "type": "string"
-                    },
-                    "keywords": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            },
-            "headers": {
-              "RateLimit-Limit": {
-                "description": "Requests allowed in the current window.",
-                "schema": {
-                  "type": "integer",
-                  "example": 600
-                }
-              },
-              "RateLimit-Remaining": {
-                "description": "Requests left in the current window.",
-                "schema": {
-                  "type": "integer",
-                  "example": 598
-                }
-              },
-              "RateLimit-Reset": {
-                "description": "Seconds until the window resets.",
-                "schema": {
-                  "type": "integer",
-                  "example": 41
-                }
-              },
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation error",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "validation_error",
-                  "message": "The request is not valid. See `errors` for the fields to fix.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21",
-                  "errors": [
-                    {
-                      "field": "body.limit",
-                      "message": "Input should be a valid integer",
-                      "type": "int_parsing"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "api_key_rate_limit_reached",
-                  "message": "This key has reached its limit of requests per minute. Wait a few seconds.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid API key",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "unauthorized",
-                  "message": "Authentication is required. Send your API key in the X-API-Key header.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Not allowed",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "forbidden",
-                  "message": "This key is not allowed to do this.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "not_found",
-                  "message": "Not found.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "internal_error",
-                  "message": "Something went wrong on our side. Retry, and if it keeps happening contact support with the request_id.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          }
-        },
-        "description": "Changes the data of a file (headline, caption, keywords, place...). Send only the fields to change; the others stay as they are. Returns the file as it is now. The names of the fields are the ones of your Library (see the fields `GET` returns); an unknown field is refused with `unknown_library_fields`. A change is searchable within a few seconds.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `library`.",
-        "x-wesog-scopes": [
-          "library"
-        ],
-        "x-codeSamples": [
-          {
-            "lang": "cURL",
-            "label": "cURL",
-            "source": "curl -X PATCH 'https://api.wesog.com/api/v1/library/tables/images/rows/1048223' \\\n  -H 'X-API-Key: $WESOG_API_KEY' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"caption\": \"Rafael Nadal celebrates a point during the final in Madrid.\", \"keywords\": [\"tennis\", \"Nadal\", \"Madrid\"]}'"
-          },
-          {
-            "lang": "Python",
-            "label": "Python",
-            "source": "import os, requests\n\nurl = \"https://api.wesog.com/api/v1/library/tables/images/rows/1048223\"\nheaders = {\"X-API-Key\": os.environ[\"WESOG_API_KEY\"]}\npayload = {\"caption\": \"Rafael Nadal celebrates a point during the final in Madrid.\", \"keywords\": [\"tennis\", \"Nadal\", \"Madrid\"]}\nresponse = requests.patch(url, headers=headers, json=payload)\nresponse.raise_for_status()\nprint(response.status_code, response.text[:500] if response.status_code == 204 else response.json())"
-          },
-          {
-            "lang": "JavaScript",
-            "label": "JavaScript",
-            "source": "const url = \"https://api.wesog.com/api/v1/library/tables/images/rows/1048223\";\nconst headers = { \"X-API-Key\": process.env.WESOG_API_KEY, \"Content-Type\": \"application/json\" };\nconst response = await fetch(url, { method: \"PATCH\", headers, body: JSON.stringify({\"caption\": \"Rafael Nadal celebrates a point during the final in Madrid.\", \"keywords\": [\"tennis\", \"Nadal\", \"Madrid\"]}) });\nif (!response.ok) throw new Error(await response.text());\nconsole.log(response.status, response.status === 204 ? \"\" : await response.json());"
+            "source": "const url = \"https://api.wesog.com/api/v1/library/tables/storage_image/rows/1048223?fields=headline,caption,keywords,city,country\";\nconst headers = { \"X-API-Key\": process.env.WESOG_API_KEY };\nconst response = await fetch(url, { method: \"GET\", headers });\nif (!response.ok) throw new Error(await response.text());\nconsole.log(response.status, response.status === 204 ? \"\" : await response.json());"
           }
         ]
       }
@@ -894,11 +601,14 @@
                   "next_offset": 20,
                   "items": [
                     {
-                      "resource_id": "1048223",
+                      "resource_id": "res_62a24365063b",
+                      "entity_id": 1048223,
+                      "source_table": "storage_image",
+                      "relative_path": "events/2026/madrid/IMG_0412.jpg",
                       "resource_type": "image",
                       "title": "Nadal celebrates a point",
                       "snippet": "Rafael Nadal celebrates a point during the final in Madrid.",
-                      "thumbnail_url": "https://api.wesog.com/api/v1/search/resources/acme/images/1048223/media",
+                      "thumbnail_url": "events/2026/madrid/IMG_0412.jpg",
                       "media_type": "image",
                       "content_type": "image/jpeg",
                       "own_tenant": true,
@@ -1152,7 +862,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "relative_path": "events/2027"
+                  "relative_path": "events/2027/"
                 },
                 "schema": {
                   "$ref": "#/components/schemas/FolderResult"
@@ -2699,7 +2409,7 @@
                   "source_relative_path": "events/2026/madrid/IMG_0412.jpg",
                   "destination_relative_path": "events/2026/madrid/final/IMG_0412.jpg",
                   "moved_count": 1,
-                  "status": "completed",
+                  "status": "renamed",
                   "failed_count": 0,
                   "failed_paths": []
                 },
@@ -2965,7 +2675,7 @@
                   "source_relative_path": "events/2026/madrid/IMG_0412.jpg",
                   "destination_relative_path": "selected/IMG_0412.jpg",
                   "copied_count": 1,
-                  "status": "completed",
+                  "status": "copied",
                   "failed_count": 0,
                   "failed_paths": []
                 },
@@ -3427,9 +3137,10 @@
             }
           }
         },
-        "description": "Returns the AI tools available to your plan (tag, OCR, caption, celebrity recognition, keywords...) with the fields each one accepts. Use the `slug` of a tool in `POST /tools/{tool}`.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `read`, `workflows`.",
+        "description": "Returns the AI tools available to your plan (tag, OCR, caption, celebrity recognition, keywords...) with the fields each one accepts. Use the `slug` of a tool in `POST /tools/{tool}`.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `read`, `tools`, `workflows`.",
         "x-wesog-scopes": [
           "read",
+          "tools",
           "workflows"
         ],
         "x-codeSamples": [
@@ -3481,16 +3192,27 @@
               "application/json": {
                 "example": {
                   "run_id": "run_8f3c2a1e",
-                  "tool_slug": "caption",
                   "status": "succeeded",
-                  "outputs": {
-                    "caption": "A model walks the runway in a long red dress."
-                  },
-                  "warnings": [],
-                  "timings_ms": 2140
+                  "response_mode": "completed",
+                  "caption": "A model walks the runway in a long red dress."
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/ToolRun"
+                  "type": "object",
+                  "properties": {
+                    "run_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "response_mode": {
+                      "type": "string"
+                    },
+                    "caption": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
                 }
               }
             },
@@ -3715,9 +3437,10 @@
             }
           }
         },
-        "description": "Returns the output with `200` when the run is finished, or `202` with the current `status` while it is still running. `status` is `queued` or `running` while it works and ends as `succeeded`, `failed` or `cancelled`. Poll every 1-2 seconds.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `read`, `workflows`.",
+        "description": "Returns the output with `200` when the run is finished, or `202` with the current `status` while it is still running. `status` is `queued` or `running` while it works and ends as `succeeded`, `failed` or `cancelled`. Poll every 1-2 seconds.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `read`, `tools`, `workflows`.",
         "x-wesog-scopes": [
           "read",
+          "tools",
           "workflows"
         ],
         "x-codeSamples": [
@@ -3745,7 +3468,7 @@
           "Tools"
         ],
         "summary": "Cancel a tool run",
-        "description": "Stops a run that is still queued or running. A finished run is not changed.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `workflows`.",
+        "description": "Stops a run that is still queued or running. A finished run is not changed.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `tools`, `workflows`.",
         "operationId": "cancelToolRun",
         "security": [
           {
@@ -3771,11 +3494,27 @@
                 "example": {
                   "run_id": "run_8f3c2a1e",
                   "status": "cancelled",
-                  "outputs": {},
+                  "response_mode": "completed",
                   "warnings": []
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/ToolRun"
+                  "type": "object",
+                  "properties": {
+                    "run_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "response_mode": {
+                      "type": "string"
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  },
+                  "additionalProperties": true
                 }
               }
             },
@@ -3979,6 +3718,7 @@
           }
         },
         "x-wesog-scopes": [
+          "tools",
           "workflows"
         ],
         "x-codeSamples": [
@@ -4331,8 +4071,9 @@
             }
           }
         },
-        "description": "Runs one tool (for example `caption`, `ocr`, `image_tag`) on an image or video. Send the file as `multipart/form-data` (field `image`) or give a public address in `image_url`; the other fields depend on the tool (see `GET /tools`).\n\nThe call waits up to `timeout_ms` (default 5000 ms). If the tool finishes in time you get `200` with its output. Otherwise you get `202` with a `run_id`: poll `GET /tools/runs/{run_id}` until `status` is `succeeded`, `failed` or `cancelled`.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `workflows`.",
+        "description": "Runs one tool (for example `caption`, `ocr`, `image_tag`) on an image or video. Send the file as `multipart/form-data` (field `image`) or give a public address in `image_url`; the other fields depend on the tool (see `GET /tools`).\n\nThe call waits up to `timeout_ms` (default 5000 ms). If the tool finishes in time you get `200` with its output. Otherwise you get `202` with a `run_id`: poll `GET /tools/runs/{run_id}` until `status` is `succeeded`, `failed` or `cancelled`.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `tools`, `workflows`.",
         "x-wesog-scopes": [
+          "tools",
           "workflows"
         ],
         "requestBody": {
@@ -4606,503 +4347,6 @@
             "lang": "JavaScript",
             "label": "JavaScript",
             "source": "const url = \"https://api.wesog.com/api/v1/trash/library?limit=50\";\nconst headers = { \"X-API-Key\": process.env.WESOG_API_KEY };\nconst response = await fetch(url, { method: \"GET\", headers });\nif (!response.ok) throw new Error(await response.text());\nconsole.log(response.status, response.status === 204 ? \"\" : await response.json());"
-          }
-        ]
-      }
-    },
-    "/trash/library/resources": {
-      "post": {
-        "tags": [
-          "Library"
-        ],
-        "summary": "Delete a file from the Library",
-        "description": "Moves a file to the trash: it disappears from search at once and can be restored with `POST /trash/library/{trash_id}/restore` for 30 days.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `library`.",
-        "operationId": "deleteResource",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LibraryTrashResourceRequest"
-              },
-              "example": {
-                "resource_id": "1048223"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "example": {
-                  "ok": true,
-                  "trash_id": "trs_5c1d77",
-                  "resource_type": "library",
-                  "action": "trash",
-                  "in_progress": false,
-                  "failed_count": 0,
-                  "failed_paths": []
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/TrashAction"
-                }
-              }
-            },
-            "headers": {
-              "RateLimit-Limit": {
-                "description": "Requests allowed in the current window.",
-                "schema": {
-                  "type": "integer",
-                  "example": 600
-                }
-              },
-              "RateLimit-Remaining": {
-                "description": "Requests left in the current window.",
-                "schema": {
-                  "type": "integer",
-                  "example": 598
-                }
-              },
-              "RateLimit-Reset": {
-                "description": "Seconds until the window resets.",
-                "schema": {
-                  "type": "integer",
-                  "example": 41
-                }
-              },
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation error",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "validation_error",
-                  "message": "The request is not valid. See `errors` for the fields to fix.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21",
-                  "errors": [
-                    {
-                      "field": "body.limit",
-                      "message": "Input should be a valid integer",
-                      "type": "int_parsing"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "api_key_rate_limit_reached",
-                  "message": "This key has reached its limit of requests per minute. Wait a few seconds.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid API key",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "unauthorized",
-                  "message": "Authentication is required. Send your API key in the X-API-Key header.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Not allowed",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "forbidden",
-                  "message": "This key is not allowed to do this.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "not_found",
-                  "message": "Not found.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "internal_error",
-                  "message": "Something went wrong on our side. Retry, and if it keeps happening contact support with the request_id.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "x-wesog-scopes": [
-          "library"
-        ],
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": false,
-            "description": "A unique value you choose (a UUID) for this operation. If you repeat the call with the same key within 24 hours you get the first answer again instead of running it twice. Sending the same key with a different body is an error (`409`).",
-            "schema": {
-              "type": "string",
-              "maxLength": 128,
-              "example": "6f1c2a9e-0000-4000-8000-000000000001"
-            }
-          }
-        ],
-        "x-codeSamples": [
-          {
-            "lang": "cURL",
-            "label": "cURL",
-            "source": "curl -X POST 'https://api.wesog.com/api/v1/trash/library/resources' \\\n  -H 'X-API-Key: $WESOG_API_KEY' \\\n  -H 'Idempotency-Key: 6f1c2a9e-0000-4000-8000-000000000001' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"resource_id\": \"1048223\"}'"
-          },
-          {
-            "lang": "Python",
-            "label": "Python",
-            "source": "import os, requests\n\nurl = \"https://api.wesog.com/api/v1/trash/library/resources\"\nheaders = {\"X-API-Key\": os.environ[\"WESOG_API_KEY\"], \"Idempotency-Key\": \"6f1c2a9e-0000-4000-8000-000000000001\"}\npayload = {\"resource_id\": \"1048223\"}\nresponse = requests.post(url, headers=headers, json=payload)\nresponse.raise_for_status()\nprint(response.status_code, response.text[:500] if response.status_code == 204 else response.json())"
-          },
-          {
-            "lang": "JavaScript",
-            "label": "JavaScript",
-            "source": "const url = \"https://api.wesog.com/api/v1/trash/library/resources\";\nconst headers = { \"X-API-Key\": process.env.WESOG_API_KEY, \"Idempotency-Key\": crypto.randomUUID(), \"Content-Type\": \"application/json\" };\nconst response = await fetch(url, { method: \"POST\", headers, body: JSON.stringify({\"resource_id\": \"1048223\"}) });\nif (!response.ok) throw new Error(await response.text());\nconsole.log(response.status, response.status === 204 ? \"\" : await response.json());"
-          }
-        ]
-      }
-    },
-    "/trash/library/{trash_id}/restore": {
-      "post": {
-        "tags": [
-          "Library"
-        ],
-        "summary": "Restore a deleted file",
-        "operationId": "restoreResource",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "trash_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Trash Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "example": {
-                  "ok": true,
-                  "trash_id": "trs_5c1d77",
-                  "resource_type": "library",
-                  "action": "restore",
-                  "in_progress": false,
-                  "failed_count": 0,
-                  "failed_paths": []
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/TrashAction"
-                }
-              }
-            },
-            "headers": {
-              "RateLimit-Limit": {
-                "description": "Requests allowed in the current window.",
-                "schema": {
-                  "type": "integer",
-                  "example": 600
-                }
-              },
-              "RateLimit-Remaining": {
-                "description": "Requests left in the current window.",
-                "schema": {
-                  "type": "integer",
-                  "example": 598
-                }
-              },
-              "RateLimit-Reset": {
-                "description": "Seconds until the window resets.",
-                "schema": {
-                  "type": "integer",
-                  "example": 41
-                }
-              },
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation error",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "validation_error",
-                  "message": "The request is not valid. See `errors` for the fields to fix.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21",
-                  "errors": [
-                    {
-                      "field": "body.limit",
-                      "message": "Input should be a valid integer",
-                      "type": "int_parsing"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "api_key_rate_limit_reached",
-                  "message": "This key has reached its limit of requests per minute. Wait a few seconds.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid API key",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "unauthorized",
-                  "message": "Authentication is required. Send your API key in the X-API-Key header.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Not allowed",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "forbidden",
-                  "message": "This key is not allowed to do this.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "not_found",
-                  "message": "Not found.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "internal_error",
-                  "message": "Something went wrong on our side. Retry, and if it keeps happening contact support with the request_id.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          }
-        },
-        "description": "Puts a file back where it was and makes it searchable again.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `library`.",
-        "x-wesog-scopes": [
-          "library"
-        ],
-        "x-codeSamples": [
-          {
-            "lang": "cURL",
-            "label": "cURL",
-            "source": "curl -X POST 'https://api.wesog.com/api/v1/trash/library/trs_5c1d77/restore' \\\n  -H 'X-API-Key: $WESOG_API_KEY'"
-          },
-          {
-            "lang": "Python",
-            "label": "Python",
-            "source": "import os, requests\n\nurl = \"https://api.wesog.com/api/v1/trash/library/trs_5c1d77/restore\"\nheaders = {\"X-API-Key\": os.environ[\"WESOG_API_KEY\"]}\nresponse = requests.post(url, headers=headers)\nresponse.raise_for_status()\nprint(response.status_code, response.text[:500] if response.status_code == 204 else response.json())"
-          },
-          {
-            "lang": "JavaScript",
-            "label": "JavaScript",
-            "source": "const url = \"https://api.wesog.com/api/v1/trash/library/trs_5c1d77/restore\";\nconst headers = { \"X-API-Key\": process.env.WESOG_API_KEY };\nconst response = await fetch(url, { method: \"POST\", headers });\nif (!response.ok) throw new Error(await response.text());\nconsole.log(response.status, response.status === 204 ? \"\" : await response.json());"
           }
         ]
       }
@@ -6289,301 +5533,13 @@
         ]
       }
     },
-    "/workflow-instances/{instance_id}/launch": {
-      "post": {
-        "tags": [
-          "Workflows"
-        ],
-        "summary": "Start or stop a launched workflow",
-        "operationId": "launchWorkflow",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "instance_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Instance Id"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": false,
-            "description": "A unique value you choose (a UUID) for this operation. If you repeat the call with the same key within 24 hours you get the first answer again instead of running it twice. Sending the same key with a different body is an error (`409`).",
-            "schema": {
-              "type": "string",
-              "maxLength": 128,
-              "example": "6f1c2a9e-0000-4000-8000-000000000001"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkflowInstanceLaunchRequest"
-              },
-              "example": {
-                "launch_mode": "start",
-                "process_existing": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "example": {
-                  "instance_id": "ins_9d2f",
-                  "name": "Agency photos",
-                  "status": "running",
-                  "template_id": "wf_71aa",
-                  "created_at": "2026-11-01T08:00:00Z",
-                  "updated_at": "2026-11-12T10:00:00Z"
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowInstanceEntry"
-                }
-              }
-            },
-            "headers": {
-              "RateLimit-Limit": {
-                "description": "Requests allowed in the current window.",
-                "schema": {
-                  "type": "integer",
-                  "example": 600
-                }
-              },
-              "RateLimit-Remaining": {
-                "description": "Requests left in the current window.",
-                "schema": {
-                  "type": "integer",
-                  "example": 598
-                }
-              },
-              "RateLimit-Reset": {
-                "description": "Seconds until the window resets.",
-                "schema": {
-                  "type": "integer",
-                  "example": 41
-                }
-              },
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation error",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "validation_error",
-                  "message": "The request is not valid. See `errors` for the fields to fix.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21",
-                  "errors": [
-                    {
-                      "field": "body.limit",
-                      "message": "Input should be a valid integer",
-                      "type": "int_parsing"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "api_key_rate_limit_reached",
-                  "message": "This key has reached its limit of requests per minute. Wait a few seconds.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid API key",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "unauthorized",
-                  "message": "Authentication is required. Send your API key in the X-API-Key header.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Not allowed",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "forbidden",
-                  "message": "This key is not allowed to do this.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "not_found",
-                  "message": "Not found.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "internal_error",
-                  "message": "Something went wrong on our side. Retry, and if it keeps happening contact support with the request_id.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "headers": {
-              "X-Request-ID": {
-                "description": "Identifier of this request (the one in the body of an error).",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "code": "conflict",
-                  "message": "The resource is in a state that does not allow this.",
-                  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
-                }
-              }
-            }
-          }
-        },
-        "description": "Starts the workflow so that it processes its input (a watched folder, an FTP, new uploads). `process_existing` also processes what is already there.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `workflows`.",
-        "x-wesog-scopes": [
-          "workflows"
-        ],
-        "x-codeSamples": [
-          {
-            "lang": "cURL",
-            "label": "cURL",
-            "source": "curl -X POST 'https://api.wesog.com/api/v1/workflow-instances/ins_9d2f/launch' \\\n  -H 'X-API-Key: $WESOG_API_KEY' \\\n  -H 'Idempotency-Key: 6f1c2a9e-0000-4000-8000-000000000001' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"launch_mode\": \"start\", \"process_existing\": false}'"
-          },
-          {
-            "lang": "Python",
-            "label": "Python",
-            "source": "import os, requests\n\nurl = \"https://api.wesog.com/api/v1/workflow-instances/ins_9d2f/launch\"\nheaders = {\"X-API-Key\": os.environ[\"WESOG_API_KEY\"], \"Idempotency-Key\": \"6f1c2a9e-0000-4000-8000-000000000001\"}\npayload = {\"launch_mode\": \"start\", \"process_existing\": False}\nresponse = requests.post(url, headers=headers, json=payload)\nresponse.raise_for_status()\nprint(response.status_code, response.text[:500] if response.status_code == 204 else response.json())"
-          },
-          {
-            "lang": "JavaScript",
-            "label": "JavaScript",
-            "source": "const url = \"https://api.wesog.com/api/v1/workflow-instances/ins_9d2f/launch\";\nconst headers = { \"X-API-Key\": process.env.WESOG_API_KEY, \"Idempotency-Key\": crypto.randomUUID(), \"Content-Type\": \"application/json\" };\nconst response = await fetch(url, { method: \"POST\", headers, body: JSON.stringify({\"launch_mode\": \"start\", \"process_existing\": false}) });\nif (!response.ok) throw new Error(await response.text());\nconsole.log(response.status, response.status === 204 ? \"\" : await response.json());"
-          }
-        ]
-      }
-    },
     "/workflow-instances/{instance_id}/api/requests": {
       "post": {
         "tags": [
           "Workflows"
         ],
         "summary": "Send files to a workflow",
-        "description": "Sends files of your Library to a workflow whose input is **API**. Give one `resource_id` or a list in `resource_ids` (up to 100). It answers `202` straight away with one `request_id` per file; read each result with `GET /workflow-instances/{instance_id}/api/requests/{request_id}`.\n\nUse an `Idempotency-Key` header so that a retry after a network failure does not process the files twice.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `workflows`.",
+        "description": "Sends files of your Library to a workflow whose input is **API**. Give one `resource_id` or a list in `resource_ids` (up to 100). It answers `202` straight away with one `request_id` per file; read each result with `GET /workflow-instances/{instance_id}/api/requests/{request_id}` (the `status_path` is a template: put the `request_id` of each file in it).\n\nUse an `Idempotency-Key` header so that a retry after a network failure does not process the files twice.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `workflows`.",
         "operationId": "submitToWorkflow",
         "security": [
           {
@@ -6640,15 +5596,15 @@
                     {
                       "request_id": "req_a1",
                       "resource_id": 1048223,
-                      "status": "queued"
+                      "status": "accepted"
                     },
                     {
                       "request_id": "req_a2",
                       "resource_id": 1048224,
-                      "status": "queued"
+                      "status": "accepted"
                     }
                   ],
-                  "status_path": "/api/v1/workflow-instances/ins_9d2f/api/requests/req_a1"
+                  "status_path": "/api/v1/workflow-instances/ins_9d2f/api/requests/{request_id}"
                 },
                 "schema": {
                   "$ref": "#/components/schemas/ApiRequestsAccepted"
@@ -6905,7 +5861,7 @@
           "Workflows"
         ],
         "summary": "Read the result of a file sent to a workflow",
-        "description": "Returns `202` while the file is being processed and `200` when it has finished. `results` holds the metadata the workflow produced (caption, keywords, people...). If the workflow failed for that file, `status` is `failed` and `error` explains why.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `read`, `workflows`.",
+        "description": "Returns `202` while the file is being processed and `200` when it has finished (`status` `succeeded`, or `failed`). `results` holds the metadata the workflow produced (caption, keywords, people...). If the workflow failed for that file, `status` is `failed` and `error` explains why.\n\n**Key scope:** a key without scopes can call it; a key with scopes needs one of: `read`, `workflows`.",
         "operationId": "getWorkflowResult",
         "security": [
           {
@@ -6952,7 +5908,7 @@
                 "example": {
                   "request_id": "req_a1",
                   "resource_id": 1048223,
-                  "status": "completed",
+                  "status": "succeeded",
                   "submitted_at": "2026-11-12T10:00:00Z",
                   "finished_at": "2026-11-12T10:00:07Z",
                   "results": [
@@ -7007,7 +5963,7 @@
                 "example": {
                   "request_id": "req_a1",
                   "resource_id": 1048223,
-                  "status": "running",
+                  "status": "accepted",
                   "submitted_at": "2026-11-12T10:00:00Z",
                   "results": []
                 },
@@ -7272,52 +6228,6 @@
         ],
         "title": "Body_upload_storage_asset_api_v1_storage_upload_post"
       },
-      "LibraryTrashResourceRequest": {
-        "properties": {
-          "resource_id": {
-            "type": "string",
-            "maxLength": 512,
-            "minLength": 1,
-            "title": "Resource Id"
-          },
-          "resource_label": {
-            "type": "string",
-            "maxLength": 2048,
-            "title": "Resource Label",
-            "default": ""
-          },
-          "resource_kind": {
-            "type": "string",
-            "maxLength": 128,
-            "title": "Resource Kind",
-            "default": "resource"
-          },
-          "entity_type_key": {
-            "type": "string",
-            "maxLength": 256,
-            "title": "Entity Type Key",
-            "default": ""
-          },
-          "preview_relative_path": {
-            "type": "string",
-            "maxLength": 2048,
-            "title": "Preview Relative Path",
-            "default": ""
-          },
-          "preview_url": {
-            "type": "string",
-            "maxLength": 4096,
-            "title": "Preview Url",
-            "default": ""
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "resource_id"
-        ],
-        "title": "LibraryTrashResourceRequest"
-      },
       "StorageCopyObjectRequest": {
         "properties": {
           "source_relative_path": {
@@ -7570,22 +6480,6 @@
         "title": "WorkflowInstanceApiRequestIn",
         "description": "One resource (`resource_id`) or several (`resource_ids`, up to 100) of the tenant's Library. Both are read by\napi_io.parse_resource_ids, which says what is wrong with a value in words (and a code) instead of a schema error."
       },
-      "WorkflowInstanceLaunchRequest": {
-        "properties": {
-          "launch_mode": {
-            "type": "string",
-            "title": "Launch Mode",
-            "default": "instantiate_and_deploy"
-          },
-          "process_existing": {
-            "type": "boolean",
-            "title": "Process Existing",
-            "default": true
-          }
-        },
-        "type": "object",
-        "title": "WorkflowInstanceLaunchRequest"
-      },
       "SearchRequest": {
         "properties": {
           "query": {
@@ -7658,13 +6552,38 @@
       "SearchItem": {
         "properties": {
           "resource_id": {
-            "description": "Identifier of the file. Use it to open, edit or delete it.",
+            "description": "Identifier of the result in the search.",
             "title": "Resource Id",
             "type": "string"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Numeric identifier of the file: use it as `row_id` to open or edit it, and in `resource_ids` to send it to a workflow.",
+            "title": "Entity Id"
           },
           "resource_type": {
             "description": "`image`, `video`, `document` or `audio`.",
             "title": "Resource Type",
+            "type": "string"
+          },
+          "source_table": {
+            "default": "",
+            "description": "Use it as `source_table` to open or edit the file.",
+            "title": "Source Table",
+            "type": "string"
+          },
+          "relative_path": {
+            "default": "",
+            "description": "Path of the file in your Library.",
+            "title": "Relative Path",
             "type": "string"
           },
           "title": {
@@ -8109,7 +7028,7 @@
           },
           "status": {
             "default": "",
-            "description": "`completed`, or `pending` for a big folder still moving.",
+            "description": "`renamed`, or `pending` for a big folder still moving.",
             "title": "Status",
             "type": "string"
           },
@@ -8275,119 +7194,6 @@
         "title": "ToolList",
         "type": "object"
       },
-      "ToolRunError": {
-        "properties": {
-          "code": {
-            "default": "",
-            "title": "Code",
-            "type": "string"
-          },
-          "message": {
-            "default": "",
-            "title": "Message",
-            "type": "string"
-          },
-          "field": {
-            "default": "",
-            "title": "Field",
-            "type": "string"
-          }
-        },
-        "title": "ToolRunError",
-        "type": "object"
-      },
-      "ToolRun": {
-        "properties": {
-          "run_id": {
-            "title": "Run Id",
-            "type": "string"
-          },
-          "tool_slug": {
-            "default": "",
-            "title": "Tool Slug",
-            "type": "string"
-          },
-          "tool_name": {
-            "default": "",
-            "title": "Tool Name",
-            "type": "string"
-          },
-          "status": {
-            "description": "`queued`, `running`, `succeeded`, `failed`, `timeout` or `cancelled`.",
-            "title": "Status",
-            "type": "string"
-          },
-          "response_mode": {
-            "default": "",
-            "title": "Response Mode",
-            "type": "string"
-          },
-          "poll_path": {
-            "default": "",
-            "title": "Poll Path",
-            "type": "string"
-          },
-          "outputs": {
-            "additionalProperties": true,
-            "description": "What the tool returned. Its fields depend on the tool.",
-            "title": "Outputs",
-            "type": "object"
-          },
-          "warnings": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Warnings",
-            "type": "array"
-          },
-          "timings_ms": {
-            "default": 0,
-            "title": "Timings Ms",
-            "type": "integer"
-          },
-          "error": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ToolRunError"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null
-          },
-          "accepted_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Accepted At"
-          },
-          "updated_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Updated At"
-          }
-        },
-        "required": [
-          "run_id",
-          "status"
-        ],
-        "title": "ToolRun",
-        "type": "object"
-      },
       "ToolRunAccepted": {
         "properties": {
           "run_id": {
@@ -8506,51 +7312,6 @@
           }
         },
         "title": "TrashList",
-        "type": "object"
-      },
-      "TrashAction": {
-        "properties": {
-          "ok": {
-            "default": true,
-            "title": "Ok",
-            "type": "boolean"
-          },
-          "trash_id": {
-            "title": "Trash Id",
-            "type": "string"
-          },
-          "resource_type": {
-            "default": "",
-            "title": "Resource Type",
-            "type": "string"
-          },
-          "action": {
-            "default": "",
-            "title": "Action",
-            "type": "string"
-          },
-          "in_progress": {
-            "default": false,
-            "title": "In Progress",
-            "type": "boolean"
-          },
-          "failed_count": {
-            "default": 0,
-            "title": "Failed Count",
-            "type": "integer"
-          },
-          "failed_paths": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Failed Paths",
-            "type": "array"
-          }
-        },
-        "required": [
-          "trash_id"
-        ],
-        "title": "TrashAction",
         "type": "object"
       },
       "WorkflowEntry": {
@@ -8953,7 +7714,7 @@
             "type": "integer"
           },
           "status": {
-            "description": "`queued`, `running`, `completed` or `failed`.",
+            "description": "`accepted` while it waits or runs, then `succeeded` or `failed`.",
             "title": "Status",
             "type": "string"
           },

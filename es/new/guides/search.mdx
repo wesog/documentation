@@ -27,7 +27,7 @@ r.raise_for_status()
 page = r.json()
 print(page["total"], "results")
 for item in page["items"]:
-    print(item["resource_id"], item["title"], item["thumbnail_url"])
+    print(item["entity_id"], item["title"], item["relative_path"])
 ```
 
 ```javascript JavaScript
@@ -38,7 +38,7 @@ const r = await fetch("https://api.wesog.com/api/v1/library/search", {
 });
 const page = await r.json();
 console.log(page.total, "results");
-for (const item of page.items) console.log(item.resource_id, item.title, item.thumbnail_url);
+for (const item of page.items) console.log(item.entity_id, item.title, item.relative_path);
 ```
 </CodeGroup>
 
@@ -72,11 +72,14 @@ Un rango de fechas:
   "next_offset": 20,
   "items": [
     {
-      "resource_id": "1048223",
+      "resource_id": "res_62a24365063b",
+      "entity_id": 1048223,
+      "source_table": "storage_image",
+      "relative_path": "events/2026/madrid/IMG_0412.jpg",
       "resource_type": "image",
       "title": "Nadal celebrates a point",
       "snippet": "Rafael Nadal celebrates a point during the final in Madrid.",
-      "thumbnail_url": "https://api.wesog.com/api/v1/search/resources/acme/images/1048223/media",
+      "thumbnail_url": "events/2026/madrid/IMG_0412.jpg",
       "own_tenant": true,
       "metadata": { "field_values": { "headline": "Nadal celebrates a point", "city": "Madrid" } }
     }
@@ -84,7 +87,7 @@ Un rango de fechas:
 }
 ```
 
-Los resultados llegan ordenados del mejor al peor. `metadata.field_values` contiene los datos descriptivos (titular, descripción, palabras clave, autor, lugar, fechas) y `metadata.detected_identities` las personas reconocidas. Usa `resource_id` para [abrir, editar o borrar](/es/new/guides/library) el archivo.
+Los resultados llegan ordenados del mejor al peor. `metadata.field_values` contiene los datos descriptivos (titular, descripción, palabras clave, autor, lugar, fechas) y `metadata.detected_identities` las personas reconocidas. `entity_id` es el id numérico del archivo: úsalo en `resource_ids` para enviarlo a un [workflow](/es/new/guides/run-workflow) y como `row_id` (con `source_table`) para abrirlo. `relative_path` es su ruta en tu [Biblioteca](/es/new/guides/library). `thumbnail_url` y `preview_url` son rutas de tu Biblioteca, no direcciones web.
 
 ## Abrir un resultado
 

@@ -19,7 +19,7 @@ curl -X POST 'https://api.wesog.com/api/v1/workflow-instances/INSTANCE_ID/api/re
 
 ## Where it works
 
-Operations marked with the `Idempotency-Key` parameter in the [API reference](/new/openapi/introduction): running a tool, uploading a file (including the large-upload steps), creating a folder, deleting a file, sending files to a workflow and launching a workflow. Elsewhere the header is ignored.
+Operations marked with the `Idempotency-Key` parameter in the [API reference](/new/openapi/introduction): running a tool, uploading a file (including the large-upload steps), creating a folder and sending files to a workflow. Elsewhere the header is ignored.
 
 ## Rules
 
@@ -36,7 +36,10 @@ Create the key when you decide to do the operation (store it with your job), and
 
 <CodeGroup>
 ```python Python
-import uuid, requests
+import os, uuid, requests
+
+BASE = "https://api.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
 
 key = str(uuid.uuid4())          # one per job, kept for its retries
 r = requests.post(f"{BASE}/storage/folders", headers={**headers, "Idempotency-Key": key},
@@ -44,6 +47,8 @@ r = requests.post(f"{BASE}/storage/folders", headers={**headers, "Idempotency-Ke
 ```
 
 ```javascript JavaScript
+const BASE = "https://api.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
 const key = crypto.randomUUID(); // one per job, kept for its retries
 const r = await fetch(`${BASE}/storage/folders`, {
   method: "POST",

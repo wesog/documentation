@@ -19,7 +19,7 @@ curl -X POST 'https://api.wesog.com/api/v1/workflow-instances/INSTANCE_ID/api/re
 
 ## Dónde funciona
 
-En las operaciones marcadas con el parámetro `Idempotency-Key` en la [referencia de la API](/es/new/openapi/introduction): ejecutar una herramienta, subir un archivo (incluidos los pasos de subida grande), crear una carpeta, borrar un archivo, enviar archivos a un workflow y lanzar un workflow. En el resto, la cabecera se ignora.
+En las operaciones marcadas con el parámetro `Idempotency-Key` en la [referencia de la API](/es/new/openapi/introduction): ejecutar una herramienta, subir un archivo (incluidos los pasos de subida grande), crear una carpeta y enviar archivos a un workflow. En el resto, la cabecera se ignora.
 
 ## Reglas
 
@@ -36,7 +36,10 @@ Crea la clave cuando decidas hacer la operación (guárdala junto con tu tarea) 
 
 <CodeGroup>
 ```python Python
-import uuid, requests
+import os, uuid, requests
+
+BASE = "https://api.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
 
 key = str(uuid.uuid4())          # una por tarea, se conserva para sus reintentos
 r = requests.post(f"{BASE}/storage/folders", headers={**headers, "Idempotency-Key": key},
@@ -44,6 +47,8 @@ r = requests.post(f"{BASE}/storage/folders", headers={**headers, "Idempotency-Ke
 ```
 
 ```javascript JavaScript
+const BASE = "https://api.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
 const key = crypto.randomUUID(); // una por tarea, se conserva para sus reintentos
 const r = await fetch(`${BASE}/storage/folders`, {
   method: "POST",

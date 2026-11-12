@@ -30,6 +30,11 @@ Every answer to a call with an API key carries your key's most pressing limit:
 Use them to slow down **before** you hit the limit:
 
 ```python
+import os, time, requests
+
+url = "https://api.wesog.com/api/v1/tools"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
 r = requests.get(url, headers=headers)
 if int(r.headers.get("RateLimit-Remaining", 1)) == 0:
     time.sleep(int(r.headers["RateLimit-Reset"]))

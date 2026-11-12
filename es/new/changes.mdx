@@ -39,3 +39,7 @@ Las operaciones que crean o lanzan algo aceptan `Idempotency-Key`. Mira [Idempot
 ### Búsqueda con una clave API
 
 `POST /library/search` ignora los interruptores internos que antes aceptaba y devuelve `next_offset` para paginar.
+
+### Salida de las herramientas: sin campos vacíos
+
+Los campos sin valor (`null`) y las copias en mayúsculas de un campo (`Title` junto a `title`) ya no se envían.

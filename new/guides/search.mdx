@@ -27,7 +27,7 @@ r.raise_for_status()
 page = r.json()
 print(page["total"], "results")
 for item in page["items"]:
-    print(item["resource_id"], item["title"], item["thumbnail_url"])
+    print(item["entity_id"], item["title"], item["relative_path"])
 ```
 
 ```javascript JavaScript
@@ -38,7 +38,7 @@ const r = await fetch("https://api.wesog.com/api/v1/library/search", {
 });
 const page = await r.json();
 console.log(page.total, "results");
-for (const item of page.items) console.log(item.resource_id, item.title, item.thumbnail_url);
+for (const item of page.items) console.log(item.entity_id, item.title, item.relative_path);
 ```
 </CodeGroup>
 
@@ -72,11 +72,14 @@ A date range:
   "next_offset": 20,
   "items": [
     {
-      "resource_id": "1048223",
+      "resource_id": "res_62a24365063b",
+      "entity_id": 1048223,
+      "source_table": "storage_image",
+      "relative_path": "events/2026/madrid/IMG_0412.jpg",
       "resource_type": "image",
       "title": "Nadal celebrates a point",
       "snippet": "Rafael Nadal celebrates a point during the final in Madrid.",
-      "thumbnail_url": "https://api.wesog.com/api/v1/search/resources/acme/images/1048223/media",
+      "thumbnail_url": "events/2026/madrid/IMG_0412.jpg",
       "own_tenant": true,
       "metadata": { "field_values": { "headline": "Nadal celebrates a point", "city": "Madrid" } }
     }
@@ -84,11 +87,11 @@ A date range:
 }
 ```
 
-Results come best first. `metadata.field_values` holds the descriptive data (headline, caption, keywords, author, place, dates) and `metadata.detected_identities` the people recognised. Use `resource_id` to [open, edit or delete](/new/guides/library) the file.
+Results come best first. `metadata.field_values` holds the descriptive data (headline, caption, keywords, author, place, dates) and `metadata.detected_identities` the people recognised. `entity_id` is the numeric id of the file: use it in `resource_ids` to send the file to a [workflow](/new/guides/run-workflow) and as `row_id` (with `source_table`) to open it. `relative_path` is its path in your [Library](/new/guides/library). `thumbnail_url` and `preview_url` are paths in your Library, not web addresses.
 
 ## Open one result
 
-`GET /library/tables/{source_table}/rows/{row_id}` returns all the stored data of a file. Use the `fields` parameter to ask only for what you need.
+`GET /library/tables/{source_table}/rows/{row_id}` returns the stored data of a file (`source_table` and `entity_id` of the result). Use the `fields` parameter to ask only for what you need.
 
 ## Conversational search
 

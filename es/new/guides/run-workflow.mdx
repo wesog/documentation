@@ -14,10 +14,10 @@ Con la **entrada por API**, tu programa envía los archivos y lee los resultados
     Lanza un workflow con **API** como entrada. Los resultados solo se pueden recoger por la API cuando los archivos entran por la API. Anota su `instance_id` (o léelo con `GET /workflow-instances`).
   </Step>
   <Step title="Pon los archivos en tu Biblioteca">
-    Súbelos ([Biblioteca](/es/new/guides/library)) o usa archivos que ya estén. Cada uno tiene un `resource_id`.
+    Súbelos ([Biblioteca](/es/new/guides/library)) o usa archivos que ya estén. Cada uno tiene un id numérico: `resource_id` en la respuesta de la subida, `entity_id` en un resultado de búsqueda.
   </Step>
   <Step title="Envíalos">
-    `POST /workflow-instances/{instance_id}/api/requests` con los `resource_ids` (hasta 100). Recibes `202` y un `request_id` por archivo.
+    `POST /workflow-instances/{instance_id}/api/requests` con los `resource_ids` (hasta 100). Recibes `202` y un `request_id` por archivo. El workflow debe estar iniciado en la aplicación; si no, recibes `409` con el código `workflow_stopped`.
   </Step>
   <Step title="Lee cada resultado">
     `GET /workflow-instances/{instance_id}/api/requests/{request_id}` hasta que deje de ser `202`.
@@ -53,6 +53,12 @@ for (const inst of await (await fetch(`${BASE}/workflow-instances?limit=20`, { h
 
 <CodeGroup>
 ```python Python
+import os
+
+BASE = "https://api.wesog.com/api/v1"
+h = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+INSTANCE_ID = os.environ["INSTANCE_ID"]
+
 import time, uuid, requests
 
 sent = requests.post(
@@ -71,6 +77,9 @@ for req in sent.json()["requests"]:
 ```
 
 ```javascript JavaScript
+const BASE = "https://api.wesog.com/api/v1";
+const h = { "X-API-Key": process.env.WESOG_API_KEY };
+const INSTANCE_ID = process.env.INSTANCE_ID;
 const sent = await fetch(`${BASE}/workflow-instances/${INSTANCE_ID}/api/requests`, {
   method: "POST",
   headers: { ...h, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
@@ -103,7 +112,7 @@ curl "https://api.wesog.com/api/v1/workflow-instances/$INSTANCE_ID/api/requests/
 {
   "request_id": "req_a1",
   "resource_id": 1048223,
-  "status": "completed",
+  "status": "succeeded",
   "submitted_at": "2026-11-12T10:00:00Z",
   "finished_at": "2026-11-12T10:00:07Z",
   "results": [ { "caption": "A model walks the runway.", "keywords": ["runway", "fashion"] } ]
@@ -112,8 +121,8 @@ curl "https://api.wesog.com/api/v1/workflow-instances/$INSTANCE_ID/api/requests/
 
 `results` contiene los datos que el workflow produjo para ese archivo (sus campos dependen del workflow). Si un archivo falla, solo ese tiene `status: "failed"` con un `error`; los demás continúan.
 
-## Iniciar y vigilar un workflow
+## Vigilar un workflow
 
-Los workflows que toman sus archivos de una carpeta, de un FTP o de subidas nuevas funcionan solos una vez iniciados: `POST /workflow-instances/{instance_id}/launch`. `GET /workflows/{workflow_id}/executions` lista sus últimas ejecuciones y estados.
+`GET /workflows/{workflow_id}/executions` lista las últimas ejecuciones de un workflow y sus estados. Iniciar y parar un workflow lanzado se hace en la aplicación.
 
 Consulta [Asincronía y sondeo](/es/new/concepts/async) para saber cómo esperar y [Errores](/es/new/concepts/errors) para ver cómo es un fallo.

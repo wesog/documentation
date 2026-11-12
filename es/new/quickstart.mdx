@@ -55,6 +55,10 @@ curl -X POST 'https://api.wesog.com/api/v1/tools/caption' \
 ```
 
 ```python Python
+import os, requests
+
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
 r = requests.post(
     "https://api.wesog.com/api/v1/tools/caption",
     headers=headers,
@@ -64,6 +68,7 @@ print(r.status_code, r.json())
 ```
 
 ```javascript JavaScript
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
 const r = await fetch("https://api.wesog.com/api/v1/tools/caption", {
   method: "POST",
   headers: { ...headers, "Content-Type": "application/json" },
@@ -98,22 +103,27 @@ curl -X POST 'https://api.wesog.com/api/v1/library/search' \
 ```
 
 ```python Python
+import os, requests
+
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
 r = requests.post(
     "https://api.wesog.com/api/v1/library/search",
     headers=headers,
     json={"query": "model walking the runway", "limit": 10},
 )
 for item in r.json()["items"]:
-    print(item["resource_id"], item["title"])
+    print(item["entity_id"], item["title"])
 ```
 
 ```javascript JavaScript
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
 const r = await fetch("https://api.wesog.com/api/v1/library/search", {
   method: "POST",
   headers: { ...headers, "Content-Type": "application/json" },
   body: JSON.stringify({ query: "model walking the runway", limit: 10 }),
 });
-for (const item of (await r.json()).items) console.log(item.resource_id, item.title);
+for (const item of (await r.json()).items) console.log(item.entity_id, item.title);
 ```
 </CodeGroup>
 
