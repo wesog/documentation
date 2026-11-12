@@ -41,14 +41,12 @@ No hay nada que configurar en la búsqueda en sí. Solo necesitas una [clave de 
 `POST /auth/client-tokens` con tu clave en `X-API-Key`. Solo funciona con una clave de API real, no con una sesión ni con otro token.
 
 ```json
-{ "ttl_seconds": 300, "end_user_id": "user-8812", "scopes": ["search", "assistant"] }
+{ "end_user_id": "user-8812" }
 ```
 
-| Campo | Reglas |
-|---|---|
-| `ttl_seconds` | De 60 a 900. Por defecto 300. |
-| `end_user_id` | Opcional pero recomendado: un id estable y opaco de **tu** usuario, de 1 a 128 caracteres de `A-Z a-z 0-9 . _ : @ -`. Nunca el email. |
-| `scopes` | Opcional, un subconjunto no vacío de `search` y `assistant`. Por defecto: los dos. |
+`end_user_id`: un id estable y opaco de **tu** usuario, de 1 a 128 caracteres de `A-Z a-z 0-9 . _ : @ -`. Nunca el email.
+
+Campos opcionales: `ttl_seconds` (por defecto 300 = 5 minutos, de 60 a 900) y `scopes` (por defecto `search` y `assistant`).
 
 Respuesta `201`, con `Cache-Control: no-store`:
 
@@ -67,7 +65,7 @@ app.post("/wesog-token", requireLogin, rateLimitPerUser, async (req, res) => {
   const r = await fetch(`${API}/auth/client-tokens`, {
     method: "POST",
     headers: { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ ttl_seconds: 300, end_user_id: String(req.user.id) }),
+    body: JSON.stringify({ end_user_id: String(req.user.id) }),
   });
   if (!r.ok) return res.status(502).json({ error: "token_unavailable" });
   const { token, expires_at } = await r.json();
@@ -84,7 +82,7 @@ export WESOG_API="https://api-platform.wesog.com/api/v1"
 curl -X POST "$WESOG_API/auth/client-tokens" \
   -H "X-API-Key: $WESOG_API_KEY" \
   -H 'Content-Type: application/json' \
-  -d '{"ttl_seconds": 300, "end_user_id": "user-8812"}'
+  -d '{"end_user_id": "user-8812"}'
 ```
 
 ```python Python
@@ -95,7 +93,7 @@ API = "https://api-platform.wesog.com/api/v1"
 r = requests.post(
     f"{API}/auth/client-tokens",
     headers={"X-API-Key": os.environ["WESOG_API_KEY"]},
-    json={"ttl_seconds": 300, "end_user_id": "user-8812"},
+    json={"end_user_id": "user-8812"},
 )
 r.raise_for_status()
 print(r.json()["expires_at"])
@@ -152,20 +150,16 @@ Authorization: Bearer <token>
 ```
 
 ```json
-{
-  "kind": "search",
-  "conversation_id": "",
-  "message": "fotos de Pedro Sánchez sonriendo",
-  "resolution": null,
-  "filters": {},
-  "resource_types": [],
-  "limit": 20,
-  "platform_language": "es",
-  "client_turn_id": "c-1"
-}
+{ "message": "fotos de Pedro Sánchez sonriendo" }
 ```
 
-Con un token, `kind` solo puede ser `search` y `limit` es como máximo 50. Las demás opciones del turno (modelo, depuración, ajustes...) se ignoran. La respuesta `202` es `{ "turn_id", "conversation_id", "events_url" }` (sin `ticket`). Usa el `conversation_id` del último **resultado** en el turno siguiente. Un `conversation_id` desconocido, o de otro usuario, responde `404 conversation_not_found`: empieza con `""`.
+Para seguir la conversación, manda el `conversation_id` del último **resultado** junto al mensaje siguiente:
+
+```json
+{ "message": "solo las de 2024", "conversation_id": "a41b…" }
+```
+
+Campos opcionales: `filters`, `resource_types` (por defecto todos), `limit` (por defecto 20, como máximo 50 con token) y `client_turn_id`. La respuesta sigue el idioma de la pregunta. La respuesta `202` es `{ "turn_id", "conversation_id", "events_url" }`. Un `conversation_id` desconocido, o de otro usuario, responde `404 conversation_not_found`: empieza sin él.
 
 Los mensajes, pasos de progreso, resultados y bloques de aclaración son los mismos que en la [búsqueda conversacional](/es/new/search/conversational-search): responde a una aclaración con un turno nuevo que lleve `resolution`.
 
@@ -265,7 +259,7 @@ Formato: `{ "detail": { "code": "...", "message": "..." } }`.
 | 403 | `client_token_scope_denied` | Los permisos de la clave o del token no lo permiten. |
 | 403 | `client_token_not_allowed` | No permitido con token (por ejemplo `kind` distinto de `search`). |
 | 403 | `turn_not_yours` | El turno es de otro usuario final. |
-| 404 | `conversation_not_found` | `conversation_id` desconocido: empieza con `""`. |
+| 404 | `conversation_not_found` | `conversation_id` desconocido: empieza sin él. |
 | 404 | en el stream | El turno caducó. |
 | 413 | `request_too_large` | Cuerpo de más de 64 KB. |
 | 429 | `client_token_rate_limited`, `too_many_turns` | Espera `Retry-After`. |

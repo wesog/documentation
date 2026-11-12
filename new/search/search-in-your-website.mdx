@@ -41,14 +41,12 @@ Nothing to configure in the search itself. You only need an [API key](/new/setti
 `POST /auth/client-tokens` with your key in `X-API-Key`. It only works with a real API key, not with a session or another token.
 
 ```json
-{ "ttl_seconds": 300, "end_user_id": "user-8812", "scopes": ["search", "assistant"] }
+{ "end_user_id": "user-8812" }
 ```
 
-| Field | Rules |
-|---|---|
-| `ttl_seconds` | 60 to 900. Default 300. |
-| `end_user_id` | Optional but recommended: a stable, opaque id of **your** user, 1 to 128 characters of `A-Z a-z 0-9 . _ : @ -`. Never the email. |
-| `scopes` | Optional, a non-empty subset of `search` and `assistant`. Default: both. |
+`end_user_id`: a stable, opaque id of **your** user, 1 to 128 characters of `A-Z a-z 0-9 . _ : @ -`. Never the email.
+
+Optional fields: `ttl_seconds` (default 300 = 5 minutes, 60 to 900) and `scopes` (default `search` and `assistant`).
 
 Answer `201`, with `Cache-Control: no-store`:
 
@@ -67,7 +65,7 @@ app.post("/wesog-token", requireLogin, rateLimitPerUser, async (req, res) => {
   const r = await fetch(`${API}/auth/client-tokens`, {
     method: "POST",
     headers: { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ ttl_seconds: 300, end_user_id: String(req.user.id) }),
+    body: JSON.stringify({ end_user_id: String(req.user.id) }),
   });
   if (!r.ok) return res.status(502).json({ error: "token_unavailable" });
   const { token, expires_at } = await r.json();
@@ -84,7 +82,7 @@ export WESOG_API="https://api-platform.wesog.com/api/v1"
 curl -X POST "$WESOG_API/auth/client-tokens" \
   -H "X-API-Key: $WESOG_API_KEY" \
   -H 'Content-Type: application/json' \
-  -d '{"ttl_seconds": 300, "end_user_id": "user-8812"}'
+  -d '{"end_user_id": "user-8812"}'
 ```
 
 ```python Python
@@ -95,7 +93,7 @@ API = "https://api-platform.wesog.com/api/v1"
 r = requests.post(
     f"{API}/auth/client-tokens",
     headers={"X-API-Key": os.environ["WESOG_API_KEY"]},
-    json={"ttl_seconds": 300, "end_user_id": "user-8812"},
+    json={"end_user_id": "user-8812"},
 )
 r.raise_for_status()
 print(r.json()["expires_at"])
@@ -152,20 +150,16 @@ Authorization: Bearer <token>
 ```
 
 ```json
-{
-  "kind": "search",
-  "conversation_id": "",
-  "message": "photos of Pedro Sánchez smiling",
-  "resolution": null,
-  "filters": {},
-  "resource_types": [],
-  "limit": 20,
-  "platform_language": "en",
-  "client_turn_id": "c-1"
-}
+{ "message": "photos of Pedro Sánchez smiling" }
 ```
 
-With a token, `kind` can only be `search` and `limit` is at most 50. Other options of the turn (model, debug, tuning...) are ignored. The `202` answer is `{ "turn_id", "conversation_id", "events_url" }` (no `ticket`). Use the `conversation_id` of the last **result** in the next turn. An unknown `conversation_id`, or one of another user, answers `404 conversation_not_found`: start with `""`.
+To continue the conversation, send the `conversation_id` of the last **result** with the next message:
+
+```json
+{ "message": "only the ones from 2024", "conversation_id": "a41b…" }
+```
+
+Optional fields: `filters`, `resource_types` (default all), `limit` (default 20, at most 50 with a token) and `client_turn_id`. The answer follows the language of the question. The `202` answer is `{ "turn_id", "conversation_id", "events_url" }`. An unknown `conversation_id`, or one of another user, answers `404 conversation_not_found`: start without it.
 
 The messages, progress steps, results and clarification blocks are the same as in the [conversational search](/new/search/conversational-search): answer a clarification with a new turn carrying `resolution`.
 
@@ -265,7 +259,7 @@ Format: `{ "detail": { "code": "...", "message": "..." } }`.
 | 403 | `client_token_scope_denied` | The scopes of the key or the token do not allow it. |
 | 403 | `client_token_not_allowed` | Not allowed with a token (for example `kind` other than `search`). |
 | 403 | `turn_not_yours` | The turn belongs to another end user. |
-| 404 | `conversation_not_found` | Unknown `conversation_id`: start with `""`. |
+| 404 | `conversation_not_found` | Unknown `conversation_id`: start without it. |
 | 404 | in the stream | The turn expired. |
 | 413 | `request_too_large` | Body over 64 KB. |
 | 429 | `client_token_rate_limited`, `too_many_turns` | Wait `Retry-After`. |
