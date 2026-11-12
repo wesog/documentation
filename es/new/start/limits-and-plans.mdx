@@ -1,0 +1,119 @@
+---
+title: "Límites y planes"
+description: "Qué incluye cada plan, los límites de peticiones, búsquedas y créditos, las cabeceras RateLimit y cómo reaccionar a un 429."
+icon: "gauge"
+noindex: true
+---
+
+Tu **plan** decide lo que puede usar tu organización. Cuando se alcanza un límite, la API responde `429` y la plataforma muestra un aviso. Esta página recoge las cifras y cómo reaccionar.
+
+## Los planes de un vistazo
+
+| | Free | Freelance | Creator | Team | Premium |
+|---|---|---|---|---|---|
+| Precio al mes (pago mensual) | 0 EUR | 10 EUR | 39 EUR | 139 EUR | 999 EUR |
+| Precio al mes (pago anual) | 0 EUR | 7 EUR | 27 EUR | 97 EUR | 699 EUR |
+| Usuarios | 1 | 1 | 1 | 5 | 25 |
+| Workflows | 2 | 10 | 50 | Sin límite | Sin límite |
+| Almacenamiento | 5 GB | 50 GB | 1.024 GB | 3.072 GB | 5.120 GB |
+| Peticiones de API por minuto | 60 | 180 | 600 | 1.800 | 5.000 |
+| Peticiones de API al mes | 25.000 | 100.000 | 500.000 | 2.000.000 | 10.000.000 |
+| Búsquedas por minuto | 15 | 60 | 180 | 600 | 2.000 |
+| Búsquedas al mes | 2.500 | 10.000 | 75.000 | 300.000 | 2.000.000 |
+| Créditos al mes | 250 | 1.000 | 6.000 | 20.000 | 200.000 |
+| Ejecuciones de workflow al mes | 250 | 1.000 | 6.000 | 20.000 | 200.000 |
+| Ejecuciones de workflow por minuto | 2 | 5 | 15 | 60 | 240 |
+| Búsquedas activas (avisos) | 0 | 20 | 20 | 20 | 100 |
+| De ellas, urgentes | 0 | 3 | 3 | 3 | 20 |
+
+Son las cifras estándar de cada plan. Tu organización puede tener una variación pactada; las cifras exactas de la tuya están en **Ajustes del tenant actual > Suscripción**. Para cambiar de plan mira [Plan y facturación](/es/new/settings/plan-and-billing).
+
+## Qué límites pueden responder 429
+
+| Límite | Procede de | `code` del 429 |
+|---|---|---|
+| Peticiones **por minuto** de tu organización | Tu plan | `subscription_api_rate_limit_reached` |
+| Peticiones **al mes** de tu organización | Tu plan | `subscription_api_request_limit_reached` |
+| Peticiones **por minuto** de una clave | El valor menor que pongas en la clave, o el del plan | `api_key_rate_limit_reached` |
+| Peticiones **al mes** de una clave | El valor menor que pongas en la clave, o el del plan | `api_key_request_limit_reached` |
+| **Búsquedas** por minuto | Tu plan | `subscription_search_rate_limit_reached` |
+| **Búsquedas** al mes | Tu plan | `subscription_search_limit_reached` |
+| Visitantes de una página que usa [tokens de cliente](/es/new/search/search-in-your-website) | Fijo por visitante: 60 peticiones por minuto, 6 turnos de conversación por minuto, 200 turnos al día | `client_token_rate_limited` |
+
+Cada llamada hecha con una clave cuenta como una petición. Cada búsqueda cuenta como una búsqueda, venga de la API, de la aplicación web o de un asistente de IA. El límite que pongas en una clave nunca puede superar el del plan: la plataforma lo rechaza con `api_key_limit_above_plan`.
+
+Las ventanas de minuto son minutos naturales y las mensuales son meses naturales (UTC), así que un contador se reinicia al empezar el siguiente minuto o mes.
+
+## Cabeceras
+
+Cada respuesta a una llamada hecha con una clave de API lleva el límite más apremiante de esa clave:
+
+| Cabecera | Significado |
+|---|---|
+| `RateLimit-Limit` | Peticiones permitidas en la ventana actual. |
+| `RateLimit-Remaining` | Peticiones que quedan en la ventana. |
+| `RateLimit-Reset` | Segundos hasta que la ventana se reinicia. |
+| `RateLimit-Policy` | Todas las ventanas, por ejemplo `600;w=60`. |
+| `Retry-After` | Solo en `429`: segundos que esperar antes de reintentar. En un límite mensual es el tiempo hasta que empiece el mes siguiente. |
+
+Úsalas para frenar **antes** de llegar al límite:
+
+<CodeGroup>
+```python Python
+import os, time, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.get(f"{API}/tools", headers=headers)
+if int(r.headers.get("RateLimit-Remaining", 1)) == 0:
+    time.sleep(int(r.headers["RateLimit-Reset"]))
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/tools`, { headers });
+if (Number(r.headers.get("RateLimit-Remaining")) === 0) {
+  await new Promise((resolve) => setTimeout(resolve, Number(r.headers.get("RateLimit-Reset")) * 1000));
+}
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -i "$WESOG_API/tools" -H "X-API-Key: $WESOG_API_KEY" | grep -i '^ratelimit'
+```
+</CodeGroup>
+
+Un `429` tiene este aspecto:
+
+```json
+{
+  "code": "api_key_rate_limit_reached",
+  "message": "This key has reached its limit of requests per minute. Wait a few seconds.",
+  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
+}
+```
+
+## Créditos
+
+Ejecutar herramientas de IA y workflows gasta **créditos**. Primero se gasta el cupo mensual de tu plan; cuando se agota se usan los créditos que hayas comprado, que no caducan. El saldo y los movimientos están en **Ajustes del tenant actual > Suscripción**, mira [Plan y facturación](/es/new/settings/plan-and-billing).
+
+## Tamaños y tiempos
+
+| Qué | Límite |
+|---|---|
+| Archivo en una subida simple (`POST /storage/upload`) | 100 MB. Los más grandes se suben por partes, mira [Subir contenido](/es/new/library/upload). |
+| Archivos en una llamada `api/requests` a un workflow | 100 (`resource_ids`). |
+| Resultados por página de búsqueda | 200 (`limit`). |
+| Respuesta de `POST /tools/{tool}` | Siempre `202`: consultas `GET /tools/runs/{run_id}` para ver el resultado. |
+| Claves de idempotencia | Se recuerdan 24 horas. |
+| Papelera | Los archivos se conservan 30 días. |
+| Archivos en el área FTP/S3 Wesog | Se borran 7 días después de llegar, mira [FTP y S3](/es/new/settings/ftp-s3). |
+| Vida de una clave de API | Un año desde que se crea o se rota. |
+
+## Si necesitas más
+
+Usa una clave por aplicación y reparte en el tiempo el trabajo pesado, como un lote grande de fotos. Para límites más altos, cambia de plan o contacta con tu representante de Wesog.

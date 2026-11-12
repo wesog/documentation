@@ -1,0 +1,119 @@
+---
+title: "Quickstart"
+description: "Create an API key, make your first call and read the answer, in three steps."
+icon: "rocket"
+noindex: true
+---
+
+You need a Wesog account. This page takes about five minutes and changes nothing in your account.
+
+## 1. Create an API key
+
+<Steps>
+  <Step title="Open the settings of your organization">
+    In the sidebar, open the organization menu at the top and press the gear next to your organization (**Current tenant settings**). Open the **General** tab.
+  </Step>
+  <Step title="Create the key">
+    In the **API keys** card press **Create API key**, give it a **Name** (for example `My first test`) and leave **Scopes** empty for now.
+  </Step>
+  <Step title="Copy it">
+    Copy the key. **It is shown only once** ("This is the only time it is shown in full"). If you lose it, rotate it.
+  </Step>
+</Steps>
+
+Only an administrator of the organization can create keys. More about scopes, limits and rotation in [API keys](/new/settings/api-keys).
+
+Keep the key in an environment variable and never put it in a web page or in a public repository.
+
+```bash
+export WESOG_API_KEY="paste-your-key-here"
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+## 2. Make your first call
+
+List the AI tools your plan includes. It reads data only, so it is safe to try.
+
+<CodeGroup>
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl "$WESOG_API/tools?limit=5" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.get(f"{API}/tools", headers=headers, params={"limit": 5})
+r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/tools?limit=5`, { headers });
+if (!r.ok) throw new Error(await r.text());
+console.log(await r.json());
+```
+</CodeGroup>
+
+## 3. Read the answer
+
+```json
+{
+  "items": [
+    {
+      "id": "3f4a630b-b426-4aa1-8edc-df6743e5e3ac",
+      "slug": "image_tag",
+      "name": "Tag photos",
+      "tool_kind": "workflow",
+      "status": "active",
+      "catalog_use_allowed": true,
+      "catalog_min_plan": "free"
+    },
+    {
+      "id": "927fd6bd-a138-4eb7-8c43-1a4b47d2d107",
+      "slug": "caption",
+      "name": "Caption",
+      "tool_kind": "workflow",
+      "status": "active",
+      "catalog_use_allowed": true,
+      "catalog_min_plan": "free"
+    }
+  ],
+  "total": 14,
+  "limit": 5,
+  "offset": 0
+}
+```
+
+`items` are the tools; the `slug` is what you put in the URL to run one (`POST /tools/caption`). `total`, `limit` and `offset` tell you how to [page](/new/start/pagination) through longer lists. The example shows only the main fields of two tools; `total` counts all of them.
+
+The answer also carries the headers `RateLimit-Remaining` (requests left in this minute) and `X-Request-ID` (quote it to support). See [Limits and plans](/new/start/limits-and-plans).
+
+If something went wrong you get this instead:
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `401` | The key is missing or wrong. | Check the `X-API-Key` header and that you copied the whole key. |
+| `403` | The key's scopes do not cover this call. | Edit the key and tick the scope, see [API keys](/new/settings/api-keys). |
+| `429` | You reached a limit. | Wait `Retry-After` seconds. |
+
+All errors have the same shape, see [Errors](/new/start/errors).
+
+## Where to go from here
+
+You now have a working key. Pick what you want to do:
+
+<CardGroup cols={2}>
+  <Card title="Run an AI tool on an image" icon="wand-magic-sparkles" href="/new/tools/overview">Tag, describe or read the text of a photo of your own.</Card>
+  <Card title="Upload content and search it" icon="magnifying-glass" href="/new/search/search">Put files in your Library and search them in plain language.</Card>
+  <Card title="Automate with a workflow" icon="diagram-project" href="/new/workflows/run-by-api">Send files to a workflow from your program.</Card>
+  <Card title="Connect ChatGPT or Claude" icon="plug" href="/new/search/connect-agents">Let an AI assistant use your archive.</Card>
+</CardGroup>

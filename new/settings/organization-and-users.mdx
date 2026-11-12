@@ -1,0 +1,56 @@
+---
+title: "Organization and users"
+description: "Invite people to your organization, choose their role and manage groups."
+icon: "users"
+noindex: true
+---
+
+Your **organization** is the space where your team, Library, workflows, keys and plan live. People belong to it with a **role** that decides what they can do.
+
+This page covers what the platform offers. Managing users and roles is **only available in the platform**: the API manages content, not people, and an API key can never manage users.
+
+## Open the settings
+
+In the sidebar, open the organization menu at the top. Your organizations are listed there; the active one has a gear (**Current tenant settings**). Press it. The settings have six tabs: **General**, **Operations**, **Subscription**, **Identity**, **Storage** and **Data access**. People and roles are in **Identity**.
+
+If you belong to several organizations, choose the one you want in the same menu before opening its settings.
+
+## Roles
+
+| Role | In the platform | What the person can do |
+|---|---|---|
+| **Administrator** | `admin` | Everything in the organization: users, keys, connections, plan and billing. |
+| **Member** | `member` | Works with the content: searches and reads the Library, uploads, runs tools and workflows, creates projects and entities of their own. Cannot manage users, keys or billing. |
+| **No base role** | `no_base` | Starts with no permissions. Gets access only through the groups and projects they are added to. |
+
+An API key acts with its own limited role, see [API keys](/new/settings/api-keys).
+
+## Invite someone
+
+<Steps>
+  <Step title="Open Identity">
+    **Current tenant settings > Identity > Members**.
+  </Step>
+  <Step title="Choose how to invite">
+    Press **Invite member by email** and enter the email, or press **Generate link** to get an **invitation link** that you send yourself.
+  </Step>
+  <Step title="Choose the role">
+    Pick **Member**, **Administrator** or **No base role**, then press **Send invitation**.
+  </Step>
+</Steps>
+
+The list **Invitations and access links** shows each invitation as **Pending**, **Accepted** or **Revoked**. A pending invitation can be sent again with **Resend**.
+
+If the person has no email yet, use the option **No email: the person will choose their email and password when they sign in**. Wesog creates an access with a user name and a temporary password (at least 8 characters; if you leave it empty one is generated). Share both with the person. The first time they sign in they set their final email and password. Until then they appear as **Pending setup**.
+
+## Groups
+
+In a team organization you can gather members in **Groups** (**Create group**, with a name and a description) and give permissions to the group instead of to each person.
+
+## How many users
+
+The number of users depends on your plan: 1 in Free, Freelance and Creator, 5 in Team and 25 in Premium. See [Limits and plans](/new/start/limits-and-plans). An organization with a single owner is a **personal** organization: it has no groups and cannot add more members. Move to a plan with more users to work as a team.
+
+## Your own account
+
+Your own profile, language and assistant memory are in **Perfil de usuario** (a fixed entry of the organization menu, shown in Spanish in every language). They belong to you, not to the organization.

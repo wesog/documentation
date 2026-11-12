@@ -1,0 +1,113 @@
+---
+title: "Trash and restore"
+description: "Delete files from the Library, bring them back for 30 days, and empty the trash."
+icon: "trash-can"
+noindex: true
+---
+
+Deleting a file from the Library moves it to the **Trash**. It disappears from search at once and can be restored for **30 days**. After that it is removed for good.
+
+## From the platform
+
+- **Delete.** In **Library**, right-click the files or folders and choose **Move to trash**. For a folder, Wesog tells you that the folder and all its contents will go to the trash and that you can restore them. A big folder continues in the background and can take a few minutes.
+- **Restore.** Open **Trash** in the Library menu, find the item and press **Restore**. A file goes back where it was and is searchable again. If a file with the same name already exists in that folder, Wesog does not overwrite it: it reports the conflict, and you rename or delete the existing one first.
+- **Delete for good.** In the trash, **Delete permanently** removes one item, and **Empty trash** removes everything. This cannot be undone. Deleting a collection does not delete its files.
+- **Workflows.** Deleting a folder that a workflow watches stops that workflow from watching it; the workflow is not deleted.
+
+## By API
+
+Deleting, listing and restoring need a key with the `library` scope **selected**; a key with no scopes cannot delete or restore. Emptying the trash for good is done in the platform. See [API keys](/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+### Delete a file
+
+`POST /trash/library/resources` with the numeric id of the file as a **string** (the `entity_id` of a search result or the `resource_id` of an upload). Send an `Idempotency-Key`: deleting is safe to repeat.
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/trash/library/resources" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"resource_id": "1048223"}'
+```
+
+```python Python
+import os, uuid, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.post(f"{API}/trash/library/resources",
+                  headers={**H, "Idempotency-Key": str(uuid.uuid4())},
+                  json={"resource_id": "1048223"})
+r.raise_for_status()
+trash_id = r.json()["trash_id"]
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/trash/library/resources`, {
+  method: "POST",
+  headers: { ...H, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+  body: JSON.stringify({ resource_id: "1048223" }),
+});
+const { trash_id } = await r.json();
+```
+</CodeGroup>
+
+```json
+{ "ok": true, "trash_id": "trs_5c1d77", "resource_type": "library", "action": "trash", "in_progress": false, "failed_count": 0, "failed_paths": [] }
+```
+
+Keep the `trash_id`: it is what you use to restore. `404` means there is no such file in your organization. See [Identifiers](/new/library/overview#identifiers-resource_id-entity_id-and-source_table) for which id to send.
+
+### See the trash
+
+`GET /trash/library?limit=50` lists what is in the trash and when each item will be removed for good (`expires_at`).
+
+```json
+{
+  "items": [
+    { "trash_id": "trs_5c1d77", "resource_type": "library", "resource_id": "1048223", "resource_label": "Runway at Cibeles",
+      "item_count": 1, "deleted_at": "2026-11-12T10:02:11Z", "expires_at": "2026-12-12T10:02:11Z" }
+  ],
+  "limit": 50,
+  "resource_type": "library"
+}
+```
+
+### Restore
+
+`POST /trash/library/{trash_id}/restore` puts the file back where it was and makes it searchable again.
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/trash/library/trs_5c1d77/restore" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+r = requests.post(f"{API}/trash/library/{trash_id}/restore", headers=H)
+r.raise_for_status()
+print(r.json()["action"])     # restore
+```
+
+```javascript JavaScript
+const r = await fetch(`${API}/trash/library/${trash_id}/restore`, { method: "POST", headers: H });
+console.log((await r.json()).action);   // restore
+```
+</CodeGroup>
+
+### Errors
+
+| Status | Meaning |
+|---|---|
+| `401`, `403` | Missing or invalid key, or the key has no `library` scope selected. |
+| `404` | The file or the trash item does not exist. |
+| `409` | A file with that name already exists where it would be restored. |
+| `410` | The item expired (more than 30 days in the trash). |
+| `429` | Too many requests. Wait `Retry-After`. |

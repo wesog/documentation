@@ -1,0 +1,197 @@
+---
+title: "Run a workflow by API"
+description: "Send files to a workflow with its API input, read the result of each one, and start, stop and follow your workflows."
+icon: "play"
+noindex: true
+---
+
+With the **API input** your program sends files of your Library to a workflow and reads the results, without opening the platform. This page also covers the calls to list, start, stop and follow your workflows. For what workflows are, see the [overview](/new/workflows/overview).
+
+## From the platform
+
+Prepare the workflow once:
+
+1. Open **Workflows**, go to **TEMPLATES** and press **Use template** (or open **Workflow Studio**).
+2. In the input, choose **API** (*Receive the resources through the API*).
+3. Choose the output. With the **API** output the workflow saves nothing: your program reads the metadata it generates. Any other output (a Library folder, FTP, S3) also works.
+4. Create it and **Activate** it. The detail of the workflow shows **API usage** with the exact address, including its id, and ready-made examples (*How to send resources*, *How to fetch the results*).
+
+The id of the workflow in the API is its `instance_id` (the *launched workflow*). Read it in the detail or with `GET /workflow-instances` below.
+
+## By API
+
+You need a key with the `workflows` scope (or no scopes) for these calls; starting and stopping needs `workflows` selected explicitly. See [API keys](/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+### 1. Find the workflow
+
+`GET /workflow-instances` lists your launched workflows; filter with `workflow_id` or `status`, and page with `limit` and `offset`.
+
+<CodeGroup>
+```bash cURL
+curl "$WESOG_API/workflow-instances?limit=20" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+for inst in requests.get(f"{API}/workflow-instances", headers=H, params={"limit": 20}).json():
+    print(inst["instance_id"], inst["name"], inst["status"])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+
+for (const inst of await (await fetch(`${API}/workflow-instances?limit=20`, { headers: H })).json()) {
+  console.log(inst.instance_id, inst.name, inst.status);
+}
+```
+</CodeGroup>
+
+```json
+[
+  { "instance_id": "ins_9d2f", "name": "Agency photos", "status": "running", "template_id": "wf_71aa",
+    "created_at": "2026-11-01T08:00:00Z", "updated_at": "2026-11-01T08:00:00Z" }
+]
+```
+
+`GET /workflow-instances/{instance_id}` reads one. `GET /workflows` lists the workflows themselves (`id`, `name`, `description`, `is_active`, `workflow_kind`, `tags`); filter with `deployment_status`, `tag` or `folder_path`.
+
+### 2. Get the ids of the files
+
+Each file is sent by its numeric id: the `resource_id` of the [upload](/new/library/upload) answer, or the `entity_id` of a [search](/new/search/search) result (they are the same number). Do not use the `res_...` value of a search result. See [Identifiers](/new/library/overview#identifiers-resource_id-entity_id-and-source_table).
+
+### 3. Send the files
+
+`POST /workflow-instances/{instance_id}/api/requests` with one `resource_id` or a list in `resource_ids` (up to 100). It answers `202` at once with one `request_id` per file. Each file is processed in its own execution. Use an `Idempotency-Key` so a retry after a network failure does not process the files twice (the same key returns the first answer for 24 hours; see [Idempotency](/new/start/idempotency)).
+
+<CodeGroup>
+```bash cURL
+export INSTANCE_ID="ins_9d2f"   # from step 1
+
+curl -X POST "$WESOG_API/workflow-instances/$INSTANCE_ID/api/requests" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"resource_ids": [1048223, 1048224]}'
+```
+
+```python Python
+import os, time, uuid, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+INSTANCE_ID = os.environ["INSTANCE_ID"]          # from step 1
+
+sent = requests.post(
+    f"{API}/workflow-instances/{INSTANCE_ID}/api/requests",
+    headers={**H, "Idempotency-Key": str(uuid.uuid4())},
+    json={"resource_ids": [1048223, 1048224]},
+)
+sent.raise_for_status()                          # 202
+for req in sent.json()["requests"]:
+    while True:
+        r = requests.get(f"{API}/workflow-instances/{INSTANCE_ID}/api/requests/{req['request_id']}", headers=H)
+        if r.status_code != 202:
+            break
+        time.sleep(5)
+    print(req["resource_id"], r.json()["status"], r.json().get("results"))
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+const INSTANCE_ID = process.env.INSTANCE_ID;     // from step 1
+
+const sent = await fetch(`${API}/workflow-instances/${INSTANCE_ID}/api/requests`, {
+  method: "POST",
+  headers: { ...H, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+  body: JSON.stringify({ resource_ids: [1048223, 1048224] }),
+});
+for (const req of (await sent.json()).requests) {
+  let r;
+  do {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    r = await fetch(`${API}/workflow-instances/${INSTANCE_ID}/api/requests/${req.request_id}`, { headers: H });
+  } while (r.status === 202);
+  console.log(req.resource_id, (await r.json()).status);
+}
+```
+</CodeGroup>
+
+Answer `202`:
+
+```json
+{
+  "instance_id": "ins_9d2f",
+  "request_id": "req_a1",
+  "requests": [
+    { "request_id": "req_a1", "resource_id": 1048223, "status": "accepted" },
+    { "request_id": "req_a2", "resource_id": 1048224, "status": "accepted" }
+  ],
+  "status_path": "/api/v1/workflow-instances/ins_9d2f/api/requests/{request_id}"
+}
+```
+
+`status_path` is a template: put the `request_id` of each file in it.
+
+### 4. Read each result
+
+`GET /workflow-instances/{instance_id}/api/requests/{request_id}` answers `202` while the file is being processed and `200` when it has finished. Repeat it every few seconds (for example every 5) while it answers `202`; each check counts as a request of your plan. See [Async and polling](/new/start/async).
+
+```json
+{
+  "request_id": "req_a1",
+  "resource_id": 1048223,
+  "status": "succeeded",
+  "submitted_at": "2026-11-12T10:00:00Z",
+  "finished_at": "2026-11-12T10:00:07Z",
+  "results": [ { "caption": "A model walks the runway.", "keywords": ["runway", "fashion"] } ]
+}
+```
+
+- While it works, `status` is `queued`, `running` or `in_review` (a [review](/new/workflows/reviews) waits for a person).
+- It ends as `succeeded`, `failed` or `cancelled`. `results` holds the data the workflow produced for that file (the fields depend on the workflow). If a file fails only that one has `status: "failed"` with an `error`; the others continue.
+- `persons` holds the people recognised with certainty; the probable ones come apart in `persons_probable`, with their probability.
+- Results are kept **30 days**. After that the request answers `404` (`request_not_found`).
+
+### 5. Start, stop and follow a workflow
+
+A workflow that takes its files from a folder, an FTP or new uploads works on its own once started:
+
+```bash
+curl -X POST "$WESOG_API/workflow-instances/$INSTANCE_ID/launch" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"launch_mode": "start", "process_existing": false}'
+```
+
+`launch_mode` is `start` or `stop`. `process_existing: true` also processes what is already in the input. The answer is the launched workflow with its new `status`. Starting and stopping needs a key with the **`workflows` scope selected**; a key with no scopes cannot.
+
+`GET /workflows/{workflow_id}/executions?limit=20` lists the latest runs of a workflow and their states:
+
+```json
+[ { "execution_id": "exe_55b", "status": "completed", "started_at": "2026-11-12T10:00:00Z", "ended_at": "2026-11-12T10:00:07Z" } ]
+```
+
+### Errors
+
+Every error carries `code` and `message`; see [Errors](/new/start/errors).
+
+| Status | Meaning |
+|---|---|
+| `401` | The API key is missing or not valid. |
+| `403` | The key has scopes and none is `workflows`. |
+| `404` | `workflow_not_found` (no workflow with that id in your organization) or `request_not_found`. |
+| `409` | The workflow is stopped (`workflow_stopped`), its input is not **API** (`workflow_input_not_api`), or the same `Idempotency-Key` is still running. Activate it and try again. |
+| `422` | The request is not valid: ids that are not in your Library, an empty list or more than 100. When no file is accepted (`no_resource_accepted`) each one explains why in `error`. |
+| `429` | You went over your plan's requests per minute or per month. `Retry-After` says how many seconds to wait. |
+
+### Limits
+
+At most **100** files per request; results kept **30 days**; the executions and processed files of your plan per month. See [Limits and plans](/new/start/limits-and-plans).

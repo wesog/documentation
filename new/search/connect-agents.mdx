@@ -1,0 +1,120 @@
+---
+title: "Connect ChatGPT, Claude or your agent"
+description: "Let an AI assistant search, organise and process your archive with your own permissions."
+icon: "plug"
+noindex: true
+---
+
+Wesog speaks **MCP**, the standard that AI assistants use to connect to tools. Once connected, ChatGPT, Claude or your own agent can search your photos and videos, read their data, organise the Library, run your workflows, create [active searches](/new/search/active-searches) and answer questions about how Wesog works.
+
+The address to give them is:
+
+```
+https://api-platform.wesog.com/api/v1/mcp
+```
+
+## From the platform
+
+Open the organization menu, choose **Current tenant settings** and go to the **General** tab. The **Connect AI agents** section shows the server address, the instructions for each client and **Your connected agents**.
+
+### ChatGPT and Claude (web and apps)
+
+1. Copy the server address from **Connect AI agents**.
+2. In ChatGPT or Claude add a **custom connector** with that address. **No key is needed.**
+3. The assistant takes you to Wesog to sign in. Review what it will be able to do (**Search and view**, **Edit and organise the Library**, **Share and review**, **Process with workflows**) and press **Allow**.
+
+You can see your connected agents in **Your connected agents** and press **Disconnect** on any of them at any time.
+
+### Claude Code and other clients with a key
+
+Create an API key with the `mcp` scope (see [API keys](/new/settings/api-keys)) and give it to the client.
+
+## By API
+
+MCP is itself an API: you do not call `POST /mcp` by hand, the client does. Configure the client with the address and a key:
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+claude mcp add --transport http wesog "$WESOG_API/mcp" \
+  --header "X-API-Key: $WESOG_API_KEY"
+```
+
+For a client configured with JSON:
+
+```json
+{
+  "mcpServers": {
+    "wesog": {
+      "type": "http",
+      "url": "https://api-platform.wesog.com/api/v1/mcp",
+      "headers": { "X-API-Key": "YOUR_KEY" }
+    }
+  }
+}
+```
+
+The key goes in `X-API-Key` (or `Authorization: Bearer`). A key with scopes needs the `mcp` scope. See [Authentication](/new/start/authentication).
+
+To check the connection from a script, list the tools the server offers (the MCP `tools/list` call):
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/mcp" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+
+r = requests.post(
+    f"{API}/mcp",
+    headers={"X-API-Key": os.environ["WESOG_API_KEY"], "Accept": "application/json, text/event-stream"},
+    json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+)
+print(r.status_code, r.text[:300])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+
+const r = await fetch(`${API}/mcp`, {
+  method: "POST",
+  headers: {
+    "X-API-Key": process.env.WESOG_API_KEY,
+    "Content-Type": "application/json",
+    Accept: "application/json, text/event-stream",
+  },
+  body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+});
+console.log(r.status, (await r.text()).slice(0, 300));
+```
+</CodeGroup>
+
+For a regular MCP client the first call is an `initialize` handshake; use an MCP library rather than raw requests for real work.
+
+## What the agent can and cannot do
+
+- It sees what **you** see and does what **you** can do, nothing more. If you belong to several organizations, the connection is yours and works in each one with your role there.
+- Before it **deletes, rejects, stops or shares** something it asks you to confirm; creating an active search or activating a workflow also needs your go-ahead.
+- Every search it makes counts towards the searches of your plan.
+- Keep the key (if you use one) as private as a password. With a key, the agent acts as that key.
+
+## Things to ask
+
+*"Find photos of the final in Madrid from last week and make a selection of 12."* · *"Which of my workflows failed today?"* · *"Alert me when new photos of the fashion week arrive."* · *"Move the approved photos to the folder Published."*
+
+## Errors
+
+| Status | Meaning |
+|---|---|
+| `401` | Missing or invalid key. |
+| `403` | The key has scopes and none is `mcp`. |
+| `429` | You went over the limits of your key or plan. Wait `Retry-After`. |
+
+For programs that are not AI assistants, use the [API](/new/start/quickstart) directly.

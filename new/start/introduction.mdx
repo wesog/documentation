@@ -1,0 +1,48 @@
+---
+title: "Introduction"
+description: "What Wesog is and how its documentation is organized, section by section, like the menu of the platform."
+icon: "compass"
+noindex: true
+---
+
+Wesog is a platform to **find, enrich and move your photos, videos and documents**. You keep them in a **Library**, search them in plain language, let AI tools describe and tag them, and chain those steps into **workflows** that run on their own.
+
+Everything you can do in the platform you can also do from your own software through the **API**. This documentation follows the same order as the platform menu, so that you always know where a page lives in the product and where a feature lives in the docs.
+
+## How the documentation is organized
+
+| Section of the docs | In the platform | What it covers |
+|---|---|---|
+| **Get started** (this section) | - | Quickstart, authentication, errors, limits and plans, and the rules shared by the whole API. |
+| **Search** | **Search**, **Active searches**, **Connect an agent** | Searching your Library, the conversational search, a search box on your own website, alerts for new matches and connecting ChatGPT, Claude or your own agent. |
+| **Workflows** | **Workflows**, **Reviews** | Automations made of steps: templates, the Studio, runs, and the review of results before they are saved. |
+| **Tools** | **Tools** | The AI tools you can run on a file, one by one, by screen or by API. |
+| **Entities** | **Entities** | People, places, brands and other things Wesog recognizes, and your own private ones. |
+| **Thesaurus** | **Thesaurus** | The controlled vocabulary used to tag your content. |
+| **Library** | **Library** | Uploading content (web, API, FTP or S3), editing metadata, trash and restore. |
+| **Settings** | The organization menu, **Credentials**, **Subscriptions** | Your organization and users, API keys, FTP and S3 access, connections, plan and billing. |
+| **Changes** | - | What changed and when, only what you can notice as a customer. |
+
+## Your organization
+
+An **organization** is your account space in Wesog: its users, its Library, its workflows, its API keys, its plan and its limits. Everything you upload or create belongs to the organization, not to a single person. One person can belong to several organizations and switches between them from the menu at the top of the sidebar.
+
+Your **plan** decides how many users, how much storage, how many requests, searches and credits you have. See [Limits and plans](/new/start/limits-and-plans).
+
+## Two ways to do everything
+
+<CardGroup cols={2}>
+  <Card title="From the platform" icon="browser">Each page of this documentation says where to click, with the names of menus and buttons as you see them.</Card>
+  <Card title="From the API" icon="code">Each page also shows the call, with examples in cURL, Python and JavaScript. If something can only be done in the platform, the page says so.</Card>
+</CardGroup>
+
+The API lives at `https://api-platform.wesog.com/api/v1`. Every operation is listed, with a live console, in the [API reference](/new/openapi/introduction).
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/new/start/quickstart">Create a key and make your first call in three steps.</Card>
+  <Card title="Authentication" icon="key" href="/new/start/authentication">How to send your key and what it may do.</Card>
+  <Card title="Glossary" icon="book-open" href="/new/start/glossary">The words used across the platform and the API.</Card>
+  <Card title="What is new" icon="clock-rotate-left" href="/new/changes">Changes you may need to react to.</Card>
+</CardGroup>

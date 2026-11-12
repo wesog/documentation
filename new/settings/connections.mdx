@@ -1,0 +1,52 @@
+---
+title: "Connections"
+description: "Save credentials for your FTP, S3 and other services once and reuse them in any workflow."
+icon: "plug"
+noindex: true
+---
+
+A **connection** tells Wesog how to reach one of **your** services, for example an agency FTP, an S3 bucket or a cloud app, so that workflows can read from it or send results to it. You save the access details once and reuse them everywhere.
+
+## Where it is
+
+Sidebar > **Credentials** (**Credentials configuration**). The page is titled **Connect your services once** and has four tabs:
+
+| Tab | What it holds |
+|---|---|
+| **Credentials** | Reusable access details: user and password for an FTP, access key and secret key for S3, or the keys of another provider. |
+| **Connections** | A credential linked to a server or bucket, a folder and how it will be used. |
+| **Channels** | A group of FTP and S3 connections used together as one source or destination. |
+| **Profiles** | Groups of reusable settings for different workflows or environments. |
+
+## Recommended path
+
+<Steps>
+  <Step title="Add a credential">
+    Press **New credential**, choose the type (FTP or S3), give it a **Credential name** (for example `Editorial FTP`) and enter the **Username** and **Password**, or the access key and the secret.
+  </Step>
+  <Step title="Create a connection">
+    Press **New connection**, set the **Connection name**, pick the **Credential** and fill in the server or bucket and the remote directory. If the directory does not exist Wesog asks whether you want to **Create** it or **Change** it.
+  </Step>
+  <Step title="Save your channels">
+    Optional: press **New channel** and select several connections to use them together.
+  </Step>
+</Steps>
+
+Example from the screen: *Agency credential > Agency FTP /photos/ > Photographers channel*.
+
+## Use them
+
+When you build or edit a [workflow](/new/workflows/run-by-api), the FTP and S3 steps let you pick one of your connections or channels instead of typing the details again. Secrets are saved encrypted and are never shown again after saving: to change one, type it again.
+
+Deleting a credential also deletes the connections that use it; Wesog lists them before you confirm.
+
+## Connections or FTP/S3 Wesog
+
+| You want to... | Use |
+|---|---|
+| Let a sender drop files into Wesog | [FTP and S3 Wesog](/new/settings/ftp-s3) |
+| Let Wesog read from or write to a server that is yours | A connection (this page) |
+
+## By API
+
+Connections are managed in the platform only. Your workflows use them when they run; you do not send secrets through the API.

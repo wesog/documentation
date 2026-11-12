@@ -1,49 +1,62 @@
 ---
-title: "Cambios"
-description: "Qué ha cambiado en la API y cuándo, para que actualices tu integración."
+title: "Novedades"
+description: "Qué ha cambiado en la plataforma y en la API, por fecha, para que puedas actualizar tu integración."
 icon: "clock-rotate-left"
 noindex: true
 ---
+
+Aquí solo se listan los cambios que notas como cliente, los más recientes primero. Las entradas marcadas como **Requiere acción** pueden romper una integración que lea el comportamiento anterior.
+
+## 12 de noviembre de 2026 (v0.25.3.12)
+
+### Buscador en tu propia web con tokens de cliente
+
+Tu servidor ya puede crear con una clave de API un **token de cliente** de vida corta y dárselo a una página web para que la página busque y hable con la búsqueda conversacional por sí misma, sin la clave y sin pasar por tu servidor en cada mensaje.
+
+- Operaciones nuevas `POST /auth/client-tokens` (crear) y `POST /auth/client-tokens/revoke` (revocar). Los tokens duran de 60 a 900 segundos (300 por defecto).
+- Campo nuevo `allowed_origins` en las claves de API: opcional; las direcciones web (hasta 10, `https`) desde las que se pueden usar los tokens de esa clave. Sin direcciones, los tokens funcionan desde cualquier página. Mira [Claves de API](/es/new/settings/api-keys).
+- Un token solo puede buscar y usar la conversación de búsqueda; cada visitante tiene sus propios límites. Mira [Buscador en tu web](/es/new/search/search-in-your-website) y [Límites y planes](/es/new/start/limits-and-plans).
+- Crear tokens está disponible para claves con el alcance `search` o `read`, o sin alcances.
+
+### Editar, borrar, restaurar y lanzar con una clave con alcances
+
+Una clave con el alcance `library` marcado puede editar los datos de un archivo, borrarlo y restaurarlo de la papelera. Una clave con el alcance `workflows` marcado puede lanzar instancias de workflow. Las claves **sin alcances** («Acceso completo») siguen sin poder hacer estas cuatro cosas: marca el alcance. Mira [Autenticación](/es/new/start/authentication).
 
 ## Noviembre de 2026
 
 ### Salida de las herramientas de IA: una forma clara
 
-En las llamadas hechas con una clave API, la salida de las herramientas de IA (`/tools/{tool}` y `/tools/runs/{run_id}`) ya no lleva datos de trabajo y usa nombres claros. **Si tu código lee estos campos, actualízalo:**
+**Requiere acción.** En las llamadas hechas con una clave de API, la salida de las herramientas de IA (`/tools/{tool}` y `/tools/runs/{run_id}`) ya no lleva datos de trabajo y usa nombres sencillos. Si tu código lee estos campos, actualízalo:
 
 | Antes | Ahora |
 |---|---|
 | `face_embeddings` y cualquier otro vector | No se envía. |
 | `city_out`, `city_final` (también `country`, `date`, `event`, `location`) | `city` (y `country`, `date`, `event`, `location`) con el valor final. |
-| `city_from_metadata` (y el resto de `*_from_metadata`) | No se envía. |
+| `city_from_metadata` (y los demás `*_from_metadata`) | No se envía. |
 | `nombre` | No se envía (usa `name`). |
-| `image`, `video`, `lang`, `use_wesog_celebs` (eco de lo que enviaste) | No se envían. |
+| `image`, `video`, `lang`, `use_wesog_celebs` (eco de tu entrada) | No se envía. |
 | `auto_ocr` | `text` |
 | `auto_keywords` | `keywords` |
 | `celebs`, `celebrity_recognition` | `celebrities` |
 
-La aplicación web no cambia.
+Los campos sin valor (`null`) y las copias con mayúscula inicial de un campo (`Title` junto a `title`) ya no se envían. La aplicación web no se ve afectada.
 
-### Nuevo permiso `tools` para las claves API
+### Alcance nuevo `tools` para claves de API
 
-Una clave puede limitarse solo a las herramientas de IA. Las claves con el permiso `workflows` siguen funcionando con las herramientas, no hay que cambiar nada.
+Una clave puede limitarse solo a las herramientas de IA. Las claves con el alcance `workflows` siguen funcionando con las herramientas, no hay que cambiar nada. Mira [Claves de API](/es/new/settings/api-keys).
 
-### El mismo formato de error en todas partes
+### Mismo formato de error en todas partes
 
-Todos los errores llevan `code`, `message` y `request_id` (y `errors` si el cuerpo se rechaza). `detail` sigue estando. Mira [Errores](/es/new/concepts/errors).
+Todos los errores llevan `code`, `message` y `request_id` (y `errors` si el cuerpo se rechaza). `detail` sigue estando. Las respuestas de límite llevan las cabeceras `RateLimit-*` y `Retry-After`. Mira [Errores](/es/new/start/errors) y [Límites y planes](/es/new/start/limits-and-plans).
 
 ### Idempotency-Key
 
-Las operaciones que crean o lanzan algo aceptan `Idempotency-Key`. Mira [Idempotencia](/es/new/concepts/idempotency).
+Las operaciones que crean o lanzan algo aceptan `Idempotency-Key`. Mira [Idempotencia](/es/new/start/idempotency).
 
-### Búsqueda con una clave API
+### Búsqueda con una clave de API
 
-`POST /library/search` ignora los interruptores internos que antes aceptaba y devuelve `next_offset` para paginar.
+`POST /library/search` ignora los interruptores internos que antes aceptaba y devuelve `next_offset` para paginar. Mira [Paginación](/es/new/start/pagination).
 
-### Salida de las herramientas: sin campos vacíos
+### Claves con límites propios
 
-Los campos sin valor (`null`) y las copias en mayúsculas de un campo (`Title` junto a `title`) ya no se envían.
-
-### Editar, borrar, restaurar y lanzar con una clave
-
-Una clave con el scope `library` marcado ya puede editar los datos de un archivo, borrarlo y restaurarlo; una clave con el scope `workflows` marcado puede iniciar y parar workflows lanzados. Las claves sin scopes (acceso completo) siguen sin poder: marca el scope.
+Cada clave de API puede tener su propio límite de peticiones por minuto y al mes, nunca por encima del del plan, y la lista de claves muestra las peticiones del mes. Mira [Claves de API](/es/new/settings/api-keys).

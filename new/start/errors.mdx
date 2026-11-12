@@ -1,0 +1,112 @@
+---
+title: "Errors"
+description: "One error format for the whole API, with a code to program against and a request_id to quote to support."
+icon: "triangle-exclamation"
+noindex: true
+---
+
+When a call fails you always get a JSON body with the same fields:
+
+Example of a real answer (a run that does not exist). The body can also carry a `detail` field with the same information: ignore it and use `code`.
+
+```json
+{
+  "code": "not_found",
+  "message": "tool_run_not_found",
+  "request_id": "3afe9fee9eea306b681a8e54efdf157d"
+}
+```
+
+| Field | Use it to |
+|---|---|
+| `code` | Decide what to do in your program. It is a stable word: messages can be reworded, codes are not. |
+| `message` | Show it to a person or write it in your log. |
+| `request_id` | Quote it when you contact support: it finds your exact call. The same value comes in the `X-Request-ID` response header, on successes too. |
+| `errors` | Only for `422`: the fields to fix (below). |
+
+Older integrations also find `detail` (the same information as `message`, or the list of problems of a `422`). Keep reading `code`.
+
+## Status codes
+
+| Status | `code` | What to do |
+|---|---|---|
+| `400` | `bad_request` | The request is wrong; fix it. Do not retry unchanged. |
+| `401` | `api_key_missing`, `api_key_invalid` | Send a valid key in `X-API-Key`. |
+| `403` | `forbidden`, `api_key_scope_denied`, `account_deactivated` | The key (or the organization) may not do this. |
+| `404` | `not_found` | The id or path does not exist, or it is not yours. |
+| `409` | `conflict`, `idempotency_key_reuse`, `idempotency_key_in_use` | The resource is in another state; see [Idempotency](/new/start/idempotency). |
+| `413` | `payload_too_large` | The file is over the limit; use the large-upload operations of the [Library](/new/library/upload). |
+| `422` | `validation_error` | A field is wrong; read `errors`. |
+| `429` | `api_key_rate_limit_reached`, `api_key_request_limit_reached`, `subscription_api_rate_limit_reached`, `subscription_api_request_limit_reached`, `subscription_search_rate_limit_reached`, `subscription_search_limit_reached`, `client_token_rate_limited` | A limit was reached; wait and retry. See [Limits and plans](/new/start/limits-and-plans). |
+| `500` | `internal_error` | Our side. Retry; if it persists, contact support with the `request_id`. |
+| `502`, `503`, `504` | `bad_gateway`, `service_unavailable`, `gateway_timeout` | Temporary. Retry with a growing wait. |
+
+## Fields to fix (422)
+
+```json
+{
+  "code": "validation_error",
+  "message": "The request is not valid. See `errors` for the fields to fix.",
+  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21",
+  "errors": [
+    { "field": "body.limit", "message": "Input should be a valid integer", "type": "int_parsing" }
+  ]
+}
+```
+
+`field` says where the problem is: `body.<field>`, `query.<name>` or `path.<name>`. The value you sent is never echoed back.
+
+## Retrying
+
+Retry only `429` (after `Retry-After` seconds), `502`, `503`, `504` and network failures, with a growing wait (1 s, 2 s, 4 s...). Never retry a `400`, `401`, `403`, `404` or `422` unchanged. For calls that create or launch something, send an [Idempotency-Key](/new/start/idempotency) so that a retry cannot do it twice.
+
+<CodeGroup>
+```python Python
+import os, time, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+HEADERS = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+def call(method, path, **kw):
+    for attempt in range(5):
+        r = requests.request(method, f"{API}{path}", headers=HEADERS, **kw)
+        if r.status_code not in (429, 502, 503, 504):
+            return r
+        time.sleep(int(r.headers.get("Retry-After", 2 ** attempt)))
+    return r
+
+r = call("GET", "/tools")
+if not r.ok:
+    err = r.json()
+    print(err["code"], err["message"], err["request_id"])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const HEADERS = { "X-API-Key": process.env.WESOG_API_KEY };
+
+async function call(path, options = {}) {
+  let response;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    response = await fetch(`${API}${path}`, { ...options, headers: { ...HEADERS, ...options.headers } });
+    if (![429, 502, 503, 504].includes(response.status)) return response;
+    const wait = Number(response.headers.get("Retry-After")) || 2 ** attempt;
+    await new Promise((resolve) => setTimeout(resolve, wait * 1000));
+  }
+  return response;
+}
+
+const r = await call("/tools");
+if (!r.ok) {
+  const err = await r.json();
+  console.log(err.code, err.message, err.request_id);
+}
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+# -i shows the status and the X-Request-ID header together with the error body
+curl -i "$WESOG_API/tools/runs/does-not-exist" -H "X-API-Key: $WESOG_API_KEY"
+```
+</CodeGroup>

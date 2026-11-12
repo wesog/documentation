@@ -1,0 +1,148 @@
+---
+title: "Búsqueda"
+description: "Busca en tu Biblioteca con lenguaje natural, recorre los resultados y abre un archivo."
+icon: "magnifying-glass"
+noindex: true
+---
+
+La búsqueda encuentra las fotos, vídeos, documentos y audios de tu organización a partir de una frase. No construyes filtros: dices lo que quieres («Rafael Nadal celebrando un punto en Madrid», «playa al atardecer», «vídeos de la final»).
+
+## Desde la plataforma
+
+Abre **Buscador** en el menú lateral. La pantalla pregunta *¿Qué estás buscando?* Escribe tu petición en la caja (también puedes empezar desde la caja de búsqueda de **Inicio**) y pulsa **Enviar mensaje**.
+
+- La respuesta es una conversación: Wesog explica lo que ha buscado y muestra las fotos y los vídeos, de 20 en 20 (**Ver más** trae los siguientes). Puedes seguir («ahora solo los vídeos», «solo de 2019 en adelante») y Wesog mantiene el contexto. Si un nombre puede ser de varias personas, o no está en el archivo, te pregunta o te dice a quién ha buscado. Mira la [búsqueda conversacional](/es/new/search/conversational-search).
+- Nombra a una persona con **@**, o busca con una foto: **Adjuntar imagen** (**Similares** trae fotos parecidas, **Exactas** busca esa misma imagen) y elige las caras detectadas.
+- **Tipos y filtros** te deja elegir fotos o vídeos y añadir filtros; **Origen del recurso** limita la búsqueda a tu organización o a otra organización concreta. **Ordenar por** ordena los resultados por fecha (**Más reciente**, **Más antiguo**).
+- En los vídeos se marcan los momentos en que aparece cada persona.
+- Cada búsqueda cuenta en las búsquedas de tu plan (una pregunta de aclaración no). Mira [Límites y planes](/es/new/start/limits-and-plans).
+- Para que te avisen de archivos nuevos que encajen, pulsa **Avisarme de nuevas** bajo los resultados. Mira [Búsquedas activas](/es/new/search/active-searches).
+
+## Por API
+
+`POST /library/search` es la búsqueda de una sola vez: una petición y una página de resultados, sin conversación. Define el host una vez y usa tu [clave de API](/es/new/start/authentication):
+
+<CodeGroup>
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -X POST "$WESOG_API/library/search" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "Rafael Nadal celebrando un punto en Madrid", "resource_types": ["image"], "limit": 20}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+
+r = requests.post(
+    f"{API}/library/search",
+    headers={"X-API-Key": os.environ["WESOG_API_KEY"]},
+    json={"query": "Rafael Nadal celebrando un punto en Madrid", "resource_types": ["image"], "limit": 20},
+)
+r.raise_for_status()
+page = r.json()
+print(page["total"], "resultados")
+for item in page["items"]:
+    print(item["entity_id"], item["title"], item["relative_path"])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+
+const r = await fetch(`${API}/library/search`, {
+  method: "POST",
+  headers: { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" },
+  body: JSON.stringify({ query: "Rafael Nadal celebrando un punto en Madrid", resource_types: ["image"], limit: 20 }),
+});
+const page = await r.json();
+console.log(page.total, "resultados");
+for (const item of page.items) console.log(item.entity_id, item.title, item.relative_path);
+```
+</CodeGroup>
+
+La clave necesita el permiso `search`, `read` o `library`, o no tener permisos limitados.
+
+### Qué puedes pedir
+
+La `query` entiende personas, lugares, fechas, lo que se ve en la imagen y el tipo de archivo. Una `query` vacía lista la Biblioteca, lo más nuevo primero (cambia el orden con `sort`).
+
+| Campo | Significado |
+|---|---|
+| `query` | Lo que buscas, en tu idioma. |
+| `resource_types` | `image`, `video`, `document`, `audio`. Vacío significa todos. |
+| `limit`, `offset` | Tamaño de página (1-200, 20 por defecto) y desde dónde empezar. Mira [Paginación](/es/new/start/pagination). |
+| `sort` | Solo con `query` vacía: `updated_desc`, `updated_asc`, `created_desc`, `name_asc`, `name_desc`. Una búsqueda con palabras siempre se ordena por relevancia. |
+| `filters` | Condiciones extra, por ejemplo un rango de fechas de creación. |
+
+Un rango de fechas:
+
+```json
+{
+  "query": "semana de la moda",
+  "filters": { "field_filters": [ { "field": "created_at", "op": "between", "value": { "from": "2026-09-01", "to": "2026-09-30" } } ] }
+}
+```
+
+### Qué obtienes
+
+```json
+{
+  "total": 128,
+  "total_is_estimated": false,
+  "next_offset": 20,
+  "items": [
+    {
+      "resource_id": "res_62a24365063b",
+      "entity_id": 1048223,
+      "source_table": "storage_image",
+      "relative_path": "events/2026/madrid/IMG_0412.jpg",
+      "resource_type": "image",
+      "title": "Nadal celebra un punto",
+      "snippet": "Rafael Nadal celebra un punto durante la final de Madrid.",
+      "thumbnail_url": "events/2026/madrid/IMG_0412.jpg",
+      "media_type": "image",
+      "content_type": "image/jpeg",
+      "own_tenant": true,
+      "metadata": { "field_values": { "headline": "Nadal celebra un punto", "city": "Madrid", "keywords": ["tenis", "Nadal"] } }
+    }
+  ]
+}
+```
+
+Los resultados vienen de mejor a peor. Cuando `next_offset` está presente hay más: envíalo como `offset` para pedir la página siguiente; en la última página no aparece.
+
+`metadata.field_values` contiene los datos descriptivos (titular, descripción, palabras clave, autor, lugar, fechas) y `metadata.detected_identities` las personas reconocidas.
+
+<Warning>
+Un resultado trae tres identificadores y **no** son intercambiables. Usa `entity_id` (un número) para abrir o editar el archivo y para enviarlo a un [workflow](/es/new/workflows/run-by-api); copia `source_table` tal como viene; no uses el valor `res_...` de `resource_id` en otras llamadas. Mira [Identificadores](/es/new/library/overview#identificadores-resource_id-entity_id-y-source_table).
+</Warning>
+
+`own_tenant` (el campo se llama así) es `true` para archivos de tu organización y `false` para archivos de otra organización cuyo archivo puedes buscar (solo lectura). `thumbnail_url` y `preview_url` pueden ser rutas de tu Biblioteca y no direcciones web: muestra un hueco para cualquier valor que no sea una URL `https://` absoluta.
+
+### Abrir un resultado
+
+`GET /library/tables/{source_table}/rows/{row_id}` devuelve todos los datos guardados de un archivo. Usa el `source_table` del resultado y su `entity_id` como `row_id`; `fields` pide solo lo que necesitas (por ejemplo `fields=headline,caption,keyword`).
+
+```bash
+curl "$WESOG_API/library/tables/storage_image/rows/1048223?fields=headline,caption,keyword" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+Para cambiar esos datos mira [Editar metadatos](/es/new/library/metadata).
+
+### Errores
+
+| Estado | Significado |
+|---|---|
+| `400`, `422` | La petición no es válida (por ejemplo un `limit` mayor de 200). Mira [Errores](/es/new/start/errors). |
+| `401`, `403` | Falta la clave o no es válida, o sus permisos no incluyen la búsqueda. |
+| `429` | Superaste las peticiones de tu clave o las búsquedas de tu plan. Espera los segundos de `Retry-After`. |
+
+### A tener en cuenta
+
+- Un archivo recién subido puede tardar unos minutos en poder buscarse.
+- Un archivo que otras organizaciones comparten contigo aparece con `own_tenant: false`.
+- Para un chat en tu propia web usa la [búsqueda conversacional](/es/new/search/conversational-search); para una página que busca directamente desde el navegador, [Buscador en tu propia web](/es/new/search/search-in-your-website).

@@ -1,0 +1,38 @@
+---
+title: "Revisiones"
+description: "Deja que una persona apruebe o corrija los resultados de un workflow antes de guardarlos."
+icon: "list-check"
+noindex: true
+---
+
+Una **revisión** es un paso de un workflow: cada archivo espera a que una persona revise sus datos, y los corrija si hace falta, antes de seguir hacia las salidas. Si la persona aprueba, el workflow sigue y guarda los resultados; si rechaza, ese archivo no sigue y no se escriben sus resultados. Es útil cuando un error saldría caro, por ejemplo antes de publicar.
+
+Un workflow sin paso **Revisión** guarda sus resultados por sí solo.
+
+## Desde la plataforma
+
+### Añadir el paso
+
+Añade el paso **Revisión** al workflow, en Workflow Studio o pidiéndoselo al asistente (*«que una persona revise las descripciones antes de guardarlas»*). En el paso eliges:
+
+- **Quién revisa**: **Cualquier miembro del equipo** o **Solo administradores**.
+- **Cuántas horas hay para revisar**: 1, 8, 24, 72 (por defecto) o 168 (una semana).
+- **Qué pasa si nadie revisa a tiempo**: **No sigue (como rechazado)** (por defecto) o **Sigue (como aprobado)**.
+
+### Revisar los resultados
+
+Abre **Workflows** y ve a la pestaña **REVISIÓN** (*REVIEW*), o usa **Reviews** en **Más opciones** del menú lateral. Una insignia en **Workflows** muestra cuántos elementos hay pendientes, y llega un aviso a la campana cuando un archivo queda pendiente de revisión.
+
+- Cada revisión muestra su workflow, categoría, fecha de ejecución y cuántos elementos quedan pendientes (*N elementos pendientes de revisar*).
+- Busca con **Buscar revisiones...** y filtra por **Estado** y categoría. Los estados son: **Revisión manual** (esperando a una persona), **Revisión automatizada**, **Aprobada**, **Modificada**, **Rechazada** y **Expirada**.
+- Pulsa **Abrir revisión** para ver los elementos. En cada uno puedes comprobar el resultado, corregir los campos que el paso deja cambiar y aprobarlo. Puedes aprobar los elementos uno a uno o todos juntos.
+- La pantalla de revisión se adapta al workflow: puede mostrar la imagen o el vídeo, las personas reconocidas y las palabras clave, una transcripción, tablas y campos editables.
+
+Siempre decide una persona, o el plazo, según lo que hayas elegido en el paso. También puedes preguntar al asistente *«¿qué tengo pendiente de revisar?»*.
+
+## Por API
+
+No hay endpoints para listar ni decidir revisiones. Lo que puede ver tu programa:
+
+- Si envías un archivo a un workflow con entrada API y el workflow tiene una revisión, la petición se queda en `status: "in_review"` hasta que una persona la aprueba en la plataforma, y entonces termina como `succeeded`. Mira [Ejecutar un workflow por API](/es/new/workflows/run-by-api#4-leer-cada-resultado).
+- Un agente de IA conectado por [MCP](/es/new/search/connect-agents) puede decidir revisiones pendientes en nombre de la persona que lo conectó; te pide confirmar.

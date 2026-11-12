@@ -1,15 +1,32 @@
 ---
 title: "Changes"
-description: "What changed in the API and when, so you can update your integration."
+description: "What changed in the platform and the API, by date, so you can update your integration."
 icon: "clock-rotate-left"
 noindex: true
 ---
+
+Only changes you can notice as a customer are listed here, newest first. Entries marked **Action needed** may break an integration that reads the old behavior.
+
+## 12 November 2026 (v0.25.3.12)
+
+### Search on your own website with client tokens
+
+Your server can now create a short-lived **client token** with an API key, and give it to a web page so that the page searches and talks to the conversational search by itself, without the key and without going through your server for every message.
+
+- New operations `POST /auth/client-tokens` (create) and `POST /auth/client-tokens/revoke` (revoke). Tokens last 60 to 900 seconds (300 by default).
+- New field `allowed_origins` on API keys: optional; the web addresses (up to 10, `https`) from which the tokens of that key may be used. Without addresses the tokens work from any page. See [API keys](/new/settings/api-keys).
+- A token can only search and use the search conversation; every visitor has their own limits. See [Search on your website](/new/search/search-in-your-website) and [Limits and plans](/new/start/limits-and-plans).
+- Creating tokens is available for keys with the `search` or `read` scope, or no scopes.
+
+### Edit, delete, restore and launch with a scoped key
+
+A key with the `library` scope ticked can edit the data of a file, delete it and restore it from the trash. A key with the `workflows` scope ticked can launch workflow instances. Keys with **no scopes** ("Full access") still cannot do these four things: tick the scope. See [Authentication](/new/start/authentication).
 
 ## November 2026
 
 ### AI tool output: one clear shape
 
-For calls made with an API key, the output of the AI tools (`/tools/{tool}` and `/tools/runs/{run_id}`) no longer carries working data and uses plain names. **If your code reads these fields, update it:**
+**Action needed.** For calls made with an API key, the output of the AI tools (`/tools/{tool}` and `/tools/runs/{run_id}`) no longer carries working data and uses plain names. If your code reads these fields, update it:
 
 | Before | Now |
 |---|---|
@@ -22,28 +39,24 @@ For calls made with an API key, the output of the AI tools (`/tools/{tool}` and 
 | `auto_keywords` | `keywords` |
 | `celebs`, `celebrity_recognition` | `celebrities` |
 
-The web app is not affected.
+Fields without a value (`null`) and the title-case copies of a field (`Title` next to `title`) are not sent any more. The web app is not affected.
 
 ### New `tools` scope for API keys
 
-A key can be limited to the AI tools only. Keys with the `workflows` scope keep working with the tools, nothing to change.
+A key can be limited to the AI tools only. Keys with the `workflows` scope keep working with the tools, nothing to change. See [API keys](/new/settings/api-keys).
 
 ### Same error format everywhere
 
-All errors have `code`, `message` and `request_id` (and `errors` for a refused body). `detail` is still there. See [Errors](/new/concepts/errors).
+All errors have `code`, `message` and `request_id` (and `errors` for a refused body). `detail` is still there. Rate-limit answers now carry `RateLimit-*` headers and `Retry-After`. See [Errors](/new/start/errors) and [Limits and plans](/new/start/limits-and-plans).
 
 ### Idempotency-Key
 
-The operations that create or launch something accept `Idempotency-Key`. See [Idempotency](/new/concepts/idempotency).
+The operations that create or launch something accept `Idempotency-Key`. See [Idempotency](/new/start/idempotency).
 
 ### Search with an API key
 
-`POST /library/search` ignores the internal switches it used to accept, and returns `next_offset` to page.
+`POST /library/search` ignores the internal switches it used to accept, and returns `next_offset` so that you can page. See [Pagination](/new/start/pagination).
 
-### Tool output: no empty fields
+### Keys with their own limits
 
-Fields without a value (`null`) and the title-case copies of a field (`Title` next to `title`) are not sent any more.
-
-### Edit, delete, restore and launch with a key
-
-A key with the `library` scope selected can now edit the data of a file, delete it and restore it; a key with the `workflows` scope selected can start and stop launched workflows. Keys with no scopes (full access) still cannot: tick the scope.
+Each API key can have its own limit of requests per minute and per month, never above the plan's, and the key list shows the requests of the month. See [API keys](/new/settings/api-keys).

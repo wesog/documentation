@@ -1,0 +1,119 @@
+---
+title: "Limits and plans"
+description: "What each plan includes, the request, search and credit limits, the RateLimit headers and how to react to 429."
+icon: "gauge"
+noindex: true
+---
+
+Your **plan** decides what your organization can use. When a limit is reached the API answers `429` and the platform shows a notice. This page lists the figures and how to react.
+
+## Plans at a glance
+
+| | Free | Freelance | Creator | Team | Premium |
+|---|---|---|---|---|---|
+| Price per month (monthly billing) | 0 EUR | 10 EUR | 39 EUR | 139 EUR | 999 EUR |
+| Price per month (annual billing) | 0 EUR | 7 EUR | 27 EUR | 97 EUR | 699 EUR |
+| Users | 1 | 1 | 1 | 5 | 25 |
+| Workflows | 2 | 10 | 50 | Unlimited | Unlimited |
+| Storage | 5 GB | 50 GB | 1,024 GB | 3,072 GB | 5,120 GB |
+| API requests per minute | 60 | 180 | 600 | 1,800 | 5,000 |
+| API requests per month | 25,000 | 100,000 | 500,000 | 2,000,000 | 10,000,000 |
+| Searches per minute | 15 | 60 | 180 | 600 | 2,000 |
+| Searches per month | 2,500 | 10,000 | 75,000 | 300,000 | 2,000,000 |
+| Credits per month | 250 | 1,000 | 6,000 | 20,000 | 200,000 |
+| Workflow runs per month | 250 | 1,000 | 6,000 | 20,000 | 200,000 |
+| Workflow runs per minute | 2 | 5 | 15 | 60 | 240 |
+| Active searches (alerts) | 0 | 20 | 20 | 20 | 100 |
+| Of them, urgent | 0 | 3 | 3 | 3 | 20 |
+
+These are the standard figures of each plan. Your organization may have an agreed variation; the exact figures of yours are in **Current tenant settings > Subscription**. To change plan see [Plan and billing](/new/settings/plan-and-billing).
+
+## Which limits can answer 429
+
+| Limit | Comes from | `code` of the 429 |
+|---|---|---|
+| Requests **per minute** of your organization | Your plan | `subscription_api_rate_limit_reached` |
+| Requests **per month** of your organization | Your plan | `subscription_api_request_limit_reached` |
+| Requests **per minute** of one key | The lower value you set on the key, or the plan | `api_key_rate_limit_reached` |
+| Requests **per month** of one key | The lower value you set on the key, or the plan | `api_key_request_limit_reached` |
+| **Searches** per minute | Your plan | `subscription_search_rate_limit_reached` |
+| **Searches** per month | Your plan | `subscription_search_limit_reached` |
+| Visitors of a page that uses [client tokens](/new/search/search-in-your-website) | Fixed per visitor: 60 requests per minute, 6 conversation turns per minute, 200 turns per day | `client_token_rate_limited` |
+
+Every call made with a key counts as one request. Every search counts as a search, whether it comes from the API, the web app or an AI assistant. A limit you set on a key can never be above the plan's: the platform refuses it with `api_key_limit_above_plan`.
+
+Minute windows are calendar minutes and monthly windows are calendar months (UTC), so a counter resets at the start of the next minute or month.
+
+## Headers
+
+Every answer to a call made with an API key carries the most pressing limit of that key:
+
+| Header | Meaning |
+|---|---|
+| `RateLimit-Limit` | Requests allowed in the current window. |
+| `RateLimit-Remaining` | Requests left in the window. |
+| `RateLimit-Reset` | Seconds until the window resets. |
+| `RateLimit-Policy` | All the windows, for example `600;w=60`. |
+| `Retry-After` | Only on `429`: seconds to wait before retrying. For a monthly limit it is the time until the next month starts. |
+
+Use them to slow down **before** you hit the limit:
+
+<CodeGroup>
+```python Python
+import os, time, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.get(f"{API}/tools", headers=headers)
+if int(r.headers.get("RateLimit-Remaining", 1)) == 0:
+    time.sleep(int(r.headers["RateLimit-Reset"]))
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/tools`, { headers });
+if (Number(r.headers.get("RateLimit-Remaining")) === 0) {
+  await new Promise((resolve) => setTimeout(resolve, Number(r.headers.get("RateLimit-Reset")) * 1000));
+}
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -i "$WESOG_API/tools" -H "X-API-Key: $WESOG_API_KEY" | grep -i '^ratelimit'
+```
+</CodeGroup>
+
+A `429` looks like this:
+
+```json
+{
+  "code": "api_key_rate_limit_reached",
+  "message": "This key has reached its limit of requests per minute. Wait a few seconds.",
+  "request_id": "5d1c3f7e-6f1a-4d1b-9a54-0d0c5e6b7a21"
+}
+```
+
+## Credits
+
+Running AI tools and workflows spends **credits**. The monthly allowance of your plan is spent first; when it runs out, credits you bought are used. Purchased credits never expire. You see the balance and the movements in **Current tenant settings > Subscription**, see [Plan and billing](/new/settings/plan-and-billing).
+
+## Sizes and times
+
+| What | Limit |
+|---|---|
+| File in a simple upload (`POST /storage/upload`) | 100 MB. Bigger files go in parts, see [Upload content](/new/library/upload). |
+| Files in one `api/requests` call to a workflow | 100 (`resource_ids`). |
+| Results per search page | 200 (`limit`). |
+| Answer of `POST /tools/{tool}` | Always `202`: you poll `GET /tools/runs/{run_id}` for the result. |
+| Idempotency keys | Remembered for 24 hours. |
+| Trash | Files stay 30 days. |
+| Files in the FTP/S3 Wesog area | Deleted 7 days after they arrive, see [FTP and S3](/new/settings/ftp-s3). |
+| API key lifetime | One year from creation or rotation. |
+
+## When you need more
+
+Use one key per application and spread heavy work, such as a big batch of photos, over time. For higher limits, change plan or contact your Wesog representative.

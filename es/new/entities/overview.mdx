@@ -1,0 +1,43 @@
+---
+title: "Entidades"
+description: "Las personas y otros registros que Wesog conoce: las entidades públicas de Wesog, las tuyas privadas, y cómo las usan los workflows y las herramientas."
+icon: "user-group"
+noindex: true
+---
+
+Las **entidades** son las tablas de datos de tu organización. Las más usadas son las **personas**: cuando Wesog encuentra una cara en una foto o vídeo la compara con un catálogo de personas, y cuando se parece lo bastante a una marca el archivo con su nombre. El catálogo tiene dos orígenes:
+
+- **Wesog**: entidades públicas (famosos y personajes públicos) que todos pueden usar. No puedes editarlas.
+- **Privado**: las personas y registros que añade tu organización. Solo los ve tu organización.
+
+Cada tipo de entidad es una tabla con sus atributos (columnas) y sus filas. Tu plan fija cuántas tablas de entidades puedes tener. Crear un tipo de entidad nuevo (una tabla nueva) lo hace, por ahora, el equipo de Wesog; en las tablas existentes sí puedes añadir filas y atributos.
+
+## Desde la plataforma
+
+Abre **Entidades** en el menú lateral.
+
+- Usa **Origen de entidades** para ver las entidades de Wesog o las privadas. Busca por nombre (**Buscar por nombre...**), filtra por ocupación o grupo, o por fecha de nacimiento, y cambia entre vista de tarjetas y vista de tabla.
+- **Crear entidad** añade una persona a tu catálogo privado: pon el nombre completo y usa **Añadir fotos y elegir rostros** para dar fotos de su cara (JPG o PNG, hasta 2 MB cada una) y seleccionar qué cara detectada es la suya. También puedes rellenar ocupaciones, grupos, nacionalidad, fechas de nacimiento y fallecimiento, y el nombre en otros idiomas (**Etiquetas personalizadas**). La entidad nueva se procesa en segundo plano (*enviada a ingesta*).
+- Abre una entidad para ver su ficha, editarla (**Editar entidad**) o borrarla (**Borrar entidad**; es permanente). La pestaña **Contenido Asociado** lista los archivos en que aparece; **Abrir en biblioteca** va a ellos.
+- En una tabla puedes **Importar** y **Exportar**, **Añadir fila**, **Añadir atributo**, filtrar, guardar vistas (privadas o compartidas) y **Crear relación con otra entidad**.
+- También puedes añadir una persona desde una foto de la Biblioteca: en las entidades del archivo, **Añadir identidad**, o **Marcar como desconocido**, **Cambiar identidad** o **Quitar de esta imagen** para una reconocida.
+
+Cambiar la etiqueta de una entidad se aplica a lo que se procese después, no a lo ya procesado.
+
+### Dónde se usan las entidades
+
+| Dónde | Cómo |
+|---|---|
+| **Tag Photos** y **Celebrity Recognition** (Herramientas), y el paso **Famosos** de un workflow | Elige el **Origen de las entidades**: **Wesog**, **Privado** o **Ambos**. Para las privadas puedes limitar a algunos grupos o colecciones. |
+| **Buscador** | Nombra a una persona («fotos de...» o con **@**); si un nombre corresponde a varias personas, Wesog te pregunta cuál. |
+| **Biblioteca** | Las personas de una foto o vídeo se muestran y se editan en las entidades del archivo. |
+
+Wesog solo reconoce a personas que están en el catálogo (el de Wesog o el tuyo). Una cara que no está en él se detecta pero queda sin identificar. No consulta internet para saber quién es alguien.
+
+## Por API
+
+No hay API pública para crear ni editar entidades. Lo que sí puedes hacer por API es usarlas:
+
+- Ejecutar [Celebrity Recognition o Tag Photos](/es/new/tools/overview) con el origen de entidades que quieras.
+- Leer las personas reconocidas en un archivo: `metadata.detected_identities` en un resultado de [búsqueda](/es/new/search/search), o los campos de personas de [los datos del archivo](/es/new/library/metadata).
+- Enviar archivos a un [workflow](/es/new/workflows/run-by-api) que incluya un paso **Famosos**; las personas reconocidas vienen en `persons` (seguras) y `persons_probable` (probables, con su probabilidad).

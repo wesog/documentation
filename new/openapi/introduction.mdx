@@ -5,21 +5,25 @@ icon: "book"
 noindex: true
 ---
 
-**Base address:** `https://api.wesog.com/api/v1`
+**Base address:** `https://api-platform.wesog.com/api/v1`
 
-**Authentication:** the `X-API-Key` header on every call. See [Authentication](/new/concepts/authentication).
+**Authentication:** the `X-API-Key` header on every call. See [Authentication](/new/start/authentication).
 
-**Errors:** the same body everywhere: `code`, `message`, `request_id`. See [Errors](/new/concepts/errors).
+**Errors:** the same body everywhere: `code`, `message`, `request_id`. See [Errors](/new/start/errors).
+
+The operations are grouped as the menu of the platform: **Search**, **Workflows**, **Tools**, **Library** and **Agents (MCP)**.
 
 Each operation page shows:
 
 - what it does and which **key scope** opens it;
-- the request and response with **examples** you can copy and the typed fields;
+- the request and response with the typed fields;
 - the **errors** it can answer;
 - ready-to-run samples in **cURL, Python and JavaScript**.
 
 Press **Try it** on any operation, paste your API key and call it from the page.
 
-The same reference, always up to date, is served as an OpenAPI document at `https://api.wesog.com/api/openapi-customer.json?server=public`: import it into Postman, Insomnia or a code generator.
+The same reference, always up to date, is served as an OpenAPI document at `https://api-platform.wesog.com/api/openapi-customer.json?server=public`: import it into Postman, Insomnia or a code generator.
 
-New to the API? Start with the [Quickstart](/new/quickstart).
+Two things are explained in their guide and are not in this reference: the [client tokens](/new/search/search-in-your-website) (`/auth/client-tokens`) and the [conversational search turns](/new/search/conversational-search) (`/assistant/turns`) used by a search on your own website.
+
+New to the API? Start with the [Quickstart](/new/start/quickstart).

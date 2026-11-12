@@ -1,0 +1,109 @@
+---
+title: "API keys"
+description: "Create, limit, rotate and stop API keys, and register the web addresses allowed to use client tokens."
+icon: "key"
+noindex: true
+---
+
+An API key identifies your software when it calls the API. Each key has a name, optional scopes, optional limits of its own and, if you search from your own web page, the addresses of that page.
+
+## From the platform
+
+Only an administrator can manage keys. Go to **Current tenant settings > General** and find the **API keys** card (see [Organization and users](/new/settings/organization-and-users) to open the settings).
+
+<Steps>
+  <Step title="Create the key">
+    Press **Create API key**. The new key appears **in full only this once**: press **Copy** and store it in your password manager or your server's secrets.
+  </Step>
+  <Step title="Name it and choose what it can do">
+    Press **Edit** on the key. Set a **Name** (for example `CMS integration`) and tick the **Scopes** it needs. With none ticked the badge says **Full access**.
+  </Step>
+  <Step title="Optional: set limits">
+    Under **Own limits** write **Requests per minute** and **Requests per month**. Empty means "only the plan's limit". They cannot be above the plan's.
+  </Step>
+</Steps>
+
+Each key in the list shows its state (**Active** or **Disabled**), its scopes, the dates **Created**, **Last used** and **Expires**, and the requests of the month, including those **refused by limits**.
+
+### Scopes
+
+| Scope (as shown) | Field value | Opens |
+|---|---|---|
+| **Search** | `search` | Searching, opening results and the conversational search. |
+| **Read only** | `read` | Everything that only reads, searching included. |
+| **Tools** | `tools` | The AI tools: list, run, read or cancel a run. |
+| **Workflows** | `workflows` | Workflows, their runs, reviews and the AI tools. |
+| **Library and storage** | `library` | Files, folders, uploads, trash, thesaurus and entities. |
+| **Agents (MCP)** | `mcp` | The connection for ChatGPT, Claude or your own agent. |
+
+A key without scopes has **Full access** to what an API key may do. Even then, three actions need their scope to be ticked explicitly: editing the metadata of a file, deleting or restoring files (`library`), and launching a workflow instance (`workflows`). A call outside the scopes answers `403` with `api_key_scope_denied`. More in [Authentication](/new/start/authentication).
+
+### Rotate, disable, delete
+
+- **Rotate** creates a new secret with the same name, scopes, limits and allowed addresses, and **the old one stops working at once**. Have the new secret ready in your application before you press it.
+- **Disable** stops a key within seconds without deleting it. You can **Enable** it again.
+- **Revoke** removes it for good.
+- A key **expires one year** after it was created or rotated; the card shows **Expires**.
+
+## Optional: restrict client tokens to your pages (`allowed_origins`)
+
+If you put a search box on **your own website**, your server uses a key to create short-lived [client tokens](/new/search/search-in-your-website) for the browser. By default those tokens work from any page. If you want them to work only from your own pages, an administrator can register their web addresses on the key, in the field `allowed_origins`: from then on a token used from any other address is refused. You do not need to set it to create tokens.
+
+Rules for each address:
+
+- Format `https://www.mysite.com` (scheme, host and optionally a port). No path, query, wildcard or credentials.
+- `https` only. `http` is accepted only for `localhost`, `127.0.0.1` and `[::1]`, for development.
+- Up to 10 addresses per key. Capital letters and the default port are normalized.
+- A key with no addresses creates tokens that work from any page; a key with addresses creates tokens that only work from them.
+- Rotating the key keeps its addresses. Removing an address ends the live tokens used from it at once.
+- The key needs the `search` or `read` scope, or no scopes at all. Keys limited to `workflows`, `tools`, `library` or `mcp` cannot create client tokens.
+
+The key-management screen does not show this field yet. Today `allowed_origins` is set through the key-management operations, which need an administrator who is signed in (they do not accept an API key). If you need it and cannot call them, ask your Wesog contact.
+
+<CodeGroup>
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+# SESSION_TOKEN: the session token of a signed-in administrator
+# KEY_REF: the reference of the key, as listed by GET /api-keys
+
+curl -X PATCH "$WESOG_API/api-keys/$KEY_REF" \
+  -H "Authorization: Bearer $SESSION_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"allowed_origins": ["https://www.mysite.com"]}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"Authorization": f"Bearer {os.environ['SESSION_TOKEN']}"}
+
+r = requests.patch(f"{API}/api-keys/{os.environ['KEY_REF']}", headers=headers,
+                   json={"allowed_origins": ["https://www.mysite.com"]})
+print(r.status_code, r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+
+const r = await fetch(`${API}/api-keys/${process.env.KEY_REF}`, {
+  method: "PATCH",
+  headers: { Authorization: `Bearer ${process.env.SESSION_TOKEN}`, "Content-Type": "application/json" },
+  body: JSON.stringify({ allowed_origins: ["https://www.mysite.com"] }),
+});
+console.log(r.status, await r.json());
+```
+</CodeGroup>
+
+Errors: `400` `api_key_origin_invalid` (an address has a wrong format), `400` `api_key_origins_too_many` (more than 10), `400` `api_key_scope_unknown` (a scope that does not exist), `400` `api_key_limit_above_plan` (a limit above your plan's), `503` `client_tokens_unavailable` (try again later).
+
+## Manage keys by API
+
+The operations behind the screen are `GET /api-keys`, `POST /api-keys`, `PATCH /api-keys/{ref}`, `POST /api-keys/{ref}/rotate`, `DELETE /api-keys/{ref}` and `GET /api-keys/usage?month=YYYY-MM`. They are for administrators who are signed in and are not part of the API reference, because an API key cannot create or change keys. The body of `POST` and `PATCH` can carry `name`, `scopes`, `max_requests_per_minute`, `max_requests_per_month`, `allowed_origins` and, in `PATCH`, `is_enabled`. The secret appears in the answer of `POST` and of rotate, only once.
+
+## Good practice
+
+- One key per application or integration; name it after the integration.
+- Give each key the fewest scopes it needs: a key that only searches should have only `search`.
+- Rotate a key when someone who knew it leaves, or if it may have leaked.
+- Keys never go in web pages, mobile apps or public repositories.

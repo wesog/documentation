@@ -1,0 +1,186 @@
+---
+title: "Keywords"
+description: "Suggest the keywords of a photo."
+icon: "key"
+noindex: true
+---
+
+**Keywords** (`keywords`) suggests the keywords that describe a photo.
+
+## What it does
+
+It analyses the image and returns a list of keywords in the language you choose. You can limit how many you want. On screen the keywords are shown as chips: you can add the ones you miss and remove the ones you do not want, and decide whether they are added to the keywords the file already has or replace them.
+
+## When to use it
+
+Use it when you only need keywords. For caption, text and people in the same call use [Tag Photos](/new/tools/tag-photos).
+
+## Inputs
+
+One image per run. In this tool the fields are named in Spanish: `imagen` (file) or `imagen_url`.
+
+## Parameters
+
+| On screen | API field | Values | Default |
+|---|---|---|---|
+| Select the source (Library, Local or FTP) | `imagen` (file) or `imagen_url` | A file, or a public web address | Required: one of the two |
+| Keywords language | `idioma` | Language code, for example `es` or `en` | empty |
+| (API only) | `max_keywords` | Maximum number of keywords, sent as a number in text | empty |
+| (API only) | `timeout_ms` | Whole number, 1000 to 600000 | See *Synchronous or asynchronous* below |
+
+## Output
+
+Result of a finished run, captured from the platform with a public-domain photo.
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "succeeded",
+  "response_mode": "completed",
+  "auto_keywords": [
+    "office",
+    "indoor light",
+    "Medium shot",
+    "One person",
+    "Posing",
+    "American flags",
+    "desk",
+    "dark suit",
+    "blue tie",
+    "politics",
+    "smile",
+    "cross his arms"
+  ]
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `auto_keywords` | List of suggested keywords. |
+
+## Review
+
+The tool itself has no review queue: the result appears on screen as soon as it is processed. You can correct it before saving or downloading. Keywords are chips in the result: add with Enter, remove with the cross on each one, and choose **add** or **replace** for the keywords already in the file.
+
+If you want a person to approve results before they are written to your files, or you process files as they arrive, put this tool in a workflow with a **Review** step (see [Reviews](/new/workflows/reviews)). By API you always receive the result as the tool produced it; there is no review step.
+
+## From the platform
+
+1. In the left menu open **Tools**. The tools are grouped as **Image**, **Video** and **Share**.
+2. In the group **Image**, click **Keywords**.
+3. Under **Select the source**, choose **Library**, **Local** (your computer) or **FTP**, and pick the image or images. Click **Next**.
+4. Choose the **Keywords language**.
+5. Click **Process**. If it takes long, click **Continue in background** and follow it from the executions; you will be notified. When it finishes you see the result; use **Save to library** or **Download**. In the result, add or remove keywords as chips.
+
+## By API
+
+Set the address once and reuse it. Every call needs your API key in the `X-API-Key` header ([Authentication](/new/start/authentication)); the key must be allowed to use **Tools** (scope `tools`).
+
+<CodeGroup>
+```bash cURL
+export WESOG_API=https://api-platform.wesog.com/api/v1
+export WESOG_API_KEY="<your key>"
+export IMAGE_URL="https://YOUR-SERVER/photo.jpg"
+
+curl -X POST "$WESOG_API/tools/keywords" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "imagen_url=$IMAGE_URL" \
+  -F "idioma=en" \
+  -F "max_keywords=10"
+```
+
+```python Python
+import os
+import time
+import requests
+
+API = "https://api-platform.wesog.com/api/v1"
+HEADERS = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+IMAGE_URL = "https://YOUR-SERVER/photo.jpg"  # a public address of your own image
+
+r = requests.post(f"{API}/tools/keywords", headers=HEADERS, json={
+    "imagen_url": IMAGE_URL,
+    "idioma": "en",
+    "max_keywords": "10"
+})
+r.raise_for_status()
+while r.status_code == 202:  # still running: ask again
+    time.sleep(2)
+    r = requests.get(f"{API}/tools/runs/{r.json()['run_id']}", headers=HEADERS)
+    r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+const IMAGE_URL = "https://YOUR-SERVER/photo.jpg"; // a public address of your own image
+
+let r = await fetch(`${API}/tools/keywords`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+  "imagen_url": IMAGE_URL,
+  "idioma": "en",
+  "max_keywords": "10"
+}),
+});
+let data = await r.json();
+while (r.status === 202) { // still running: ask again
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  r = await fetch(`${API}/tools/runs/${data.run_id}`, { headers });
+  data = await r.json();
+}
+console.log(data);
+```
+</CodeGroup>
+
+To send a file instead of an address, use `multipart/form-data` and put the file in the field `imagen`:
+
+```bash
+curl -X POST "$WESOG_API/tools/keywords" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "imagen=@photo.jpg"
+```
+
+Use the file **or** the address for each input, never both in the same request.
+
+### Synchronous or asynchronous
+
+The call to `POST /tools/keywords` starts a run. The platform answers `202 Accepted` with a `run_id` and a `poll_path`:
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "queued",
+  "response_mode": "accepted",
+  "poll_path": "/api/v1/tools/runs/357569a6-d9ec-4ead-885b-68ad792321a5",
+  "progress": { "completed": 0, "total": 1, "percent": 0, "label": "En cola" }
+}
+```
+
+The `run_id` is the one you get in your own answer; the value above only shows the shape. Ask for the result with `GET $WESOG_API/tools/runs/$RUN_ID` every one or two seconds:
+
+- `202` while the run is `queued` or `running`: the same small body as above.
+- `200` when it has finished. `status` tells how it ended: `succeeded`, `failed`, `timeout` or `cancelled`. If it succeeded, the fields of the tool are at the top level of the body, next to `run_id`, `status` and `response_mode: "completed"`. If it failed, `error` carries a `code` and a `message`.
+
+The call never waits for the result: it always answers `202`, so your program must poll. `timeout_ms` (1000 to 600000) is accepted but does not change that. To stop a run you no longer need, send `POST $WESOG_API/tools/runs/$RUN_ID/cancel`. More in [Async tasks](/new/start/async).
+
+## Limits and errors
+
+- **Credits and plan.** Each run counts against the monthly allowance of your plan. When the allowance is used up, the credits you bought are used (see [Plan and billing](/new/settings/plan-and-billing)). If your plan does not include this tool, `GET /tools` shows it with `catalog_use_allowed: false`.
+- **Rate limits.** The usual limits per minute and per month of your key apply ([Limits](/new/start/limits-and-plans)).
+
+| Status | `code` | What to do |
+|---|---|---|
+| `401` | `unauthorized` | Send your key in `X-API-Key`. |
+| `403` | `forbidden` | The key cannot use tools: add the scope `tools`, or use a key without scopes. |
+| `404` | `not_found` | The `run_id` does not exist in your organization. |
+| `422` | `validation_error` | A field is not valid or an input is missing, or you sent a file **and** an address for the same input. `errors` lists the fields to fix. |
+| `429` | `api_key_rate_limit_reached` | Wait the seconds in `Retry-After` and retry. |
+
+Every error has `code`, `message` and `request_id`; quote the `request_id` to support. More in [Errors](/new/start/errors).
+
+## Keywords from your thesaurus (`keywords_v2`)
+
+`POST /tools/keywords_v2` is a second keywords tool for organizations that keep a [thesaurus](/new/thesaurus/overview): instead of free words, it proposes keywords chosen from your thesaurus, using the metadata you already have on the photo. Besides the image (`image` or `image_url`; `image` is required) it accepts the metadata it can use as context: `title`, `headline`, `caption`, `alt_text_short`, `alt_text_description`, `event`, `location`, `capture_date`, `author`, `credit_line`, `provider_name`, `ocr`, and the lists `persons`, `keywords`, `subject_codes`, `scene_codes`, `categories`, `supplementary_categories`. `lang` (default `en`) is the language and `use_metadata_keywords` (default `true`) decides whether the keywords the photo already carries are taken into account. It answers with `keywords` and `keyword_matches` (lists). It follows the same 202 and polling rules as every tool.

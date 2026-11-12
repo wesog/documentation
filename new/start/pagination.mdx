@@ -1,0 +1,80 @@
+---
+title: "Pagination"
+description: "How to read long lists: limit and offset for lists and searches, start_after for folders."
+icon: "list"
+noindex: true
+---
+
+Lists never come in one piece. There are two ways to ask for the next page, depending on the operation.
+
+## Searches and lists with `limit` and `offset`
+
+`POST /library/search`, `GET /tools`, `GET /workflows`, `GET /workflow-instances` and `GET /trash/library` take `limit` (how many) and `offset` (how many to skip). `limit` goes up to 200.
+
+A search tells you where the next page starts: when `next_offset` is in the answer, send it as `offset`; when it is missing you have the last page. `total` is how many files match (`total_is_estimated` is `true` when it is approximate on very large results). Lists such as `GET /tools` answer `items`, `total`, `limit` and `offset`.
+
+<CodeGroup>
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+offset, found = 0, []
+while offset is not None:
+    r = requests.post(f"{API}/library/search", headers=headers,
+                      json={"query": "tennis final", "limit": 100, "offset": offset})
+    r.raise_for_status()
+    page = r.json()
+    found += page["items"]
+    offset = page.get("next_offset")
+print(len(found))
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+
+let offset = 0;
+const found = [];
+while (offset !== undefined && offset !== null) {
+  const r = await fetch(`${API}/library/search`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ query: "tennis final", limit: 100, offset }),
+  });
+  const page = await r.json();
+  found.push(...page.items);
+  offset = page.next_offset;
+}
+console.log(found.length);
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -X POST "$WESOG_API/library/search" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "tennis final", "limit": 100, "offset": 0}'
+# next page: repeat with "offset" set to the "next_offset" of the answer
+```
+</CodeGroup>
+
+## Folders with `start_after`
+
+`GET /storage/objects` lists a folder in alphabetical order. When `has_more` is `true`, repeat the call with `start_after` set to the `next_start_after` you got. `$FOLDER` is the folder you are listing, for example one you created in the Library.
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl "$WESOG_API/storage/objects?prefix=$FOLDER/&limit=100&start_after=$NEXT_START_AFTER" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+## Good habits
+
+- Ask for the page size you need (up to 200 in searches), not one file at a time.
+- Do not rely on `total` to stop: stop when there is no `next_offset` or `has_more` is `false`.
+- Files uploaded or deleted while you page can shift later pages. For an exact copy of a folder, list it again at the end.
+- Every page is a request and counts for your [limits](/new/start/limits-and-plans).

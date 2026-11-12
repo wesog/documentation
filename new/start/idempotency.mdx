@@ -1,0 +1,78 @@
+---
+title: "Idempotency"
+description: "Repeat a call safely after a timeout with the Idempotency-Key header."
+icon: "repeat"
+noindex: true
+---
+
+If your call times out you do not know whether the file was uploaded or the workflow was launched. If you repeat it, it might happen twice.
+
+Send an `Idempotency-Key` header with a value you choose (a UUID) on the operations that create or launch something. Repeating the call with **the same key** gives you the **first answer again** instead of running it again. The repeated answer carries `Idempotent-Replayed: true`.
+
+`$INSTANCE_ID` is the id of the workflow you launched (see [Run a workflow](/new/workflows/run-by-api)) and `$RESOURCE_ID` the id of a file of your Library, as returned by a search.
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+KEY=$(uuidgen)   # create it once per job and reuse it in every retry
+
+curl -X POST "$WESOG_API/workflow-instances/$INSTANCE_ID/api/requests" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H "Idempotency-Key: $KEY" \
+  -H 'Content-Type: application/json' \
+  -d "{\"resource_ids\": [$RESOURCE_ID]}"
+```
+
+## Where it works
+
+The operations marked with the `Idempotency-Key` parameter in the [API reference](/new/openapi/introduction): running a tool, uploading a file (including the large-upload steps), creating a folder, deleting a file, sending files to a workflow and launching a workflow. Elsewhere the header is ignored.
+
+## Rules
+
+- The key has 1 to 128 characters: letters, digits, `-`, `_`, `:` and `.`.
+- It is remembered for **24 hours**, per API key, method and path.
+- Same key and **same** body: the first answer again, without running anything.
+- Same key and a **different** body: `409` `idempotency_key_reuse`. A key identifies one operation; use a new key for a new one.
+- Same key while the first call is **still running**: `409` `idempotency_key_in_use` with `Retry-After`. Wait and repeat.
+- Only **successful** answers are remembered. If the first call failed (`4xx`, `429`, `5xx`) you can repeat it with the same key and it runs.
+
+## A good pattern
+
+Create the key when you decide to do the operation, store it with your job, and use it for every retry of that job.
+
+<CodeGroup>
+```python Python
+import os, uuid, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+key = str(uuid.uuid4())          # one per job, kept for its retries
+r = requests.post(f"{API}/storage/folders", headers={**headers, "Idempotency-Key": key},
+                  json={"relative_path": "events/2027"})
+print(r.status_code, r.headers.get("Idempotent-Replayed"))
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const key = crypto.randomUUID(); // one per job, kept for its retries
+const r = await fetch(`${API}/storage/folders`, {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json", "Idempotency-Key": key },
+  body: JSON.stringify({ relative_path: "events/2027" }),
+});
+console.log(r.status, r.headers.get("Idempotent-Replayed"));
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+KEY=$(uuidgen)   # one per job, kept for its retries
+
+curl -X POST "$WESOG_API/storage/folders" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H "Idempotency-Key: $KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"relative_path": "events/2027"}'
+```
+</CodeGroup>

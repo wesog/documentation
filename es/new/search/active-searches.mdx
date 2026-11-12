@@ -1,0 +1,67 @@
+---
+title: "Búsquedas activas y alertas"
+description: "Entérate cuando lleguen archivos nuevos que encajen con una búsqueda, sin consultar la API una y otra vez."
+icon: "bell"
+noindex: true
+---
+
+Una **búsqueda activa** repite una búsqueda por ti y te avisa cuando llegan archivos nuevos que encajan: *«fotos nuevas de la semana de la moda de Madrid»*. Es la forma de reaccionar al contenido nuevo sin consultar la API continuamente. En la plataforma es la pantalla **Búsquedas activas**; los avisos se llaman **alertas**.
+
+Las búsquedas activas pertenecen a una **persona**, no a una clave de API. Se crean y gestionan en la plataforma o desde un agente de IA conectado por [MCP](/es/new/search/connect-agents). No hay endpoints REST para ellas (mira [Si tu programa necesita reaccionar](#si-tu-programa-necesita-reaccionar)).
+
+## Desde la plataforma
+
+### Crear una
+
+- En **Buscador**, pídelo con tus palabras (*«avísame cuando haya fotos de Rosalía»*), o haz una búsqueda y pulsa **Avisarme de nuevas** bajo los resultados.
+- En los dos casos Wesog te enseña una propuesta: cómo ha entendido la búsqueda, dónde buscará y cuántos resultados habría hoy. Si algo es dudoso, te pregunta primero. **La alerta no existe hasta que pulsas Crear alerta**, así una alerta que entendió mal nunca envía ruido.
+- Eliges la frecuencia y, si quieres, una caducidad en la propuesta, o la pides con tus palabras (*«avísame en cuanto...»*, *«una vez al día»*).
+
+### Gestionarlas
+
+Abre **Búsquedas activas** en el menú lateral (bajo **Buscador**). La pantalla no tiene botón para crear una nueva: se crean desde **Buscador**. De cada una ves la búsqueda, su fecha, su **Frecuencia de alerta**, su **Caducidad** y su estado (**Activa** o **Inactiva**). Desde ahí puedes **Activarla** o **Desactivarla**, **Editarla**, borrarla y **Ver resultados** para ver lo que ha encontrado, separado en **Imágenes** y **Vídeos** y ordenado por **Similares** o **Más reciente**.
+
+### Cómo se comporta
+
+- Solo te avisa de archivos que llegan **después** de crearla, y nunca dos veces del mismo archivo.
+- Eliges cada cuánto: **Inmediata** (en segundos), **Cada hora** (por defecto; un solo aviso con todo lo nuevo) o **Diaria** (un resumen al día).
+- Los avisos llegan a la campana de notificaciones. Marca **Avisarme también por correo con un resumen** para recibir también un email.
+- No caduca salvo que pongas una fecha final (**1 semana**, **1 mes** o una fecha). Cuando llega la fecha se pausa sola y te llega un aviso a la campana; para reanudarla quita la fecha o pon una nueva.
+- Lo que llega mientras una alerta está en pausa no se avisa al reanudarla.
+- También se pausa si la pausas tú, si pierdes el acceso a la organización, si tu plan ya no permite tantas alertas o tras varios fallos seguidos (puedes reanudarla).
+
+### Límites
+
+Tu plan fija cuántas alertas activas puedes tener y cuántas pueden ser **Inmediatas**. El plan Free no tiene ninguna. Las pausadas no cuentan. Si tu plan baja, las alertas que ya no caben se pausan y no se reanudan solas al subir de plan. Mira tus cifras en **Ajustes del tenant actual > Suscripción** (menú de la organización). Cada alerta avisa además un número limitado de veces por hora y por día (lo que llega entre medias se agrupa en el siguiente aviso). Más en [Límites y planes](/es/new/start/limits-and-plans).
+
+## Por API
+
+No disponible. Las búsquedas activas las crea y gestiona una persona en la plataforma, o un agente de IA conectado por [MCP](/es/new/search/connect-agents) («avísame cuando lleguen fotos nuevas de la semana de la moda»). El agente te pide confirmar antes de crear una.
+
+### Si tu programa necesita reaccionar
+
+Usa uno de estos dos patrones:
+
+- Deja que la alerta avise a una persona (campana o email), y que la persona o tu agente abra los resultados.
+- Haz que tu programa [busque](/es/new/search/search) con una cadencia, pidiendo los últimos archivos (una `query` vacía con `sort` en `created_desc`, o un rango de fechas `created_at` en `filters`), y recuerda el último `entity_id` que procesaste.
+
+```python
+import os, time, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+last_seen = 0
+
+while True:
+    r = requests.post(f"{API}/library/search", headers=H,
+                      json={"query": "", "sort": "created_desc", "limit": 50})
+    r.raise_for_status()
+    new = [i for i in r.json()["items"] if (i.get("entity_id") or 0) > last_seen]
+    for item in reversed(new):
+        print("archivo nuevo", item["entity_id"], item["relative_path"])
+    if new:
+        last_seen = max(i["entity_id"] for i in new)
+    time.sleep(300)
+```
+
+Cada búsqueda cuenta en las búsquedas de tu plan, así que no consultes más a menudo de lo necesario. La primera ejecución trata todo como nuevo; para empezar desde «ahora», fija `last_seen` al `entity_id` más alto de una primera llamada.

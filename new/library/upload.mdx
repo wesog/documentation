@@ -1,0 +1,208 @@
+---
+title: "Upload content"
+description: "Add files to the Library from the platform, by API (simple and in parts) or through the FTP and S3 of Wesog."
+icon: "upload"
+noindex: true
+---
+
+There are three ways to get files into Wesog: from the platform, by API, and through the FTP or S3 of Wesog. Files saved in the Library are indexed, so you can [search](/new/search/search) them within minutes.
+
+## From the platform
+
+In **Library**, press **Add content**; the upload options open (**Upload options**). You choose what happens to the files. The Library accepts images, videos and audio: any other file (a PDF, a document) is refused with a notice.
+
+| Option | What it does |
+|---|---|
+| **Upload to Wesog** | *Save and index in your library.* The file is stored and becomes searchable. |
+| **Index** | *Index without permanent save.* Wesog analyses the file but does not keep the original. |
+| **Upload to Wesog FTP** | *Add files to the selected FTP directory.* See [FTP and S3 of Wesog](#ftp-and-s3-of-wesog). |
+| **Upload from local** | *Select files from your device.* |
+| **Upload from library** | *Pick files already saved in Wesog.* |
+
+Drag files or folders onto the upload window, or select them from your computer. While they upload you see the progress (*Uploading 3/10*), and **Upload history** lists the recent uploads with their errors. **Cancel upload** stops the rest.
+
+## By API
+
+You need a key with the `library` scope (or no scopes). See [API keys](/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+### Upload a file (up to 100 MB)
+
+`POST /storage/upload`, as `multipart/form-data`: the file in `file` and its destination path in `relative_path`.
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/storage/upload" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -F 'file=@IMG_0412.jpg' \
+  -F 'relative_path=events/2026/madrid/IMG_0412.jpg'
+```
+
+```python Python
+import os, uuid, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+
+with open("IMG_0412.jpg", "rb") as f:
+    r = requests.post(
+        f"{API}/storage/upload",
+        headers={"X-API-Key": os.environ["WESOG_API_KEY"], "Idempotency-Key": str(uuid.uuid4())},
+        files={"file": f},
+        data={"relative_path": "events/2026/madrid/IMG_0412.jpg"},
+    )
+r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+import { openAsBlob } from "node:fs";
+
+const API = "https://api-platform.wesog.com/api/v1";
+
+const form = new FormData();
+form.append("file", await openAsBlob("IMG_0412.jpg"), "IMG_0412.jpg");
+form.append("relative_path", "events/2026/madrid/IMG_0412.jpg");
+const r = await fetch(`${API}/storage/upload`, {
+  method: "POST",
+  headers: { "X-API-Key": process.env.WESOG_API_KEY, "Idempotency-Key": crypto.randomUUID() },
+  body: form,
+});
+console.log(await r.json());
+```
+</CodeGroup>
+
+```json
+{ "relative_path": "events/2026/madrid/IMG_0412.jpg", "action": "created", "resource_id": 1048223 }
+```
+
+- `action` is `created`, or `replaced` when the path already existed: **uploading to an existing path replaces the file.**
+- `resource_id` is the **numeric id** of the file: use it as the `row_id` to [edit its metadata](/new/library/metadata), in `resource_ids` to send it to a [workflow](/new/workflows/run-by-api), and to [delete](/new/library/trash) it. The answer can also carry `source_table` (copy it as returned); if it does not, you get it from a [search](/new/search/search) or from `GET /storage/objects`. See [Identifiers](/new/library/overview#identifiers-resource_id-entity_id-and-source_table).
+- The file is indexed and searchable within minutes.
+- A repeated call with the same `Idempotency-Key` within 24 hours returns the first answer instead of uploading twice (a different body with the same key is `409`). See [Idempotency](/new/start/idempotency).
+
+### Upload a big file in parts
+
+For files over 100 MB (videos). Three steps:
+
+1. `POST /storage/upload/multipart/init` with `relative_path`, `expected_size_bytes` and, optionally, `content_type` and `part_size_bytes` (parts of 5 to 64 MB, at most 10,000; the default is 24 MB). You get an `upload_id`, `part_size_bytes`, `total_parts` and one `upload_url` per part.
+2. Send each part with `PUT` to its `upload_url`; the body is the bytes of that part.
+3. `POST /storage/upload/multipart/complete` with `relative_path`, `upload_id` and `total_parts`. Send `"skip_library_ingestion": false` so the file is indexed; by default a file sent in parts is stored without indexing.
+
+If something fails, `POST /storage/upload/multipart/abort` with `relative_path` and `upload_id` discards the parts (`204`, no body).
+
+<CodeGroup>
+```bash cURL
+SIZE=$(stat -c %s final.mp4)
+
+curl -X POST "$WESOG_API/storage/upload/multipart/init" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d "{\"relative_path\": \"events/2026/final.mp4\", \"expected_size_bytes\": $SIZE, \"content_type\": \"video/mp4\"}"
+# then PUT each part to its upload_url, and:
+curl -X POST "$WESOG_API/storage/upload/multipart/complete" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"relative_path": "events/2026/final.mp4", "upload_id": "up_3b9f", "total_parts": 11, "skip_library_ingestion": false}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+path, name = "events/2026/final.mp4", "final.mp4"
+
+init = requests.post(f"{API}/storage/upload/multipart/init", headers=H, json={
+    "relative_path": path,
+    "expected_size_bytes": os.path.getsize(name),
+    "content_type": "video/mp4",
+}).json()
+
+try:
+    with open(name, "rb") as f:
+        for part in init["parts"]:
+            requests.put(part["upload_url"], data=f.read(part["size_bytes"])).raise_for_status()
+    done = requests.post(f"{API}/storage/upload/multipart/complete", headers=H, json={
+        "relative_path": init["relative_path"],
+        "upload_id": init["upload_id"],
+        "total_parts": init["total_parts"],
+        "skip_library_ingestion": False,
+    })
+    done.raise_for_status()
+    print(done.json())      # relative_path, action, resource_id
+except Exception:
+    requests.post(f"{API}/storage/upload/multipart/abort", headers=H,
+                  json={"relative_path": path, "upload_id": init["upload_id"]})
+    raise
+```
+
+```javascript JavaScript
+import { openAsBlob } from "node:fs";
+import { statSync } from "node:fs";
+
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+const path = "events/2026/final.mp4", name = "final.mp4";
+
+const init = await (await fetch(`${API}/storage/upload/multipart/init`, {
+  method: "POST", headers: H,
+  body: JSON.stringify({ relative_path: path, expected_size_bytes: statSync(name).size, content_type: "video/mp4" }),
+})).json();
+
+const file = await openAsBlob(name);
+let offset = 0;
+for (const part of init.parts) {
+  const chunk = file.slice(offset, offset + part.size_bytes);
+  offset += part.size_bytes;
+  const put = await fetch(part.upload_url, { method: "PUT", body: chunk });
+  if (!put.ok) throw new Error(`part ${part.part_number} failed`);
+}
+const done = await fetch(`${API}/storage/upload/multipart/complete`, {
+  method: "POST", headers: H,
+  body: JSON.stringify({ relative_path: init.relative_path, upload_id: init.upload_id, total_parts: init.total_parts, skip_library_ingestion: false }),
+});
+console.log(await done.json());
+```
+</CodeGroup>
+
+The `init` answer:
+
+```json
+{
+  "relative_path": "events/2026/final.mp4",
+  "upload_id": "up_3b9f",
+  "part_size_bytes": 67108864,
+  "total_parts": 11,
+  "parts": [ { "part_number": 1, "upload_url": "https://...", "size_bytes": 67108864 } ]
+}
+```
+
+The `upload_url` of each part is a temporary address: do not add your API key when you `PUT` to it.
+
+### Errors and limits
+
+| Status | Meaning |
+|---|---|
+| `400`, `422` | The request is not valid (for example an empty file). |
+| `401`, `403` | Missing or invalid key, or a key whose scopes do not include `library`. |
+| `404`, `409` | On `complete`: the upload is unknown, or the parts are not all there. |
+| `413` | The file is over the limit of a simple upload: send it in parts. |
+| `429` | Too many requests. Wait `Retry-After`. |
+
+The Library accepts images, videos and audio. It also counts against the storage of your plan. See [Limits and plans](/new/start/limits-and-plans).
+
+## FTP and S3 of Wesog
+
+Your organization has an **FTP** and an **S3** of Wesog: a place where you or your systems can leave files with the tools you already use (an FTP client, a camera or agency feed, an S3 tool). Both are the same space, reached in two ways. The accesses are created in **Current tenant settings > Storage** (by whoever manages the organization), see [FTP and S3 of Wesog](/new/settings/ftp-s3).
+
+In the platform, open **FTP Wesog** in the Library: *Files that arrive through Wesog FTP or S3.* You can browse its folders, create a **New folder**, rename, download, preview and **Upload files** into it. Files you upload there *stay in the FTP area of this folder. They are not added to the Library*: they are stored as they are, without indexing. When a name already exists you choose **Skip existing ones**, **Replace** or **Keep both**.
+
+What reaches the FTP or S3 is deleted automatically some days after it arrived; the **FTP Wesog** section shows the days left, and what a workflow is still using is not deleted. What makes those files useful is a workflow whose input is that FTP or S3: it takes each new file, processes it and saves the result in the Library, in an FTP or S3 output, or returns it by API. See [Workflows](/new/workflows/overview).
+
+<Note>
+If you rename a folder of the FTP area that a workflow watches, the workflow stops finding it. The platform warns you and leaves those workflows stopped; point their input at the new folder and start them again.
+</Note>
+
+By API the FTP and S3 are used with the FTP and S3 protocols, not with these endpoints.

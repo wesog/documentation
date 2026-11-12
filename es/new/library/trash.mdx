@@ -1,0 +1,113 @@
+---
+title: "Papelera y restaurar"
+description: "Borra archivos de la Biblioteca, recupéralos durante 30 días y vacía la papelera."
+icon: "trash-can"
+noindex: true
+---
+
+Borrar un archivo de la Biblioteca lo mueve a la **Papelera**. Desaparece de la búsqueda al instante y se puede restaurar durante **30 días**. Pasado ese plazo se elimina definitivamente.
+
+## Desde la plataforma
+
+- **Borrar.** En **Biblioteca**, haz clic con el botón derecho en los archivos o carpetas y elige **Mover a papelera**. Para una carpeta, Wesog te avisa de que la carpeta y todo su contenido irán a la papelera y de que podrás restaurarlos. Una carpeta grande sigue en segundo plano y puede tardar unos minutos.
+- **Restaurar.** Abre **Papelera** en el menú de la Biblioteca, busca el elemento y pulsa **Restaurar**. Un archivo vuelve a donde estaba y se puede buscar otra vez. Si en esa carpeta ya hay un archivo con el mismo nombre, Wesog no lo sobrescribe: avisa del conflicto, y renombras o borras antes el existente.
+- **Borrar para siempre.** En la papelera, **Eliminar definitivamente** quita un elemento, y **Vaciar papelera** lo quita todo. No se puede deshacer. Borrar una colección no borra sus archivos.
+- **Workflows.** Borrar una carpeta que vigila un workflow hace que ese workflow deje de vigilarla; el workflow no se borra.
+
+## Por API
+
+Borrar, listar y restaurar necesitan una clave con el permiso `library` **marcado**; una clave sin permisos limitados no puede borrar ni restaurar. Vaciar la papelera definitivamente se hace en la plataforma. Mira [Claves de API](/es/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+### Borrar un archivo
+
+`POST /trash/library/resources` con el id numérico del archivo como **cadena** (el `entity_id` de un resultado de búsqueda o el `resource_id` de una subida). Envía un `Idempotency-Key`: borrar es seguro de repetir.
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/trash/library/resources" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"resource_id": "1048223"}'
+```
+
+```python Python
+import os, uuid, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.post(f"{API}/trash/library/resources",
+                  headers={**H, "Idempotency-Key": str(uuid.uuid4())},
+                  json={"resource_id": "1048223"})
+r.raise_for_status()
+trash_id = r.json()["trash_id"]
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/trash/library/resources`, {
+  method: "POST",
+  headers: { ...H, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+  body: JSON.stringify({ resource_id: "1048223" }),
+});
+const { trash_id } = await r.json();
+```
+</CodeGroup>
+
+```json
+{ "ok": true, "trash_id": "trs_5c1d77", "resource_type": "library", "action": "trash", "in_progress": false, "failed_count": 0, "failed_paths": [] }
+```
+
+Guarda el `trash_id`: es lo que usas para restaurar. `404` significa que no hay ese archivo en tu organización. Mira [Identificadores](/es/new/library/overview#identificadores-resource_id-entity_id-y-source_table) para saber qué id enviar.
+
+### Ver la papelera
+
+`GET /trash/library?limit=50` lista lo que hay en la papelera y cuándo se eliminará definitivamente cada elemento (`expires_at`).
+
+```json
+{
+  "items": [
+    { "trash_id": "trs_5c1d77", "resource_type": "library", "resource_id": "1048223", "resource_label": "Pasarela en Cibeles",
+      "item_count": 1, "deleted_at": "2026-11-12T10:02:11Z", "expires_at": "2026-12-12T10:02:11Z" }
+  ],
+  "limit": 50,
+  "resource_type": "library"
+}
+```
+
+### Restaurar
+
+`POST /trash/library/{trash_id}/restore` devuelve el archivo a donde estaba y lo hace buscable otra vez.
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/trash/library/trs_5c1d77/restore" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+r = requests.post(f"{API}/trash/library/{trash_id}/restore", headers=H)
+r.raise_for_status()
+print(r.json()["action"])     # restore
+```
+
+```javascript JavaScript
+const r = await fetch(`${API}/trash/library/${trash_id}/restore`, { method: "POST", headers: H });
+console.log((await r.json()).action);   // restore
+```
+</CodeGroup>
+
+### Errores
+
+| Estado | Significado |
+|---|---|
+| `401`, `403` | Falta la clave o no es válida, o la clave no tiene el permiso `library` marcado. |
+| `404` | El archivo o el elemento de la papelera no existe. |
+| `409` | Ya existe un archivo con ese nombre donde se restauraría. |
+| `410` | El elemento caducó (más de 30 días en la papelera). |
+| `429` | Demasiadas peticiones. Espera `Retry-After`. |

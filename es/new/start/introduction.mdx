@@ -1,0 +1,48 @@
+---
+title: "Introducción"
+description: "Qué es Wesog y cómo está organizada la documentación, sección a sección, como el menú de la plataforma."
+icon: "compass"
+noindex: true
+---
+
+Wesog es una plataforma para **encontrar, enriquecer y mover tus fotos, vídeos y documentos**. Los guardas en una **Biblioteca**, los buscas con lenguaje natural, dejas que las herramientas de IA los describan y etiqueten, y encadenas esos pasos en **workflows** que se ejecutan solos.
+
+Todo lo que puedes hacer en la plataforma lo puedes hacer también desde tu propio software con la **API**. Esta documentación sigue el mismo orden que el menú de la plataforma, para que siempre sepas dónde vive una página en el producto y dónde vive una función en la documentación.
+
+## Cómo está organizada la documentación
+
+| Sección de la documentación | En la plataforma | Qué cubre |
+|---|---|---|
+| **Empezar** (esta sección) | - | Inicio rápido, autenticación, errores, límites y planes, y las reglas comunes de toda la API. |
+| **Buscador** | **Buscador**, **Búsquedas activas**, **Conectar un agente** | Buscar en tu Biblioteca, la búsqueda conversacional, un buscador en tu propia web, avisos de nuevas coincidencias y conectar ChatGPT, Claude o tu propio agente. |
+| **Workflows** | **Workflows**, **Revisiones** | Automatizaciones hechas de pasos: plantillas, el Studio, ejecuciones y la revisión de resultados antes de guardarlos. |
+| **Herramientas** | **Herramientas** | Las herramientas de IA que puedes ejecutar sobre un archivo, una a una, por pantalla o por API. |
+| **Entidades** | **Entidades** | Personas, lugares, marcas y otras cosas que Wesog reconoce, y las tuyas privadas. |
+| **Tesauro** | **Tesauro** | El vocabulario controlado con el que se etiqueta tu contenido. |
+| **Biblioteca** | **Biblioteca** | Subir contenido (web, API, FTP o S3), editar metadatos, papelera y restaurar. |
+| **Ajustes** | El menú de la organización, **Credenciales**, **Suscripciones** | Tu organización y usuarios, claves de API, accesos FTP y S3, conexiones, plan y facturación. |
+| **Novedades** | - | Qué cambió y cuándo, solo lo que notas como cliente. |
+
+## Tu organización
+
+Una **organización** es el espacio de tu cuenta en Wesog: sus usuarios, su Biblioteca, sus workflows, sus claves de API, su plan y sus límites. Todo lo que subes o creas pertenece a la organización, no a una sola persona. Una persona puede pertenecer a varias organizaciones y cambia de una a otra desde el menú de arriba de la barra lateral.
+
+Tu **plan** decide cuántos usuarios, cuánto almacenamiento, cuántas peticiones, búsquedas y créditos tienes. Mira [Límites y planes](/es/new/start/limits-and-plans).
+
+## Dos formas de hacerlo todo
+
+<CardGroup cols={2}>
+  <Card title="Desde la plataforma" icon="browser">Cada página de esta documentación dice dónde pulsar, con los nombres de menús y botones tal como los ves.</Card>
+  <Card title="Desde la API" icon="code">Cada página muestra también la llamada, con ejemplos en cURL, Python y JavaScript. Si algo solo se puede hacer en la plataforma, la página lo dice.</Card>
+</CardGroup>
+
+La API está en `https://api-platform.wesog.com/api/v1`. Todas las operaciones están en la [referencia de la API](/es/new/openapi/introduction), con consola en vivo.
+
+## Por dónde seguir
+
+<CardGroup cols={2}>
+  <Card title="Inicio rápido" icon="rocket" href="/es/new/start/quickstart">Crea una clave y haz tu primera llamada en tres pasos.</Card>
+  <Card title="Autenticación" icon="key" href="/es/new/start/authentication">Cómo enviar tu clave y qué puede hacer.</Card>
+  <Card title="Glosario" icon="book-open" href="/es/new/start/glossary">Las palabras que se usan en la plataforma y en la API.</Card>
+  <Card title="Novedades" icon="clock-rotate-left" href="/es/new/changes">Cambios a los que quizá tengas que reaccionar.</Card>
+</CardGroup>

@@ -1,0 +1,56 @@
+---
+title: "Organización y usuarios"
+description: "Invita a personas a tu organización, elige su rol y gestiona grupos."
+icon: "users"
+noindex: true
+---
+
+Tu **organización** es el espacio donde viven tu equipo, tu Biblioteca, tus workflows, tus claves y tu plan. Las personas pertenecen a ella con un **rol** que decide lo que pueden hacer.
+
+Esta página cubre lo que ofrece la plataforma. Gestionar usuarios y roles **solo está disponible en la plataforma**: la API gestiona contenido, no personas, y una clave de API nunca puede gestionar usuarios.
+
+## Abre los ajustes
+
+En la barra lateral abre el menú de la organización, arriba. Tus organizaciones aparecen ahí; la activa tiene un engranaje (**Ajustes del tenant actual**). Púlsalo. Los ajustes tienen seis pestañas: **General**, **Operación**, **Suscripción**, **Identidad**, **Almacenamiento** y **Acceso a datos**. Las personas y los roles están en **Identidad**.
+
+Si perteneces a varias organizaciones, elige la que quieras en el mismo menú antes de abrir sus ajustes.
+
+## Roles
+
+| Rol | En la plataforma | Qué puede hacer la persona |
+|---|---|---|
+| **Administrador** | `admin` | Todo en la organización: usuarios, claves, conexiones, plan y facturación. |
+| **Miembro** | `member` | Trabaja con el contenido: busca y lee la Biblioteca, sube, ejecuta herramientas y workflows, crea proyectos y entidades propias. No puede gestionar usuarios, claves ni facturación. |
+| **Sin rol base** | `no_base` | Empieza sin permisos. Solo accede a través de los grupos y proyectos a los que se la añade. |
+
+Una clave de API actúa con su propio rol limitado, mira [Claves de API](/es/new/settings/api-keys).
+
+## Invitar a alguien
+
+<Steps>
+  <Step title="Abre Identidad">
+    **Ajustes del tenant actual > Identidad > Miembros**.
+  </Step>
+  <Step title="Elige cómo invitar">
+    Pulsa **Invitar miembro por email** e introduce el correo, o pulsa **Generar enlace** para obtener un **enlace de invitación** que envías tú.
+  </Step>
+  <Step title="Elige el rol">
+    Escoge **Miembro**, **Administrador** o **Sin rol base** y pulsa **Enviar invitación**.
+  </Step>
+</Steps>
+
+La lista **Invitaciones y enlaces de acceso** muestra cada invitación como **Pendiente**, **Aceptada** o **Revocada**. Una invitación pendiente se puede volver a enviar con **Reenviar**.
+
+Si la persona aún no tiene correo, usa la opción **Sin correo: la persona elegirá su correo y su contraseña al entrar**. Wesog crea un acceso con un usuario y una contraseña temporal (de al menos 8 caracteres; si la dejas vacía se genera una). Comparte ambos con la persona. La primera vez que entre pondrá su correo y su contraseña definitivos. Hasta entonces aparece como **Pendiente de completar**.
+
+## Grupos
+
+En una organización colaborativa puedes reunir miembros en **Grupos** (**Crear grupo**, con un nombre y una descripción) y dar permisos al grupo en vez de a cada persona.
+
+## Cuántos usuarios
+
+El número de usuarios depende de tu plan: 1 en Free, Freelance y Creator, 5 en Team y 25 en Premium. Mira [Límites y planes](/es/new/start/limits-and-plans). Una organización con un solo propietario es una organización **personal**: no tiene grupos y no admite más miembros. Pasa a un plan con más usuarios para trabajar en equipo.
+
+## Tu propia cuenta
+
+Tu perfil, tu idioma y la memoria del asistente están en **Perfil de usuario** (una entrada fija del menú de la organización). Son tuyos, no de la organización.

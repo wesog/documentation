@@ -1,0 +1,373 @@
+---
+title: "Búsqueda conversacional"
+description: "Pregunta en lenguaje natural, sigue el progreso de cada búsqueda, responde a preguntas de aclaración y mantén el contexto de una conversación."
+icon: "comments"
+noindex: true
+---
+
+La búsqueda conversacional es lo que usas en **Buscador** dentro de la plataforma: una persona pregunta en lenguaje natural («fotos de Pedro Sánchez sonriendo») y recibe una explicación, las fotos y los vídeos que encajan, o una pregunta cuando la petición es ambigua. Después puede seguir («ahora solo los vídeos») y Wesog recuerda el contexto.
+
+Esta página describe la misma búsqueda por API. Si solo necesitas una petición y una página de resultados, usa la [búsqueda](/es/new/search/search) sencilla.
+
+## Desde la plataforma
+
+Abre **Buscador** en el menú lateral y escribe tu petición. Mientras trabaja ves lo que hace (entender la petición, buscar a las personas, buscar las fotos). Si la petición es ambigua («Sánchez») Wesog pregunta a quién te refieres antes de buscar: elige una opción o escribe la respuesta con tus palabras.
+
+## Por API
+
+Un **turno** es una petición de la persona y su respuesta. Se hace en dos pasos:
+
+1. `POST /assistant/turns` empieza el turno y responde enseguida con un `turn_id`, un `conversation_id` y una `events_url`.
+2. `GET /assistant/turns/{turn_id}/events` envía eventos numerados de progreso y, al final, el resultado o un error (`text/event-stream`).
+
+El turno sigue funcionando en Wesog aunque se corte la conexión. Lee los eventos otra vez con la cabecera `Last-Event-ID` y solo recibes lo que te faltaba.
+
+<Info>
+Usa tu clave de API **desde tu servidor o un script**, nunca en una página web. Para buscar desde una página web propia, con un token de vida corta en lugar de la clave, mira [Buscador en tu propia web](/es/new/search/search-in-your-website).
+</Info>
+
+### Antes de empezar
+
+- Una [clave de API](/es/new/settings/api-keys) de tu organización. Una clave con permisos limitados necesita `search` (o `read`) para estos endpoints; una clave sin permisos limitados puede llamarlos.
+- Define el host una vez: `export WESOG_API="https://api-platform.wesog.com/api/v1"`.
+- Cada turno cuenta en las búsquedas de tu plan y en los límites de tu clave. Mira [Límites y planes](/es/new/start/limits-and-plans).
+
+### 1. Empezar un turno
+
+<CodeGroup>
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -X POST "$WESOG_API/assistant/turns" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "kind": "search",
+    "conversation_id": "",
+    "message": "fotos de una playa al atardecer",
+    "resource_types": [],
+    "limit": 20,
+    "platform_language": "es"
+  }'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.post(f"{API}/assistant/turns", headers=H, json={
+    "kind": "search",
+    "conversation_id": "",
+    "message": "fotos de una playa al atardecer",
+    "resource_types": [],
+    "limit": 20,
+    "platform_language": "es",
+})
+r.raise_for_status()
+turn = r.json()          # turn_id, conversation_id, events_url
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+
+const r = await fetch(`${API}/assistant/turns`, {
+  method: "POST",
+  headers: H,
+  body: JSON.stringify({
+    kind: "search",
+    conversation_id: "",
+    message: "fotos de una playa al atardecer",
+    resource_types: [],
+    limit: 20,
+    platform_language: "es",
+  }),
+});
+const turn = await r.json();   // turn_id, conversation_id, events_url
+```
+</CodeGroup>
+
+| Campo | Descripción |
+|---|---|
+| `kind` | `search`. |
+| `conversation_id` | `""` para una conversación nueva. Para continuarla («ahora solo vídeos»), envía el `conversation_id` del resultado anterior. |
+| `message` | Lo que pidió la persona. |
+| `resolution` | La respuesta a una aclaración, mira [Aclaración](#aclaración). |
+| `filters` | Filtros opcionales, como fechas. |
+| `resource_types` | `[]` para todo, `["image"]` o `["video"]`. |
+| `limit` | Cuántos resultados devolver (hasta 200). |
+| `platform_language` | El idioma de tu interfaz (`en`, `es`, `fr`, `de`, `it` o `pt`). Las respuestas siguen el idioma en que escribió la persona; este se usa cuando no se puede saber. |
+| `client_turn_id` | Id opcional tuyo para el turno. |
+
+Respuesta `202`:
+
+```json
+{
+  "turn_id": "6f1c2a9e3b7d4c01",
+  "conversation_id": "a41b0c52d9e3",
+  "events_url": "/api/v1/assistant/turns/6f1c2a9e3b7d4c01/events"
+}
+```
+
+| Estado | Significado |
+|---|---|
+| `401` | Falta la clave de API o no es válida. |
+| `403` | Los permisos de la clave no incluyen `search`, o la organización está desactivada. |
+| `429` | Demasiadas peticiones, o demasiados turnos a la vez para esta clave. |
+| `503` | La búsqueda conversacional no está disponible ahora. |
+
+### 2. Seguir el turno
+
+Abre `events_url` en el mismo host con la misma clave. Cada evento tiene un `id` creciente, un nombre `event` y `data` en JSON:
+
+```
+id: 1
+event: progress
+data: {"type":"progress","step":"understanding"}
+
+id: 2
+event: progress
+data: {"type":"progress","step":"searching"}
+
+: ping
+
+id: 7
+event: result
+data: {"type":"result","response":{ ... }}
+```
+
+- **`progress`**: lo que está haciendo la búsqueda (mira [Pasos de progreso](#pasos-de-progreso)).
+- **`result`**: la respuesta del turno. Siempre es el último evento.
+- **`error`**: el turno no pudo terminar. Siempre es el último evento.
+- **`: ping`**: un comentario cada 15 segundos para mantener la conexión abierta. Ignóralo.
+
+<CodeGroup>
+```bash cURL
+# -N muestra los eventos según llegan
+curl -N "https://api-platform.wesog.com${EVENTS_URL}" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Accept: text/event-stream'
+```
+
+```python Python
+import json
+
+url = "https://api-platform.wesog.com" + turn["events_url"]
+with requests.get(url, headers={**H, "Accept": "text/event-stream"}, stream=True) as s:
+    s.raise_for_status()
+    event = None
+    for line in s.iter_lines(decode_unicode=True):
+        if not line or line.startswith(":"):
+            continue
+        key, _, value = line.partition(":")
+        value = value.lstrip()
+        if key == "event":
+            event = value
+        elif key == "data":
+            msg = json.loads(value)
+            if event == "progress":
+                print("...", msg.get("step"))
+            elif event in ("result", "error"):
+                print(event, msg)
+                break
+```
+
+```javascript JavaScript
+const res = await fetch(`https://api-platform.wesog.com${turn.events_url}`, {
+  headers: { "X-API-Key": process.env.WESOG_API_KEY, Accept: "text/event-stream" },
+});
+const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+let buffer = "";
+for (;;) {
+  const { value, done } = await reader.read();
+  if (done) break;
+  buffer += value;
+  let i;
+  while ((i = buffer.indexOf("\n\n")) >= 0) {
+    const frame = buffer.slice(0, i);
+    buffer = buffer.slice(i + 2);
+    let event = "message", data = "";
+    for (const line of frame.split("\n")) {
+      if (!line || line.startsWith(":")) continue;
+      const k = line.slice(0, line.indexOf(":")), v = line.slice(line.indexOf(":") + 1).trimStart();
+      if (k === "event") event = v; else if (k === "data") data += v;
+    }
+    if (data) console.log(event, JSON.parse(data));
+  }
+}
+```
+</CodeGroup>
+
+Si se corta la conexión, abre `events_url` otra vez con `Last-Event-ID: <último id que recibiste>`. Sin él, los eventos se reenvían desde el principio.
+
+| Estado del `GET` | Significado |
+|---|---|
+| `401` | Faltan las credenciales o no son válidas. |
+| `403` | El turno es de otra clave u otra organización. |
+| `404` | Turno desconocido o caducado (unos 15 minutos después de terminar). Deja que la persona vuelva a preguntar. |
+
+#### Pasos de progreso
+
+Muestra el último paso como «en curso». Ignora cualquier paso que no conozcas: pueden aparecer nuevos.
+
+| `step` | Campos extra | Texto sugerido |
+|---|---|---|
+| `understanding` | ninguno | «Entendiendo la petición» |
+| `delegating` | ninguno | «Buscando en el archivo» |
+| `people_searching` | ninguno | «Buscando a las personas» |
+| `people_found` | `names` | «He encontrado a Pedro Sánchez» |
+| `role_lookup` | `posts` | «Comprobando quién es presidente del Gobierno» |
+| `searching` | ninguno | «Buscando las fotos» |
+| `results_ready` | `block` (un [bloque de resultados](#resultados)) | Pinta ya las fotos: llegan antes que el texto final |
+| `answering` | ninguno | «Escribiendo la respuesta» |
+| `working` | `after`, `waited_s` | «Sigo buscando... (12 s)» |
+
+#### Errores dentro del stream
+
+```json
+{"type":"error","status":500,"detail":{"code":"turn_failed"},"trace_id":"..."}
+```
+
+| `detail.code` | Significado |
+|---|---|
+| `turn_failed` | La búsqueda falló. Vuelve a preguntar. |
+| `cancelled` | El turno se detuvo (mira [Parar un turno](#parar-un-turno)). |
+| `abandoned` | Nadie siguió el turno durante varios minutos. |
+| `worker_lost` | El servicio se reinició durante el turno. Vuelve a preguntar. |
+| `subscription_*` (estado `429`) | Se agotaron las búsquedas de tu plan. |
+| `clarification_not_pending` (estado `409`) | Respondiste a una pregunta que ya no está pendiente. Envía el texto de la persona como un `message` normal. |
+
+`trace_id` identifica el turno si contactas con soporte.
+
+### 3. El resultado
+
+```json
+{
+  "conversation_id": "a41b0c52d9e3",
+  "turn_id": "6f1c2a9e3b7d4c01",
+  "blocks": [ ]
+}
+```
+
+`blocks` es la lista de cosas que mostrar, en orden. Ignora cualquier `type` de bloque que no conozcas. Guarda el `conversation_id` del resultado: úsalo en el turno siguiente.
+
+#### `message`
+
+```json
+{"type": "message", "text": "He encontrado 132 fotos de playas al atardecer."}
+```
+
+Una explicación corta de lo que se ha buscado, en el idioma de la petición.
+
+#### Resultados
+
+```json
+{
+  "type": "results",
+  "query": "playa al atardecer",
+  "search": {
+    "total": 132,
+    "items": [
+      {
+        "resource_id": "res_9a41c07e22b1",
+        "resource_type": "image",
+        "title": "Atardecer en La Concha",
+        "snippet": "...",
+        "thumbnail_url": "https://...",
+        "preview_url": "https://...",
+        "media_type": "image",
+        "content_type": "image/jpeg",
+        "created_at": "2024-07-02T19:41:00Z",
+        "own_tenant": true,
+        "metadata": {
+          "field_values": { "caption": "...", "keywords": ["..."], "city": "San Sebastián" },
+          "detected_identities": [ { "label": "..." } ]
+        }
+      }
+    ]
+  }
+}
+```
+
+Los elementos se parecen a los de la [búsqueda](/es/new/search/search#qué-obtienes) sencilla. `thumbnail_url` y `preview_url` son las direcciones de las vistas previas pequeña y grande (las imágenes nunca van dentro del JSON); son temporales, así que vuelve a buscar pasada media hora. Si el mismo bloque ya llegó en un evento `results_ready`, sustitúyelo en lugar de añadirlo dos veces.
+
+#### Aclaración 
+
+Cuando la petición es ambigua, Wesog puede preguntar **antes de buscar**. El resultado trae entonces un bloque `clarification` y ningún resultado.
+
+<Note>
+Que Wesog pregunte por nombres ambiguos depende de los ajustes de tu organización. Por defecto busca a la persona más probable y nombra las alternativas en el texto de `message`. Las preguntas sobre qué buscar pueden aparecer siempre. Gestiona los dos casos.
+</Note>
+
+```json
+{
+  "type": "clarification",
+  "clarification_id": "cl_1",
+  "kind": "person",
+  "question": "¿A qué Sánchez te refieres?",
+  "allow_free_text": true,
+  "multiple": true,
+  "options": [
+    {"option_id": "o1", "label": "Pedro Sánchez", "description": "Presidente del Gobierno de España", "photo_count": null, "thumbnail_url": ""},
+    {"option_id": "o2", "label": "Marta Sánchez", "description": "Cantante", "photo_count": null, "thumbnail_url": ""}
+  ]
+}
+```
+
+| Campo | Descripción |
+|---|---|
+| `clarification_id` | Envíalo de vuelta con la respuesta. |
+| `question` | La pregunta que mostrar, en el idioma de la petición. |
+| `options` | Un botón por opción: `label` y `description`. `thumbnail_url` y `photo_count` pueden venir vacíos: muestra el botón sin ellos. |
+| `multiple` | `true`: la persona puede elegir varias opciones. |
+| `allow_free_text` | `true`: muestra también una caja de texto para que la persona responda con sus palabras. |
+
+La respuesta es un **turno nuevo** con el mismo `conversation_id`, sin `message` y con una `resolution`:
+
+<CodeGroup>
+```json Una opción
+{ "kind": "search", "conversation_id": "a41b0c52d9e3", "resolution": {"clarification_id": "cl_1", "option_id": "o1"} }
+```
+
+```json Varias opciones
+{ "kind": "search", "conversation_id": "a41b0c52d9e3", "resolution": {"clarification_id": "cl_1", "option_ids": ["o1", "o2"]} }
+```
+
+```json Texto libre
+{ "kind": "search", "conversation_id": "a41b0c52d9e3", "resolution": {"clarification_id": "cl_1", "text": "la cantante"} }
+```
+</CodeGroup>
+
+Wesog busca entonces con esa persona fijada y no vuelve a preguntar por el mismo nombre en la conversación. Si la persona ignora la pregunta y escribe otra cosa, envíalo como un turno normal con `message`; una `resolution` posterior para la pregunta antigua da `clarification_not_pending`.
+
+Una conversación completa:
+
+```text
+Turno 1  POST /assistant/turns  {"message": "fotos de sanchez sonriendo", "conversation_id": ""}
+         resultado: blocks = [message, clarification cl_1 (o1 Pedro Sánchez, o2 Marta Sánchez)]
+         La persona elige «Pedro Sánchez».
+Turno 2  POST /assistant/turns  {"conversation_id": "a41b...", "resolution": {"clarification_id": "cl_1", "option_id": "o1"}}
+         resultado: blocks = [message, results]
+Turno 3  POST /assistant/turns  {"conversation_id": "a41b...", "message": "ahora solo vídeos"}
+         resultado: blocks = [message, results]   (la misma persona, solo vídeos)
+```
+
+### Parar un turno
+
+Cerrar el stream **no** para el turno, porque está pensado para sobrevivir a cortes de red. Para pararlo:
+
+```bash
+curl -X POST "$WESOG_API/assistant/turns/$TURN_ID/cancel" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+El stream termina entonces con un evento `error` con el código `cancelled`. Un turno que nadie sigue durante unos minutos se para solo.
+
+### Lista de comprobación
+
+- [ ] La clave de API está solo en tu servidor.
+- [ ] Se ignoran los valores desconocidos de `step` y de `type` de bloque.
+- [ ] Las fotos se muestran en `results_ready`, sin esperar al texto final.
+- [ ] Tras un corte te reconectas con `Last-Event-ID`.
+- [ ] Un `404` en el stream deja que la persona vuelva a preguntar.
+- [ ] Ningún proxy tuyo almacena en búfer `text/event-stream`.

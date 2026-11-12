@@ -5,21 +5,25 @@ icon: "book"
 noindex: true
 ---
 
-**Dirección base:** `https://api.wesog.com/api/v1`
+**Dirección base:** `https://api-platform.wesog.com/api/v1`
 
-**Autenticación:** la cabecera `X-API-Key` en cada llamada. Consulta [Autenticación](/es/new/concepts/authentication).
+**Autenticación:** la cabecera `X-API-Key` en cada llamada. Consulta [Autenticación](/es/new/start/authentication).
 
-**Errores:** el mismo cuerpo en todas partes: `code`, `message`, `request_id`. Consulta [Errores](/es/new/concepts/errors).
+**Errores:** el mismo cuerpo en todas partes: `code`, `message`, `request_id`. Consulta [Errores](/es/new/start/errors).
+
+Las operaciones están agrupadas como el menú de la plataforma: **Búsqueda**, **Workflows**, **Herramientas**, **Biblioteca** y **Agentes (MCP)**.
 
 Cada página de operación muestra:
 
 - qué hace y qué **scope de clave** la permite;
-- la petición y la respuesta con **ejemplos** que puedes copiar y los campos tipados;
+- la petición y la respuesta con los campos tipados;
 - los **errores** que puede devolver;
 - ejemplos listos para ejecutar en **cURL, Python y JavaScript**.
 
 Pulsa **Try it** en cualquier operación, pega tu clave API y llámala desde la propia página.
 
-La misma referencia, siempre actualizada, se sirve como documento OpenAPI en `https://api.wesog.com/api/openapi-customer.json?server=public`: impórtala en Postman, Insomnia o un generador de código.
+La misma referencia, siempre actualizada, se sirve como documento OpenAPI en `https://api-platform.wesog.com/api/openapi-customer.json?server=public`: impórtala en Postman, Insomnia o un generador de código.
 
-¿Es la primera vez que usas la API? Empieza por el [Inicio rápido](/es/new/quickstart).
+Dos cosas se explican en su guía y no están en esta referencia: los [tokens de cliente](/es/new/search/search-in-your-website) (`/auth/client-tokens`) y los [turnos de la búsqueda conversacional](/es/new/search/conversational-search) (`/assistant/turns`) que usa un buscador en tu propia web.
+
+¿Es la primera vez que usas la API? Empieza por el [Inicio rápido](/es/new/start/quickstart).

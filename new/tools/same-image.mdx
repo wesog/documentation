@@ -1,0 +1,179 @@
+---
+title: "Same image"
+description: "Compare two photos and tell whether they are the same photo or the same scene."
+icon: "images"
+noindex: true
+---
+
+**Same image** (`same_image`, shown as **SAME**) compares two photos and tells you whether they are the same picture or were taken in the same scene.
+
+## What it does
+
+It receives two images and answers two questions: are they the **same photo** (even if one was resized or re-saved) and are they the **same scene** (different shots of the same moment). It gives a confidence and, when it is not sure, recommends a human check.
+
+## When to use it
+
+Use it to find duplicates or to group the shots of the same moment before you publish.
+
+## Inputs
+
+Two images per run, each as a file or as a public web address. On screen you can also drop several files and compare them against each other (**Multiple files**); by API you compare one pair per call.
+
+## Parameters
+
+| On screen | API field | Values | Default |
+|---|---|---|---|
+| Image A / first image | `image_a` (file) or `image_a_url` | A file, or a public web address | Required: one of the two |
+| Image B / second image | `image_b` (file) or `image_b_url` | A file, or a public web address | Required: one of the two |
+| (API only) | `timeout_ms` | Whole number, 1000 to 600000 | See *Synchronous or asynchronous* below |
+
+## Output
+
+Result of a finished run. The values are illustrative.
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "succeeded",
+  "response_mode": "completed",
+  "same_result": {
+    "is_same": false,
+    "is_same_scene": true,
+    "confidence": 0.88,
+    "do_human_check": false,
+    "reason": "Same runway and model from a different angle."
+  }
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `same_result.is_same` | `true` if they are the same photo. |
+| `same_result.is_same_scene` | `true` if they are the same scene. |
+| `same_result.confidence` | How sure the answer is, from 0 to 1. |
+| `same_result.do_human_check` | `true` when it recommends that a person checks the pair. |
+| `same_result.reason` | A short explanation. |
+
+## Review
+
+The tool itself has no review queue: the result appears on screen as soon as it is processed. The result is a verdict you can read at once; there is nothing to correct. `do_human_check` tells you which pairs deserve a person's look.
+
+If you want a person to approve results before they are written to your files, or you process files as they arrive, put this tool in a workflow with a **Review** step (see [Reviews](/new/workflows/reviews)). By API you always receive the result as the tool produced it; there is no review step.
+
+## From the platform
+
+1. In the left menu open **Tools**. The tools are grouped as **Image**, **Video** and **Share**.
+2. In the group **Image**, click **Same**.
+3. Under **Select the source**, choose **Library**, **Local** (your computer) or **FTP**, and pick the two images, or a folder. Click **Next**.
+4. If you dropped the images with **Drag an image here** (or **Choose files** for several), choose the comparison: **Detect same photo** or **Detect same scene**.
+5. Click **Process**. If it takes long, click **Continue in background** and follow it from the executions; you will be notified. When it finishes you see the result; use **Save to library** or **Download**. The result lists the matches (**Same photo**, **Same scene**).
+
+## By API
+
+Set the address once and reuse it. Every call needs your API key in the `X-API-Key` header ([Authentication](/new/start/authentication)); the key must be allowed to use **Tools** (scope `tools`).
+
+<CodeGroup>
+```bash cURL
+export WESOG_API=https://api-platform.wesog.com/api/v1
+export WESOG_API_KEY="<your key>"
+export IMAGE_A_URL="https://YOUR-SERVER/photo-a.jpg"
+export IMAGE_B_URL="https://YOUR-SERVER/photo-b.jpg"
+
+curl -X POST "$WESOG_API/tools/same_image" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "image_a_url=$IMAGE_A_URL" \
+  -F "image_b_url=$IMAGE_B_URL"
+```
+
+```python Python
+import os
+import time
+import requests
+
+API = "https://api-platform.wesog.com/api/v1"
+HEADERS = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+IMAGE_A_URL = "https://YOUR-SERVER/photo-a.jpg"  # public addresses of your own images
+IMAGE_B_URL = "https://YOUR-SERVER/photo-b.jpg"
+
+r = requests.post(f"{API}/tools/same_image", headers=HEADERS, json={
+    "image_a_url": IMAGE_A_URL,
+    "image_b_url": IMAGE_B_URL
+})
+r.raise_for_status()
+while r.status_code == 202:  # still running: ask again
+    time.sleep(2)
+    r = requests.get(f"{API}/tools/runs/{r.json()['run_id']}", headers=HEADERS)
+    r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+const IMAGE_A_URL = "https://YOUR-SERVER/photo-a.jpg"; // public addresses of your own images
+const IMAGE_B_URL = "https://YOUR-SERVER/photo-b.jpg";
+
+let r = await fetch(`${API}/tools/same_image`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+  "image_a_url": IMAGE_A_URL,
+  "image_b_url": IMAGE_B_URL
+}),
+});
+let data = await r.json();
+while (r.status === 202) { // still running: ask again
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  r = await fetch(`${API}/tools/runs/${data.run_id}`, { headers });
+  data = await r.json();
+}
+console.log(data);
+```
+</CodeGroup>
+
+To send a file instead of an address, use `multipart/form-data` and put the file in the field `image_a` and `image_b`:
+
+```bash
+curl -X POST "$WESOG_API/tools/same_image" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "image_a=@photo-a.jpg" \
+  -F "image_b=@photo-b.jpg"
+```
+
+Use the file **or** the address for each input, never both in the same request.
+
+### Synchronous or asynchronous
+
+The call to `POST /tools/same_image` starts a run. The platform answers `202 Accepted` with a `run_id` and a `poll_path`:
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "queued",
+  "response_mode": "accepted",
+  "poll_path": "/api/v1/tools/runs/357569a6-d9ec-4ead-885b-68ad792321a5",
+  "progress": { "completed": 0, "total": 1, "percent": 0, "label": "En cola" }
+}
+```
+
+The `run_id` is the one you get in your own answer; the value above only shows the shape. Ask for the result with `GET $WESOG_API/tools/runs/$RUN_ID` every one or two seconds:
+
+- `202` while the run is `queued` or `running`: the same small body as above.
+- `200` when it has finished. `status` tells how it ended: `succeeded`, `failed`, `timeout` or `cancelled`. If it succeeded, the fields of the tool are at the top level of the body, next to `run_id`, `status` and `response_mode: "completed"`. If it failed, `error` carries a `code` and a `message`.
+
+The call never waits for the result: it always answers `202`, so your program must poll. `timeout_ms` (1000 to 600000) is accepted but does not change that. To stop a run you no longer need, send `POST $WESOG_API/tools/runs/$RUN_ID/cancel`. More in [Async tasks](/new/start/async).
+
+## Limits and errors
+
+- **Credits and plan.** Each run counts against the monthly allowance of your plan. When the allowance is used up, the credits you bought are used (see [Plan and billing](/new/settings/plan-and-billing)). If your plan does not include this tool, `GET /tools` shows it with `catalog_use_allowed: false`.
+- **Rate limits.** The usual limits per minute and per month of your key apply ([Limits](/new/start/limits-and-plans)).
+
+| Status | `code` | What to do |
+|---|---|---|
+| `401` | `unauthorized` | Send your key in `X-API-Key`. |
+| `403` | `forbidden` | The key cannot use tools: add the scope `tools`, or use a key without scopes. |
+| `404` | `not_found` | The `run_id` does not exist in your organization. |
+| `422` | `validation_error` | A field is not valid or an input is missing, or you sent a file **and** an address for the same input. `errors` lists the fields to fix. |
+| `429` | `api_key_rate_limit_reached` | Wait the seconds in `Retry-After` and retry. |
+
+Every error has `code`, `message` and `request_id`; quote the `request_id` to support. More in [Errors](/new/start/errors).

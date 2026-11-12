@@ -1,0 +1,237 @@
+---
+title: "Tag Photos"
+description: "Get a caption, keywords, the text in the image, the people and the colors of a photo in one call."
+icon: "tags"
+noindex: true
+---
+
+**Tag Photos** (`image_tag`) is the complete tool for photos: you choose what you want (caption, keywords, text in the image, recognised people, colors) and it gives you everything in one result.
+
+## What it does
+
+It analyses one image and returns the parts you switch on: a **caption** written in the language you choose, **keywords**, the **text** that appears in the image (OCR), the **people** it recognises, the dominant **colors**, and technical data such as size, orientation, number of faces, shot type and lighting. If you give it context (date, event, city, country) the caption uses it instead of guessing.
+
+## When to use it
+
+Use it when you want several results for the same photo without making one call per tool. If you only need one thing, the dedicated tools ([Caption](/new/tools/caption), [OCR](/new/tools/ocr), [Keywords](/new/tools/keywords), [Celebrity Recognition](/new/tools/celebrity-recognition)) are lighter.
+
+## Inputs
+
+One image per run, as a file or as a public web address. Optional context: date, event, city, country, either typed or read from the metadata of the file.
+
+## Parameters
+
+| On screen | API field | Values | Default |
+|---|---|---|---|
+| Select the source (Library, Local or FTP) | `image` (file) or `image_url` | A file, or a public web address | Required: one of the two |
+| Caption | `caption` | `true` / `false` | not set: send `true` to get it |
+| Keywords | `keywords` | `true` / `false` | not set: send `true` to get it |
+| OCR | `ocr` | `true` / `false` | not set: send `true` to get it |
+| Celebrity | `celebrity` | `true` / `false` | `true` |
+| (API only) | `colors` | `true` / `false` | not set: send `true` to get them |
+| Output language | `lang` | Language codes of the languages offered on screen: `es`, `en`, `fr`, `de`, `it`, `pt`, `nl`, `ru`, `ja`, `zh`. | the language of your organization |
+| Description settings: Manual / Automática | `template_mode` | `automatic` or `manual` | `automatic` |
+| Description settings: text box (Manual) | `template` | Text up to 10 000 characters. You can insert `{entities}` and metadata fields such as `{XMP:CreateDate}` | empty |
+| Date (shown as Fecha) | `date` / `date_from_metadata` | `YYYY-MM-DD`; or the name of the file metadata field to read it from, for example `xmp:CreateDate` | empty |
+| Event (shown as Evento) | `event` / `event_from_metadata` | Text; or a metadata field such as `xmp:Iptc4xmpExt:Event` | empty |
+| City / Province | `city` / `city_from_metadata` | Text; or a metadata field such as `xmp:photoshop:City` | empty |
+| Country | `country` / `country_from_metadata` | Text; or a metadata field such as `xmp:photoshop:Country` | empty |
+| Entity source: Wesog / Private / both | `use_wesog_entities` | `true`: Wesog's catalogue is used. `false`: only your organization's own entities (Private) | `true` |
+| Filter by groups… | `category_entity_ids` | List of groups, each as `{"entity_id": "<id>"}`. Together with `use_wesog_entities: true` it is the option **both** | empty |
+| People collections (Select collections…) | `collection_entity_ids` | List of collections, each as `{"entity_id": "<id>"}`. Only has an effect for your own (Private) entities | empty |
+| (not shown on screen) | `mode` | Text, for example `Editorial`, `Documental` or `Creativo` | empty |
+| (API only) | `timeout_ms` | Whole number, 1000 to 600000 | See *Synchronous or asynchronous* below |
+
+The field `*_from_metadata` is how the **XMP** switch next to each context field works on screen: instead of typing the value, you name the metadata field of the file and Wesog reads it. The **MAN** side is the plain field (`date`, `event`, `city`, `country`). The three entity options on screen map like this: **Wesog** = `use_wesog_entities: true` and no groups; **Private** = `use_wesog_entities: false`; **both** = `use_wesog_entities: true` with groups.
+
+Groups and collections are sent as a JSON list: `"category_entity_ids": [{"entity_id": "<GROUP_ID>"}]`. You get the ids from [Entities](/new/entities/overview). That field needs a JSON request, not form fields.
+
+## Output
+
+Result of a finished run asking for caption, keywords and text, captured from the platform with a public-domain photo. It is trimmed: the real answer also repeats some fields with a capitalised name and carries the metadata the image had (title, author, copyright) and empty fields (`null`) for the ones with no value.
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "succeeded",
+  "response_mode": "completed",
+  "caption": "Barack Obama posing with his arms crossed.",
+  "keywords": [
+    "office",
+    "indoor light",
+    "Medium shot",
+    "One person",
+    "Posing",
+    "flags",
+    "desk",
+    "dark suit",
+    "blue tie",
+    "politics",
+    "pose"
+  ],
+  "ocr": null,
+  "people": [
+    {
+      "celeb_name": "Barack Obama",
+      "entity_id": "76",
+      "identity_label": "Barack Obama",
+      "identity_confidence": "secure",
+      "identity_score": 0.83,
+      "identity_probability": 0.93,
+      "box": {
+        "x": 122.45,
+        "y": 26.06,
+        "w": 78.58,
+        "h": 113.87
+      }
+    }
+  ],
+  "n_faces": 3,
+  "width": 330,
+  "height": 412,
+  "orientation": "vertical",
+  "shot": "American/medium wide shot"
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `caption` | The caption, if you asked for it. |
+| `keywords` | The keywords, if you asked for them. |
+| `ocr` | The text found in the image, if you asked for it. |
+| `people` | List of the people recognised, if `celebrity` is on. |
+| `colors` | The dominant colors, if you asked for them (list of numbers). |
+| `n_faces, width, height, orientation, shot, illumination` | Technical data of the image. |
+| `city, country, event, capture date…` | Context fields, when known. |
+
+Fields without a value arrive as `null`.
+
+## Review
+
+The tool itself has no review queue: the result appears on screen as soon as it is processed. You can correct it before saving or downloading. Caption, keywords and OCR text are editable boxes in the result; keywords are chips you add or remove with Enter. People can be changed, removed or added from the result (see [Celebrity Recognition](/new/tools/celebrity-recognition)).
+
+If you want a person to approve results before they are written to your files, or you process files as they arrive, put this tool in a workflow with a **Review** step (see [Reviews](/new/workflows/reviews)). By API you always receive the result as the tool produced it; there is no review step.
+
+## From the platform
+
+1. In the left menu open **Tools**. The tools are grouped as **Image**, **Video** and **Share**.
+2. In the group **Image**, click **Tag photos**.
+3. Under **Select the source**, choose **Library**, **Local** (your computer) or **FTP**, and pick the image or images. Click **Next**.
+4. Under **Select how to process your photos**, switch on what you want: **Celebrity**, **Keywords**, **Caption**, **OCR**. You need at least one.
+5. Set each part you switched on: **Output language**; **Description settings** (**Manual** or **Automática**, **Fecha**, **Evento**, **City / Province**, **Country**, each with an **XMP** / **MAN** choice); **Keywords language**; and, for people, **Entity source** (**Wesog**, **Private**, **both**), **Filter by groups…** and **People collections**.
+6. Click **Process**. If it takes long, click **Continue in background** and follow it from the executions; you will be notified. When it finishes you see the result; use **Save to library** or **Download**.
+
+## By API
+
+Set the address once and reuse it. Every call needs your API key in the `X-API-Key` header ([Authentication](/new/start/authentication)); the key must be allowed to use **Tools** (scope `tools`).
+
+<CodeGroup>
+```bash cURL
+export WESOG_API=https://api-platform.wesog.com/api/v1
+export WESOG_API_KEY="<your key>"
+export IMAGE_URL="https://YOUR-SERVER/photo.jpg"
+
+curl -X POST "$WESOG_API/tools/image_tag" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "image_url=$IMAGE_URL" \
+  -F "caption=true" \
+  -F "keywords=true" \
+  -F "ocr=true" \
+  -F "lang=en"
+```
+
+```python Python
+import os
+import time
+import requests
+
+API = "https://api-platform.wesog.com/api/v1"
+HEADERS = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+IMAGE_URL = "https://YOUR-SERVER/photo.jpg"  # a public address of your own image
+
+r = requests.post(f"{API}/tools/image_tag", headers=HEADERS, json={
+    "image_url": IMAGE_URL,
+    "caption": True,
+    "keywords": True,
+    "ocr": True,
+    "lang": "en"
+})
+r.raise_for_status()
+while r.status_code == 202:  # still running: ask again
+    time.sleep(2)
+    r = requests.get(f"{API}/tools/runs/{r.json()['run_id']}", headers=HEADERS)
+    r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+const IMAGE_URL = "https://YOUR-SERVER/photo.jpg"; // a public address of your own image
+
+let r = await fetch(`${API}/tools/image_tag`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+  "image_url": IMAGE_URL,
+  "caption": true,
+  "keywords": true,
+  "ocr": true,
+  "lang": "en"
+}),
+});
+let data = await r.json();
+while (r.status === 202) { // still running: ask again
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  r = await fetch(`${API}/tools/runs/${data.run_id}`, { headers });
+  data = await r.json();
+}
+console.log(data);
+```
+</CodeGroup>
+
+To send a file instead of an address, use `multipart/form-data` and put the file in the field `image`:
+
+```bash
+curl -X POST "$WESOG_API/tools/image_tag" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "image=@photo.jpg"
+```
+
+Use the file **or** the address for each input, never both in the same request.
+
+### Synchronous or asynchronous
+
+The call to `POST /tools/image_tag` starts a run. The platform answers `202 Accepted` with a `run_id` and a `poll_path`:
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "queued",
+  "response_mode": "accepted",
+  "poll_path": "/api/v1/tools/runs/357569a6-d9ec-4ead-885b-68ad792321a5",
+  "progress": { "completed": 0, "total": 1, "percent": 0, "label": "En cola" }
+}
+```
+
+The `run_id` is the one you get in your own answer; the value above only shows the shape. Ask for the result with `GET $WESOG_API/tools/runs/$RUN_ID` every one or two seconds:
+
+- `202` while the run is `queued` or `running`: the same small body as above.
+- `200` when it has finished. `status` tells how it ended: `succeeded`, `failed`, `timeout` or `cancelled`. If it succeeded, the fields of the tool are at the top level of the body, next to `run_id`, `status` and `response_mode: "completed"`. If it failed, `error` carries a `code` and a `message`.
+
+The call never waits for the result: it always answers `202`, so your program must poll. `timeout_ms` (1000 to 600000) is accepted but does not change that. To stop a run you no longer need, send `POST $WESOG_API/tools/runs/$RUN_ID/cancel`. More in [Async tasks](/new/start/async).
+
+## Limits and errors
+
+- **Credits and plan.** Each run counts against the monthly allowance of your plan. When the allowance is used up, the credits you bought are used (see [Plan and billing](/new/settings/plan-and-billing)). If your plan does not include this tool, `GET /tools` shows it with `catalog_use_allowed: false`.
+- **Rate limits.** The usual limits per minute and per month of your key apply ([Limits](/new/start/limits-and-plans)).
+
+| Status | `code` | What to do |
+|---|---|---|
+| `401` | `unauthorized` | Send your key in `X-API-Key`. |
+| `403` | `forbidden` | The key cannot use tools: add the scope `tools`, or use a key without scopes. |
+| `404` | `not_found` | The `run_id` does not exist in your organization. |
+| `422` | `validation_error` | A field is not valid or an input is missing, or you sent a file **and** an address for the same input. `errors` lists the fields to fix. |
+| `429` | `api_key_rate_limit_reached` | Wait the seconds in `Retry-After` and retry. |
+
+Every error has `code`, `message` and `request_id`; quote the `request_id` to support. More in [Errors](/new/start/errors).

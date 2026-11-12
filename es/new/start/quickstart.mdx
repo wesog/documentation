@@ -1,0 +1,119 @@
+---
+title: "Inicio rápido"
+description: "Crea una clave de API, haz tu primera llamada y lee la respuesta, en tres pasos."
+icon: "rocket"
+noindex: true
+---
+
+Necesitas una cuenta de Wesog. Esta página lleva unos cinco minutos y no cambia nada de tu cuenta.
+
+## 1. Crea una clave de API
+
+<Steps>
+  <Step title="Abre los ajustes de tu organización">
+    En la barra lateral abre el menú de la organización, arriba, y pulsa el engranaje junto a tu organización (**Ajustes del tenant actual**). Abre la pestaña **General**.
+  </Step>
+  <Step title="Crea la clave">
+    En la tarjeta **Claves API** pulsa **Crear clave API**, ponle un **Nombre** (por ejemplo `Mi primera prueba`) y deja **Alcances** vacío por ahora.
+  </Step>
+  <Step title="Cópiala">
+    Copia la clave. **Solo se muestra una vez** («Esta es la única vez que se muestra completa»). Si la pierdes, rótala.
+  </Step>
+</Steps>
+
+Solo un administrador de la organización puede crear claves. Más sobre alcances, límites y rotación en [Claves de API](/es/new/settings/api-keys).
+
+Guarda la clave en una variable de entorno y no la pongas nunca en una página web ni en un repositorio público.
+
+```bash
+export WESOG_API_KEY="pega-aqui-tu-clave"
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+## 2. Haz tu primera llamada
+
+Lista las herramientas de IA que incluye tu plan. Solo lee datos, así que es seguro probarla.
+
+<CodeGroup>
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl "$WESOG_API/tools?limit=5" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.get(f"{API}/tools", headers=headers, params={"limit": 5})
+r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/tools?limit=5`, { headers });
+if (!r.ok) throw new Error(await r.text());
+console.log(await r.json());
+```
+</CodeGroup>
+
+## 3. Lee la respuesta
+
+```json
+{
+  "items": [
+    {
+      "id": "3f4a630b-b426-4aa1-8edc-df6743e5e3ac",
+      "slug": "image_tag",
+      "name": "Tag photos",
+      "tool_kind": "workflow",
+      "status": "active",
+      "catalog_use_allowed": true,
+      "catalog_min_plan": "free"
+    },
+    {
+      "id": "927fd6bd-a138-4eb7-8c43-1a4b47d2d107",
+      "slug": "caption",
+      "name": "Caption",
+      "tool_kind": "workflow",
+      "status": "active",
+      "catalog_use_allowed": true,
+      "catalog_min_plan": "free"
+    }
+  ],
+  "total": 14,
+  "limit": 5,
+  "offset": 0
+}
+```
+
+`items` son las herramientas; el `slug` es lo que pones en la URL para ejecutar una (`POST /tools/caption`). `total`, `limit` y `offset` te dicen cómo [paginar](/es/new/start/pagination) listas más largas. El ejemplo muestra solo los campos principales de dos herramientas; `total` cuenta todas.
+
+La respuesta trae además las cabeceras `RateLimit-Remaining` (peticiones que te quedan en este minuto) y `X-Request-ID` (cítalo a soporte). Mira [Límites y planes](/es/new/start/limits-and-plans).
+
+Si algo sale mal recibes esto:
+
+| Estado | Significa | Qué hacer |
+|---|---|---|
+| `401` | Falta la clave o es incorrecta. | Revisa la cabecera `X-API-Key` y que copiaste la clave entera. |
+| `403` | Los alcances de la clave no cubren esta llamada. | Edita la clave y marca el alcance, mira [Claves de API](/es/new/settings/api-keys). |
+| `429` | Has llegado a un límite. | Espera `Retry-After` segundos. |
+
+Todos los errores tienen la misma forma, mira [Errores](/es/new/start/errors).
+
+## Y ahora, qué
+
+Ya tienes una clave que funciona. Elige lo que quieres hacer:
+
+<CardGroup cols={2}>
+  <Card title="Ejecutar una herramienta de IA sobre una imagen" icon="wand-magic-sparkles" href="/es/new/tools/overview">Etiqueta, describe o lee el texto de una foto tuya.</Card>
+  <Card title="Subir contenido y buscarlo" icon="magnifying-glass" href="/es/new/search/search">Pon archivos en tu Biblioteca y búscalos con lenguaje natural.</Card>
+  <Card title="Automatizar con un workflow" icon="diagram-project" href="/es/new/workflows/run-by-api">Envía archivos a un workflow desde tu programa.</Card>
+  <Card title="Conectar ChatGPT o Claude" icon="plug" href="/es/new/search/connect-agents">Deja que un asistente de IA use tu archivo.</Card>
+</CardGroup>

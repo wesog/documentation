@@ -1,0 +1,86 @@
+---
+title: "Tools"
+description: "The AI tools of Wesog: what each one does, how to use it from the platform and by API."
+icon: "wand-magic-sparkles"
+noindex: true
+---
+
+Tools run one AI task on one file and give you the result, without storing the file in your Library. Use them to add data to a photo or video you receive, to try a task before you automate it, or to call Wesog from your own program. To run the same task on many files as they arrive, use a [workflow](/new/workflows/overview).
+
+## Where they are
+
+In the left menu open **Tools**. The tools are grouped as in the API catalogue:
+
+- **Image**: Tag Photos, Celebrity Recognition, Caption, OCR, Keywords, Same image (SAME) and Content Credentials.
+- **Video**: Tag Videos, Video Celebrity Recognition (shown as Celebrity Recognition), Video Transcription and Clip Generation.
+- **Share**: shortcuts to send files with TransferLink and by FTP. They open the Library sections for sharing and FTP, so they are not tools you can call by API: see [Library](/new/library/overview).
+
+## Catalogue
+
+| Tool | Group | API `slug` | Input | Gives you |
+|---|---|---|---|---|
+| [Tag Photos](/new/tools/tag-photos) | Image | `image_tag` | Image | Caption, keywords, text, people, colors |
+| [Celebrity Recognition](/new/tools/celebrity-recognition) | Image | `image_celebrity_recognition` | Image | People in the photo |
+| [Caption](/new/tools/caption) | Image | `caption` | Image | Description |
+| [OCR](/new/tools/ocr) | Image | `ocr` | Image | Text in the image |
+| [Keywords](/new/tools/keywords) | Image | `keywords` | Image | Keywords |
+| [Same image (SAME)](/new/tools/same-image) | Image | `same_image` | Two images | Same photo / same scene |
+| [Content Credentials](/new/tools/content-credentials) | Image | `c2pa` | Image | Origin and signature (C2PA) |
+| [Tag Videos](/new/tools/tag-videos) | Video | `tag_videos` | Video | People, transcript, key moments |
+| [Video Celebrity Recognition](/new/tools/video-celebrity-recognition) | Video | `video_celebrity_recognition` | Video | People and when they appear |
+| [Video Transcription](/new/tools/video-transcription) | Video | `video_transcription` | Video | Transcript with speakers |
+| [Clip Generation](/new/tools/clip-generation) | Video | `clip_generation` | Video | Most relevant clips |
+
+`GET $WESOG_API/tools` lists the tools your key can run, with the fields each one accepts and whether your plan includes it (`catalog_use_allowed`).
+
+## How every tool is used
+
+1. **Choose the input.** Images go in the field `image` (a file) or `image_url` (a public web address); videos in `video` or `video_url`; Same image takes `image_a` and `image_b`. Send the file **or** the address, never both. Keywords uses the Spanish names `imagen` and `imagen_url`.
+2. **Call `POST $WESOG_API/tools/{slug}`.** You can send the fields as `multipart/form-data` (needed to upload a file) or as JSON.
+3. **Ask for the result.** The call answers `202 Accepted` with a `run_id`; you read the result with `GET $WESOG_API/tools/runs/{run_id}` until it answers `200`. Details in [Async tasks](/new/start/async).
+
+```bash
+export WESOG_API=https://api-platform.wesog.com/api/v1
+export WESOG_API_KEY="<your key>"
+
+curl "$WESOG_API/tools" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+The key must be allowed to use **Tools** (scope `tools`), see [API keys](/new/settings/api-keys).
+
+## Synchronous or asynchronous
+
+| Answer | Meaning |
+|---|---|
+| `202` | The run is accepted and still going (`queued` or `running`). Poll `poll_path`. |
+| `200` | The run finished. `status` is `succeeded`, `failed`, `timeout` or `cancelled`. On success the tool's fields are at the top level of the body. |
+
+The call never waits for the result and always answers `202`; `timeout_ms` (1000 to 600000) is accepted but does not change that. Images usually finish in seconds and videos in minutes, so always write your program to poll. `POST $WESOG_API/tools/runs/{run_id}/cancel` stops a run you no longer need.
+
+## Credits, plans and limits
+
+Each run counts against the monthly allowance of your plan; when it is used up, the credits you bought are used ([Plan and billing](/new/settings/plan-and-billing)). Not every plan includes every tool: a tool your plan does not include appears in `GET /tools` with `catalog_use_allowed: false`. Your key also has requests per minute and per month ([Limits](/new/start/limits-and-plans)).
+
+## Review
+
+Tools show the result on screen and let you correct it before you save or download it (caption, keywords, text, the people recognised, the transcript). They have no review queue of their own. To have a person approve results before they are written to your files, put the tool in a workflow with a **Review** step: [Reviews](/new/workflows/reviews). Over the API you always receive the result as produced.
+
+## Output and field names
+
+The API returns the result of the tool at the top level of the body, next to `run_id`, `status` and `response_mode`. It also carries `input_echo` (what you sent) and a few bookkeeping fields (`updated_at`, `batch_id`, `session_id`...) that your program can ignore. The examples in this section show only the fields that matter. A few tools name their fields in Spanish (`People detectadas`, `Momentos clave`, `Transcripción`, `Credenciales de contenido`): use them exactly as shown in each page.
+
+## Tool pages
+
+<CardGroup cols={2}>
+  <Card title="Tag Photos" href="/new/tools/tag-photos" icon="tags">Caption, keywords, text, people and colors in one call.</Card>
+  <Card title="Celebrity Recognition" href="/new/tools/celebrity-recognition" icon="face-smile">Known people in a photo.</Card>
+  <Card title="Caption" href="/new/tools/caption" icon="closed-captioning">The description of a photo.</Card>
+  <Card title="OCR" href="/new/tools/ocr" icon="font">The text in an image.</Card>
+  <Card title="Keywords" href="/new/tools/keywords" icon="key">Suggested keywords.</Card>
+  <Card title="Same image" href="/new/tools/same-image" icon="images">Same photo or same scene.</Card>
+  <Card title="Content Credentials" href="/new/tools/content-credentials" icon="shield-check">Origin and signature of an image.</Card>
+  <Card title="Tag Videos" href="/new/tools/tag-videos" icon="film">People, transcript and key moments.</Card>
+  <Card title="Video Celebrity Recognition" href="/new/tools/video-celebrity-recognition" icon="user-group">Known people in a video.</Card>
+  <Card title="Video Transcription" href="/new/tools/video-transcription" icon="closed-captioning">What is said, with speakers.</Card>
+  <Card title="Clip Generation" href="/new/tools/clip-generation" icon="scissors">The most relevant clips.</Card>
+</CardGroup>

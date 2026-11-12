@@ -1,0 +1,295 @@
+---
+title: "Search in your own website"
+description: "Put Wesog's search and conversational search on your own web page without exposing your API key, using short-lived client tokens."
+icon: "globe"
+noindex: true
+---
+
+You can build your own page that uses Wesog's conversational search: the person types in your page, and the page talks to Wesog directly, with streaming progress and photos. Your **API key never reaches the browser**: your server mints a short-lived **client token** with the key, and the browser uses that token.
+
+<Note>Client tokens are available from version v0.25.3.12 (12 November 2026).</Note>
+
+## How it fits together
+
+```
+1. Browser -> your server: "give me a token"                       (every ~4 min)
+2. Your server -(X-API-Key)-> Wesog: POST /auth/client-tokens
+3. Wesog -> your server -> browser: { token, expires_at }          (lasts 5 min by default)
+4. Browser =(Authorization: Bearer <token>)=> Wesog:
+     POST /assistant/turns            -> { turn_id, conversation_id, events_url }
+     GET  events_url (stream)         -> progress ... progress ... result
+```
+
+- Your server only creates tokens: one small request every few minutes per user. It does not carry the conversation.
+- The browser talks to Wesog directly, also for the streaming.
+- A **turn** is one request from the person ("photos of Pedro Sánchez smiling") and its answer. It keeps working on Wesog's side if the page disconnects, reloads or changes tab.
+
+## From the platform
+
+Nothing to configure in the search itself. You only need an [API key](/new/settings/api-keys) of your organization with permission to search.
+
+## By API
+
+### 1. Prepare (once)
+
+**An API key** of your organization with the `search` or `read` scope (or no scopes). We recommend a key only for this and one per environment (testing and production). Keys that only have `workflows`, `tools`, `library` or `mcp` cannot create tokens.
+
+**Optional: restrict the key to your web pages.** By default the tokens of a key work from any page. If you want them to work only from your own pages, an administrator of the organization can register their addresses on the key (field `allowed_origins`, see [API keys](/new/settings/api-keys)). Then a token used from any other page is refused.
+
+### 2. Create the token (your server)
+
+`POST /auth/client-tokens` with your key in `X-API-Key`. It only works with a real API key, not with a session or another token.
+
+```json
+{ "ttl_seconds": 300, "end_user_id": "user-8812", "scopes": ["search", "assistant"] }
+```
+
+| Field | Rules |
+|---|---|
+| `ttl_seconds` | 60 to 900. Default 300. |
+| `end_user_id` | Optional but recommended: a stable, opaque id of **your** user, 1 to 128 characters of `A-Z a-z 0-9 . _ : @ -`. Never the email. |
+| `scopes` | Optional, a non-empty subset of `search` and `assistant`. Default: both. |
+
+Answer `201`, with `Cache-Control: no-store`:
+
+```json
+{ "token": "eyJhbGciOi...", "token_type": "Bearer", "expires_at": "2026-11-12T12:05:00Z", "expires_in": 300, "scopes": ["search", "assistant"] }
+```
+
+**Send `end_user_id` always, and the same for each user.** Each end user has their own conversations and their own limits and cannot read another user's turns. When the token is renewed the user keeps the conversation and can reopen the turn in progress. Without it, every token is a different anonymous user and the conversation is lost on renewal. Wesog does not keep the id nor return it in clear.
+
+Your server route (Node and Express):
+
+```js
+const API = "https://api-platform.wesog.com/api/v1";
+
+app.post("/wesog-token", requireLogin, rateLimitPerUser, async (req, res) => {
+  const r = await fetch(`${API}/auth/client-tokens`, {
+    method: "POST",
+    headers: { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ ttl_seconds: 300, end_user_id: String(req.user.id) }),
+  });
+  if (!r.ok) return res.status(502).json({ error: "token_unavailable" });
+  const { token, expires_at } = await r.json();
+  res.set("Cache-Control", "no-store").json({ token, expires_at });
+});
+```
+
+The same call in other languages:
+
+<CodeGroup>
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -X POST "$WESOG_API/auth/client-tokens" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"ttl_seconds": 300, "end_user_id": "user-8812"}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+
+r = requests.post(
+    f"{API}/auth/client-tokens",
+    headers={"X-API-Key": os.environ["WESOG_API_KEY"]},
+    json={"ttl_seconds": 300, "end_user_id": "user-8812"},
+)
+r.raise_for_status()
+print(r.json()["expires_at"])
+```
+</CodeGroup>
+
+<Warning>
+Protect that route of yours with **your own session** and a **limit per user**. Otherwise anyone could ask for tokens with your key.
+</Warning>
+
+### 3. Revoke (optional, recommended on logout)
+
+```http
+POST /auth/client-tokens/revoke
+X-API-Key: <your key>
+
+{ "token": "eyJhbGciOi..." }          // ends that token
+{ "end_user_id": "user-8812" }        // ends every token of that user
+```
+
+Send exactly one of the two. It always answers `204`. After you block a user, creating a token for them returns `403 client_token_subject_blocked` for 16 minutes. If it answers `503 client_tokens_unavailable` retry until `204`. If you rotate, disable or delete the key, remove its domains or its search permission, or the organization is deactivated, all its tokens stop working within seconds.
+
+### 4. Use the token (browser)
+
+Keep the token **in memory**, never in `localStorage` or in a URL. Renew it a minute before it expires, and also when you get a `401`.
+
+```js
+const API = "https://api-platform.wesog.com/api/v1";
+let current = null; // { token, expires_at }
+
+async function getToken({ force = false } = {}) {
+  if (!force && current && Date.parse(current.expires_at) - Date.now() > 60_000) return current.token;
+  const r = await fetch("/wesog-token", { method: "POST", credentials: "same-origin" });
+  if (!r.ok) throw new Error("token_unavailable");
+  current = await r.json();
+  return current.token;
+}
+```
+
+What a token can call; any other route answers `403 client_token_route_denied`:
+
+| Method | Route | Token scope | Use |
+|---|---|---|---|
+| POST | `/assistant/turns` | `assistant` | Start a turn |
+| GET | `/assistant/turns/{turn_id}/events` | `assistant` | Progress and result (streaming) |
+| POST | `/assistant/turns/{turn_id}/cancel` | `assistant` | Stop |
+| POST | `/library/search` | `search` | Direct [search](/new/search/search), no conversation |
+
+### 5. Start a turn
+
+```http
+POST /assistant/turns
+Authorization: Bearer <token>
+```
+
+```json
+{
+  "kind": "search",
+  "conversation_id": "",
+  "message": "photos of Pedro Sánchez smiling",
+  "resolution": null,
+  "filters": {},
+  "resource_types": [],
+  "limit": 20,
+  "platform_language": "en",
+  "client_turn_id": "c-1"
+}
+```
+
+With a token, `kind` can only be `search` and `limit` is at most 50. Other options of the turn (model, debug, tuning...) are ignored. The `202` answer is `{ "turn_id", "conversation_id", "events_url" }` (no `ticket`). Use the `conversation_id` of the last **result** in the next turn. An unknown `conversation_id`, or one of another user, answers `404 conversation_not_found`: start with `""`.
+
+The messages, progress steps, results and clarification blocks are the same as in the [conversational search](/new/search/conversational-search): answer a clarification with a new turn carrying `resolution`.
+
+### 6. Read the events (browser)
+
+`EventSource` **cannot** be used with a token, because it cannot send the `Authorization` header. Read the stream with `fetch`:
+
+```js
+async function authFetch(url, opts = {}) {
+  const go = async (force) => fetch(url, {
+    ...opts,
+    headers: { ...(opts.headers || {}), Authorization: `Bearer ${await getToken({ force })}` },
+  });
+  let res = await go(false);
+  if (res.status === 401) {
+    const body = await res.clone().json().catch(() => ({}));
+    const code = body?.detail?.code || body?.detail;
+    if (code !== "client_token_revoked") res = await go(true);   // expired: new token, once
+  }
+  return res;
+}
+
+async function listen(turn, { onProgress, onResult, onError }) {
+  let lastId = null, done = false;
+  while (!done) {
+    try {
+      const headers = { Accept: "text/event-stream" };
+      if (lastId) headers["Last-Event-ID"] = lastId;
+      const res = await authFetch(`https://api-platform.wesog.com${turn.events_url}`, { headers });
+      if (res.status === 403 || res.status === 404) return onError({ status: res.status });
+      if (!res.ok) throw new Error(String(res.status));
+      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+      let buf = "";
+      for (;;) {
+        const { value, done: end } = await reader.read();
+        if (end) break;
+        buf += value;
+        let i;
+        while ((i = buf.indexOf("\n\n")) >= 0) {
+          const frame = buf.slice(0, i); buf = buf.slice(i + 2);
+          let event = "message", data = "";
+          for (const line of frame.split("\n")) {
+            if (!line || line.startsWith(":")) continue;                       // ping
+            const k = line.slice(0, line.indexOf(":")), v = line.slice(line.indexOf(":") + 1).trimStart();
+            if (k === "id") lastId = v; else if (k === "event") event = v; else if (k === "data") data += v;
+          }
+          if (!data) continue;
+          const msg = JSON.parse(data);
+          if (event === "progress") onProgress(msg);
+          else if (event === "result") { done = true; return onResult(msg.response); }
+          else if (event === "error") { done = true; return onError(msg); }
+          else if (event === "end") break;       // the token expired or was revoked: reconnect below
+        }
+      }
+    } catch (e) { /* network cut: reconnect */ }
+    if (!done) await new Promise((r) => setTimeout(r, 1000));
+  }
+}
+```
+
+The stream also closes when the **token expires**: it ends with `event: end` and `{"code": "client_token_expired"}` (or `client_token_revoked` / `client_token_invalid`). The `end` event has no `id`, so reconnect with a fresh token and `Last-Event-ID` set to the last event you received: Wesog sends what you missed. Everything else is as in the [conversational search](/new/search/conversational-search#2-follow-the-turn): show photos on `results_ready`, ignore unknown steps and blocks, and treat `result` or `error` as the last event.
+
+### 7. Stop, reload, change tab
+
+- **Stop:** closing the stream does not stop the turn. Call `POST /assistant/turns/{turn_id}/cancel` with the token. The stream then ends with an `error` event with code `cancelled`.
+- **Reload:** when a turn starts save `{turn_id, events_url, conversation_id}` in `sessionStorage` (never the token). When the page loads, if there is a saved turn, get a token and open its `events_url` again: the events are replayed from the first one and the screen rebuilds itself. It works because the `end_user_id` is the same. Delete it on `result` or `error`.
+- If the `GET` gives `404` the turn expired (about 15 minutes): delete it and let the person ask again.
+
+### 8. What a token cannot do
+
+With a token the assistant **only searches**: it does not save to folders, download, run workflows or change anything, it uses no assistant memory or personal settings, and it gives no access to other routes. For those operations your server uses the key.
+
+### Limits
+
+On top of the quotas of your organization and your key, each end user (`end_user_id`) has:
+
+| Limit | Default |
+|---|---|
+| Requests per minute | 60 |
+| Turns per minute | 6 |
+| Turns per day | 200 |
+| Turns running at once | 2 |
+
+Going over answers `429` with `Retry-After` (seconds). Your page can read `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`, `Retry-After` and `X-Request-Id`. Each search also counts towards the monthly searches of your plan.
+
+### Errors
+
+Format: `{ "detail": { "code": "...", "message": "..." } }`.
+
+| HTTP | `code` | What to do |
+|---|---|---|
+| 401 | `Token has expired`, `Invalid token` | Ask for a new token and repeat. |
+| 401 | `client_token_revoked` | Token revoked or user blocked. Do not retry. |
+| 401 | `client_token_invalid` | The key was rotated, disabled or deleted, or the organization is inactive. |
+| 403 | `client_token_origin_denied` | The key has registered addresses and the address of your page is not one of them. |
+| 403 | `client_token_route_denied` | That route does not accept tokens. |
+| 403 | `client_token_scope_denied` | The scopes of the key or the token do not allow it. |
+| 403 | `client_token_not_allowed` | Not allowed with a token (for example `kind` other than `search`). |
+| 403 | `turn_not_yours` | The turn belongs to another end user. |
+| 404 | `conversation_not_found` | Unknown `conversation_id`: start with `""`. |
+| 404 | in the stream | The turn expired. |
+| 413 | `request_too_large` | Body over 64 KB. |
+| 429 | `client_token_rate_limited`, `too_many_turns` | Wait `Retry-After`. |
+| 503 | `client_tokens_unavailable` | Try again shortly. |
+
+Also from your server: `403 client_token_mint_requires_api_key` (you did not use a key), `403 client_token_mint_not_allowed`, `403 client_token_subject_blocked`, `422` for a bad `ttl_seconds`, `end_user_id` or `scopes`.
+
+### Security
+
+- **The API key never goes to the browser.** Only the token.
+- The token is a credential: whoever has it can search until it expires. That is why it lasts minutes, only searches and can be revoked.
+- If you register addresses on the key, the check stops another web page from using the token in a browser, but not someone who copies the token and uses it from a script. What really protects you is the short life, the limits per user and revocation.
+- Never put the token in a URL: it ends up in logs and history.
+- The messages of your users are kept for support, as in the rest of the search.
+
+### Test your page
+
+| Test | What should happen |
+|---|---|
+| A normal search | Steps, photos (`results_ready`) and then the final text |
+| An ambiguous name | A question with options; choosing one starts another turn with `resolution` |
+| DevTools: Offline for 5 s, then Online | "Reconnecting...", then it continues and finishes |
+| Reload in the middle | The turn is recovered and the result shown |
+| A turn longer than 5 min | It reconnects with a new token without losing events |
+| Stop | It stops; nothing stays "in progress" |
+| A page on an address that is not registered (only if the key restricts addresses) | `403 client_token_origin_denied` |
+| Two different users | Neither sees the other's conversations |

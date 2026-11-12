@@ -1,0 +1,66 @@
+---
+title: "Glossary"
+description: "The words used across the platform and the API, in alphabetical order."
+icon: "book-open"
+noindex: true
+---
+
+<AccordionGroup>
+  <Accordion title="Active search">
+    A search saved so that Wesog looks for new matches by itself and notifies you. Menu: **Active searches**. See [Active searches](/new/search/active-searches).
+  </Accordion>
+  <Accordion title="API key">
+    A secret that identifies your software when it calls the API, sent in the `X-API-Key` header. Created by an administrator in **Current tenant settings > General > API keys**. See [API keys](/new/settings/api-keys).
+  </Accordion>
+  <Accordion title="Caption">
+    The description of an image or video in one or two sentences, written by an AI tool or by a person. It is stored in the metadata of the file.
+  </Accordion>
+  <Accordion title="Client token">
+    A short-lived credential that your server creates with an API key and hands to a web page, so that the page can search by itself without ever seeing the key. See [Search on your website](/new/search/search-in-your-website).
+  </Accordion>
+  <Accordion title="Connection, credential and channel">
+    A **credential** is a saved user and password or access keys. A **connection** links a credential to a server or bucket and a folder. A **channel** groups several FTP and S3 connections. Menu: **Credentials**. See [Connections](/new/settings/connections).
+  </Accordion>
+  <Accordion title="Credits">
+    The unit that AI tools and workflows spend. Every plan has a monthly allowance and you can buy more, which never expire. See [Limits and plans](/new/start/limits-and-plans).
+  </Accordion>
+  <Accordion title="Entity">
+    Something Wesog can recognize and link to your content: a person, a place, a brand, a team. Wesog provides public ones and you can create private ones. Menu: **Entities**.
+  </Accordion>
+  <Accordion title="`entity_id` and `resource_id`">
+    Two ids of a file of your Library. `resource_id` is a text id such as `res_62a24365063b`. `entity_id` is a number. Operations say which one they expect.
+  </Accordion>
+  <Accordion title="Execution (run)">
+    One time that a workflow or a tool ran on some input, with its status and its result. Workflow runs appear in the **Workflows** menu.
+  </Accordion>
+  <Accordion title="Idempotency key">
+    A value you choose and send in the `Idempotency-Key` header so that repeating a call never does the work twice. See [Idempotency](/new/start/idempotency).
+  </Accordion>
+  <Accordion title="Library">
+    The place where your files live and are indexed, with their metadata. Menu: **Library**.
+  </Accordion>
+  <Accordion title="MCP">
+    The standard way for AI assistants such as ChatGPT or Claude to use tools of other products. Wesog offers an MCP connection to search and act on your Library. See [Connect agents](/new/search/connect-agents).
+  </Accordion>
+  <Accordion title="Organization">
+    Your account space: its users, Library, workflows, keys, plan and limits. In some screens of the application it is still called **tenant**; they are the same thing. In the API, fields such as `own_tenant` mean "belongs to your organization".
+  </Accordion>
+  <Accordion title="Plan">
+    Free, Freelance, Creator, Team or Premium. It sets users, storage, requests, searches and credits. See [Limits and plans](/new/start/limits-and-plans).
+  </Accordion>
+  <Accordion title="Review">
+    A step where a person checks and corrects what AI produced before it is saved. Menu: **Reviews**, inside **Workflows**.
+  </Accordion>
+  <Accordion title="Scope">
+    A restriction on an API key to some areas of the API: `search`, `read`, `tools`, `workflows`, `library`, `mcp`. See [Authentication](/new/start/authentication).
+  </Accordion>
+  <Accordion title="Thesaurus">
+    The controlled vocabulary used to tag content with consistent terms. Menu: **Thesaurus**.
+  </Accordion>
+  <Accordion title="Tool">
+    An AI function you can run on one file: tag, describe, read text, recognize people. Menu: **Tools**.
+  </Accordion>
+  <Accordion title="Workflow">
+    An automation made of steps that start from a trigger (a new file, a schedule, a call to the API) and do things with the content. Menu: **Workflows**.
+  </Accordion>
+</AccordionGroup>

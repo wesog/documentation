@@ -1,0 +1,148 @@
+---
+title: "Search"
+description: "Search your Library in natural language, page through the results and open a file."
+icon: "magnifying-glass"
+noindex: true
+---
+
+Search finds the photos, videos, documents and audio of your organization from a sentence. You do not build filters: you say what you want ("Rafael Nadal celebrating a point in Madrid", "beach at sunset", "videos of the final").
+
+## From the platform
+
+Open **Search** in the left menu. The page asks *What are you looking for?* Write your request in the box (you can also start from the search box on **Home**) and press **Send message**.
+
+- The answer is a conversation: Wesog explains what it searched and shows the photos and videos, 20 at a time (**See more** brings the next ones). You can follow up ("now only the videos", "only from 2019 onwards") and Wesog keeps the context. When a name could belong to several people, or is not in the archive, it asks you or tells you whom it searched for. See [Conversational search](/new/search/conversational-search).
+- Name a person with **@**, or search with a photo: **Attach image** (**Similar** brings similar photos, **Exact** looks for that same image) and pick the faces detected in it.
+- **Types and filters** lets you choose photos or videos and add filters; **Resource origin** limits the search to your organization or to one other organization. **Sort by** orders the results by date (**Most recent**, **Oldest**).
+- In videos, the moments where each person appears are marked.
+- Each search counts towards the searches of your plan (a clarifying question does not). See [Limits and plans](/new/start/limits-and-plans).
+- To be told about new files that match, press **Notify me of new ones** under the results. See [Active searches](/new/search/active-searches).
+
+## By API
+
+`POST /library/search` is the one-shot search: a request and a page of results, with no conversation. Define the host once and use your [API key](/new/start/authentication):
+
+<CodeGroup>
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -X POST "$WESOG_API/library/search" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "Rafael Nadal celebrating a point in Madrid", "resource_types": ["image"], "limit": 20}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+
+r = requests.post(
+    f"{API}/library/search",
+    headers={"X-API-Key": os.environ["WESOG_API_KEY"]},
+    json={"query": "Rafael Nadal celebrating a point in Madrid", "resource_types": ["image"], "limit": 20},
+)
+r.raise_for_status()
+page = r.json()
+print(page["total"], "results")
+for item in page["items"]:
+    print(item["entity_id"], item["title"], item["relative_path"])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+
+const r = await fetch(`${API}/library/search`, {
+  method: "POST",
+  headers: { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" },
+  body: JSON.stringify({ query: "Rafael Nadal celebrating a point in Madrid", resource_types: ["image"], limit: 20 }),
+});
+const page = await r.json();
+console.log(page.total, "results");
+for (const item of page.items) console.log(item.entity_id, item.title, item.relative_path);
+```
+</CodeGroup>
+
+The key needs the `search`, `read` or `library` scope, or no scopes at all.
+
+### What you can ask
+
+The `query` understands people, places, dates, what is in the image and the type of file. An empty `query` lists the Library, newest first (change the order with `sort`).
+
+| Field | Meaning |
+|---|---|
+| `query` | What you look for, in your language. |
+| `resource_types` | `image`, `video`, `document`, `audio`. Empty means all. |
+| `limit`, `offset` | Page size (1-200, default 20) and where to start. See [Pagination](/new/start/pagination). |
+| `sort` | Only with an empty `query`: `updated_desc`, `updated_asc`, `created_desc`, `name_asc`, `name_desc`. A search with words is always ordered by relevance. |
+| `filters` | Extra conditions, for example a date range of the creation date. |
+
+A date range:
+
+```json
+{
+  "query": "fashion week",
+  "filters": { "field_filters": [ { "field": "created_at", "op": "between", "value": { "from": "2026-09-01", "to": "2026-09-30" } } ] }
+}
+```
+
+### What you get
+
+```json
+{
+  "total": 128,
+  "total_is_estimated": false,
+  "next_offset": 20,
+  "items": [
+    {
+      "resource_id": "res_62a24365063b",
+      "entity_id": 1048223,
+      "source_table": "storage_image",
+      "relative_path": "events/2026/madrid/IMG_0412.jpg",
+      "resource_type": "image",
+      "title": "Nadal celebrates a point",
+      "snippet": "Rafael Nadal celebrates a point during the final in Madrid.",
+      "thumbnail_url": "events/2026/madrid/IMG_0412.jpg",
+      "media_type": "image",
+      "content_type": "image/jpeg",
+      "own_tenant": true,
+      "metadata": { "field_values": { "headline": "Nadal celebrates a point", "city": "Madrid", "keywords": ["tennis", "Nadal"] } }
+    }
+  ]
+}
+```
+
+Results come best first. When `next_offset` is present there are more: send it as `offset` to get the next page; on the last page it is missing.
+
+`metadata.field_values` holds the descriptive data (headline, caption, keywords, author, place, dates) and `metadata.detected_identities` the people recognised.
+
+<Warning>
+A result carries three identifiers and they are **not** interchangeable. Use `entity_id` (a number) to open or edit the file and to send it to a [workflow](/new/workflows/run-by-api); copy `source_table` as returned; do not use the `res_...` value of `resource_id` in other calls. See [Identifiers](/new/library/overview#identifiers-resource_id-entity_id-and-source_table).
+</Warning>
+
+`own_tenant` is `true` for files of your organization and `false` for files of another organization whose archive you can search (read only). `thumbnail_url` and `preview_url` may be paths in your Library rather than web addresses: show a placeholder for any value that is not an absolute `https://` URL.
+
+### Open one result
+
+`GET /library/tables/{source_table}/rows/{row_id}` returns all the stored data of a file. Use the `source_table` and the `entity_id` of the result as `row_id`; `fields` asks only for what you need (for example `fields=headline,caption,keyword`).
+
+```bash
+curl "$WESOG_API/library/tables/storage_image/rows/1048223?fields=headline,caption,keyword" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+To change that data see [Edit metadata](/new/library/metadata).
+
+### Errors
+
+| Status | Meaning |
+|---|---|
+| `400`, `422` | The request is not valid (for example a `limit` over 200). See [Errors](/new/start/errors). |
+| `401`, `403` | Missing or invalid key, or a key whose scopes do not include search. |
+| `429` | You went over the requests of your key or the searches of your plan. Wait the seconds of `Retry-After`. |
+
+### Good to know
+
+- A file you just uploaded can take a few minutes to be searchable.
+- An archive that other organizations share with you appears with `own_tenant: false`.
+- For a chat on your own website use the [conversational search](/new/search/conversational-search); for a page that searches straight from the browser, [Search in your own website](/new/search/search-in-your-website).

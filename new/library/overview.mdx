@@ -1,0 +1,158 @@
+---
+title: "Library"
+description: "How the Library is organized, how to browse it, and which identifier to use for each file."
+icon: "folder-open"
+noindex: true
+---
+
+The **Library** is where your photos, videos, documents and audio live, together with everything Wesog knows about them (caption, keywords, people, place, dates). Search, workflows and tools all work on the Library.
+
+It holds photos, videos and audio, and it is a tree of folders. At the bottom of the menu you see how much storage you use of your plan. A file is identified by its **path** (`relative_path`, for example `events/2026/madrid/IMG_0412.jpg`) and, once indexed, by a **numeric id** that search, workflows and the metadata calls use.
+
+## From the platform
+
+Open **Library** in the left menu. On the left you have **Folders**, **Collections** and **Filters**, and shortcuts to **FTP Wesog**, **Shared with me**, **Shared by me**, **Duplicates**, **Favorites**, **Trash** and **Temporary files**.
+
+- Open a folder to see its files. Right-click a file or folder for **New folder**, **Rename**, **Move to folder**, **Copy**, **Cut**, **Paste**, **Download**, **Share**, **Save to favorites**, **Templates** (launch a workflow that fits) and **Move to trash**. In large folders the operation goes on in the background.
+- **Share** a file, folder or collection with a Wesog user by email (**Viewer** or **Editor**; they see it in **Shared with me**), or with **Create link** (whoever opens it has to sign in to Wesog; **Deactivate link** cuts it).
+- To send files to someone without an account, use **TransferLink** (a download link) or **Send by FTP** in **Send**.
+- Open a file to see its data and edit it. See [Edit metadata](/new/library/metadata).
+- Add files with the upload options. See [Upload content](/new/library/upload).
+- Deleted files go to **Trash**. See [Trash and restore](/new/library/trash).
+
+## By API
+
+You need a key with the `library` scope, or no scopes for the read-only calls (editing, deleting and restoring need `library` selected). See [API keys](/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+| To | Call |
+|---|---|
+| List a folder | `GET /storage/objects?prefix=events/2026/` (add `recursive=true` to go down) |
+| Create a folder | `POST /storage/folders` `{"relative_path": "events/2027"}` |
+| Rename or move a file or folder | `POST /storage/rename-object` with `source_relative_path` and `destination_relative_path` (add `"recursive": true` for a folder) |
+| Copy | `POST /storage/copy-object`, same fields |
+| Upload | [Upload content](/new/library/upload) |
+| Read or change the data of a file | [Edit metadata](/new/library/metadata) |
+| Delete or restore | [Trash and restore](/new/library/trash) |
+
+The data of the files, and their search, follows them when you move or rename.
+
+### List a folder
+
+<CodeGroup>
+```bash cURL
+curl "$WESOG_API/storage/objects?prefix=events/2026/&limit=100" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+page = requests.get(f"{API}/storage/objects", headers=H, params={"prefix": "events/2026/", "limit": 100}).json()
+for item in page["items"]:
+    print(item["relative_path"], item.get("resource_id"), item["is_dir"])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/storage/objects?prefix=events/2026/&limit=100`, { headers: H });
+const page = await r.json();
+for (const item of page.items) console.log(item.relative_path, item.resource_id, item.is_dir);
+```
+</CodeGroup>
+
+```json
+{
+  "prefix": "events/2026/",
+  "recursive": false,
+  "limit": 100,
+  "has_more": false,
+  "returned_count": 1,
+  "items": [
+    {
+      "relative_path": "events/2026/madrid/IMG_0412.jpg",
+      "is_dir": false,
+      "size_bytes": 3481923,
+      "last_modified": "2026-11-10T08:12:44Z",
+      "is_indexed": true,
+      "resource_id": "1048223",
+      "resource_type": "image",
+      "title": "Runway at Cibeles",
+      "content_type": "image/jpeg",
+      "tags": ["runway", "fashion"]
+    }
+  ]
+}
+```
+
+Page with `start_after`: when `has_more` is `true`, send `next_start_after` as `start_after` in the next call. `is_indexed: true` means the file can already be found by searching. See [Pagination](/new/start/pagination).
+
+### Folders, move and copy
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/storage/folders" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"relative_path": "events/2027"}'
+
+curl -X POST "$WESOG_API/storage/rename-object" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"source_relative_path": "events/2026/madrid/IMG_0412.jpg", "destination_relative_path": "events/2026/madrid/final/IMG_0412.jpg"}'
+```
+
+```python Python
+requests.post(f"{API}/storage/folders", headers=H, json={"relative_path": "events/2027"}).raise_for_status()
+
+r = requests.post(f"{API}/storage/rename-object", headers=H, json={
+    "source_relative_path": "events/2026/madrid/IMG_0412.jpg",
+    "destination_relative_path": "events/2026/madrid/final/IMG_0412.jpg",
+})
+print(r.json())   # moved_count, status, failed_count, failed_paths
+```
+
+```javascript JavaScript
+await fetch(`${API}/storage/folders`, {
+  method: "POST", headers: { ...H, "Content-Type": "application/json" },
+  body: JSON.stringify({ relative_path: "events/2027" }),
+});
+
+const r = await fetch(`${API}/storage/rename-object`, {
+  method: "POST", headers: { ...H, "Content-Type": "application/json" },
+  body: JSON.stringify({
+    source_relative_path: "events/2026/madrid/IMG_0412.jpg",
+    destination_relative_path: "events/2026/madrid/final/IMG_0412.jpg",
+  }),
+});
+console.log(await r.json());
+```
+</CodeGroup>
+
+Creating a folder that already exists is not an error. Moving answers `{"moved_count": 1, "status": "renamed", "failed_count": 0, "failed_paths": []}`; copying answers the same with `copied_count` and `"status": "copied"`. Errors: `404` if the source does not exist, `409` if the destination already exists.
+
+## Identifiers: `resource_id`, `entity_id` and `source_table`
+
+The same file shows up with several names in the API. This is what each one is and which to use.
+
+| Where you see it | Field | What it is | Use it for |
+|---|---|---|---|
+| Search result | `entity_id` (number) | The **numeric id of the file**. | The `row_id` to open or edit it, `resource_ids` of a [workflow](/new/workflows/run-by-api), `resource_id` to delete it. |
+| Search result | `resource_id` (`res_...`) | An internal identifier of that result in the search. | Nothing else: do not use it in other calls. |
+| Upload, folder listing, trash | `resource_id` (number, sometimes written as a string such as `"1048223"`) | The **same numeric id** as `entity_id`. | The same as `entity_id`. |
+| Search result, upload | `source_table` | The **type of resource** the file is stored as (for example `storage_image`). | The `source_table` in the path of the open and edit calls. **Copy it as returned**; do not build it yourself. |
+| Search result, listing | `relative_path` | The path of the file in the Library. | Moving, renaming, copying. |
+
+So: the number is the identity of the file, whatever the field is called; the `res_...` value is only for the search result; and `source_table` travels with the number.
+
+```text
+search -> { "resource_id": "res_62a24365063b", "entity_id": 1048223, "source_table": "storage_image" }
+open / edit  -> /library/tables/storage_image/rows/1048223
+workflow     -> {"resource_ids": [1048223]}
+delete       -> {"resource_id": "1048223"}
+```

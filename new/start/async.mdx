@@ -1,0 +1,83 @@
+---
+title: "Async tasks"
+description: "What to do when a call answers 202: poll the run, read the result and cancel it."
+icon: "hourglass-half"
+noindex: true
+---
+
+Some work takes longer than a web call should wait: a video, a big batch, a workflow. Those operations answer **`202 Accepted`** with something to ask later, and you **poll** it.
+
+There are two kinds:
+
+| You start it with | You poll it with | It ends as |
+|---|---|---|
+| `POST /tools/{tool}` | `GET /tools/runs/{run_id}` | `succeeded`, `failed`, `timeout` or `cancelled` |
+| `POST /workflow-instances/{id}/api/requests` | `GET /workflow-instances/{id}/api/requests/{request_id}` | `succeeded` or `failed` |
+
+## Tools: answer now or later
+
+`POST /tools/{tool}` never waits for the result: it queues the run and answers `202` with a `run_id` and a `poll_path`. You then ask `GET /tools/runs/{run_id}`: it answers `202` while the run is `queued` or `running` and `200` with the result when it has finished. The optional `timeout_ms` field is accepted but does not change this.
+
+`IMAGE_URL` below is the address of an image you own, reachable from the internet. You can also send the file itself, see the page of each [tool](/new/tools/overview).
+
+<CodeGroup>
+```python Python
+import os, time, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.post(f"{API}/tools/image_tag", headers=headers,
+                  json={"image_url": os.environ["IMAGE_URL"]})
+while r.status_code == 202:
+    time.sleep(1.5)
+    r = requests.get(f"{API}/tools/runs/{r.json()['run_id']}", headers=headers)
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+
+let r = await fetch(`${API}/tools/image_tag`, {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ image_url: process.env.IMAGE_URL }),
+});
+let body = await r.json();
+while (r.status === 202) {
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  r = await fetch(`${API}/tools/runs/${body.run_id}`, { headers });
+  body = await r.json();
+}
+console.log(body);
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -X POST "$WESOG_API/tools/image_tag" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d "{\"image_url\": \"$IMAGE_URL\"}"
+
+# ask for the run with the run_id it gave you
+curl "$WESOG_API/tools/runs/$RUN_ID" -H "X-API-Key: $WESOG_API_KEY"
+```
+</CodeGroup>
+
+Poll every 1 to 2 seconds. Cancel a run you no longer need with `POST /tools/runs/{run_id}/cancel`.
+
+## Workflows: one request per file
+
+`POST /workflow-instances/{id}/api/requests` answers `202` at once with one `request_id` per file. Each file is processed on its own, so some can finish before others. `GET .../api/requests/{request_id}` answers `202` while it works and `200` with `results` when it has finished. If it failed, `status` is `failed` and `error` says why. See [Run a workflow](/new/workflows/run-by-api).
+
+## No webhooks
+
+Wesog does **not** call your server when something finishes: you poll. Your integration stays simple (no public address to open) and a result can be read again after you read it.
+
+If you need to react to new content as it arrives, use [active searches](/new/search/active-searches) (a notice, and optionally an email, when new files match a search), or poll every few seconds only while you wait for something.
+
+## If the connection drops
+
+A `202` is a promise: the work continues even if you lose the connection. If you did not get the answer, **repeat the call with the same `Idempotency-Key`** (see [Idempotency](/new/start/idempotency)) and you get the same `run_id` or `request_id` back instead of starting the work twice.

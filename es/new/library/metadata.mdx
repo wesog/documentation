@@ -1,0 +1,120 @@
+---
+title: "Editar metadatos"
+description: "Lee y cambia la descripción, las palabras clave, el titular, el lugar y otros datos de un archivo."
+icon: "pen-to-square"
+noindex: true
+---
+
+Cada archivo de la Biblioteca tiene datos: titular, descripción, palabras clave, personas, lugar, fechas, autor, derechos y campos técnicos. Wesog rellena buena parte por ti con [herramientas](/es/new/tools/overview) y [workflows](/es/new/workflows/overview); tú puedes leerlos y corregirlos.
+
+## Desde la plataforma
+
+- **Un archivo.** En **Biblioteca**, abre el archivo para ver sus datos. Edita lo que esté mal y guarda. Un cambio se puede buscar en pocos segundos. Las personas reconocidas en una foto o vídeo se editan en el mismo sitio: puedes marcar a una persona como desconocida, cambiar la identidad o añadir una.
+- **Muchos archivos.** Abre **Herramientas** y elige **MetaEditor**. Edita los metadatos de una selección de fotos (de tu equipo o de la Biblioteca), con etiquetas de color y herramientas de IA para generar descripciones y palabras clave. *Guardar una copia en la biblioteca* deja el original donde estaba.
+- **Automático.** Ejecuta una herramienta como Caption o Keywords, o un workflow, para generar los datos.
+
+## Por API
+
+Necesitas una clave con el permiso `library` **marcado** para cambiar datos; una clave sin permisos limitados no puede (leer también funciona con `search` o `read`). Mira [Claves de API](/es/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+La ruta de las dos llamadas es `/library/tables/{source_table}/rows/{row_id}`:
+
+- `row_id` es el id numérico del archivo: el `entity_id` de un resultado de [búsqueda](/es/new/search/search), o el `resource_id` de una [subida](/es/new/library/upload).
+- `source_table` es el tipo de recurso con que está guardado el archivo (por ejemplo `storage_image`). **Cópialo tal como viene** de la búsqueda o la subida; no lo construyas. Mira [Identificadores](/es/new/library/overview#identificadores-resource_id-entity_id-y-source_table).
+
+### Leer los datos
+
+`GET` devuelve todos los datos guardados. `fields` pide solo algunos (separados por comas); `platform_language` (dos letras) da los nombres de personas en ese idioma.
+
+<CodeGroup>
+```bash cURL
+curl "$WESOG_API/library/tables/storage_image/rows/1048223?fields=headline,caption,keyword,city,country" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.get(f"{API}/library/tables/storage_image/rows/1048223", headers=H,
+                 params={"fields": "headline,caption,keyword,city,country"})
+r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/library/tables/storage_image/rows/1048223?fields=headline,caption,keyword,city,country`, { headers: H });
+console.log(await r.json());
+```
+</CodeGroup>
+
+```json
+{
+  "id": 1048223,
+  "headline": "Nadal celebra un punto",
+  "caption": "Rafael Nadal celebra un punto durante la final de Madrid.",
+  "keyword": ["tenis", "Nadal", "Madrid"],
+  "city": "Madrid",
+  "country": "España"
+}
+```
+
+### Cambiar los datos
+
+`PATCH` con solo los campos que cambian; los demás se quedan como están. La respuesta es el archivo tal como queda.
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH "$WESOG_API/library/tables/storage_image/rows/1048223" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"caption": "Rafael Nadal celebra un punto durante la final de Madrid.", "keyword": ["tenis", "Nadal", "Madrid"]}'
+```
+
+```python Python
+r = requests.patch(
+    f"{API}/library/tables/storage_image/rows/1048223",
+    headers=H,
+    json={"caption": "Rafael Nadal celebra un punto durante la final de Madrid.",
+          "keyword": ["tenis", "Nadal", "Madrid"]},
+)
+r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const r = await fetch(`${API}/library/tables/storage_image/rows/1048223`, {
+  method: "PATCH",
+  headers: { ...H, "Content-Type": "application/json" },
+  body: JSON.stringify({
+    caption: "Rafael Nadal celebra un punto durante la final de Madrid.",
+    keyword: ["tenis", "Nadal", "Madrid"],
+  }),
+});
+console.log(await r.json());
+```
+</CodeGroup>
+
+Los nombres de los campos son los que devuelve `GET` para ese archivo (por ejemplo `caption`, `headline`, `description`, `keyword`, `city`, `country`, `event`, `author`). Lee primero el archivo para ver cuáles tiene. Un nombre desconocido se rechaza con `422` y el código `unknown_library_fields`, junto con la lista de nombres válidos.
+
+### Errores
+
+| Estado | Significado |
+|---|---|
+| `401`, `403` | Falta la clave o no es válida, o la clave no tiene el permiso `library` marcado. |
+| `404` | No hay ningún archivo con ese `source_table` y `row_id` en tu organización. |
+| `422` | `unknown_library_fields`, o un valor de tipo incorrecto. Mira [Errores](/es/new/start/errors). |
+| `429` | Demasiadas peticiones. Espera `Retry-After`. |
+
+### A tener en cuenta
+
+- Un cambio se puede buscar en pocos segundos.
+- Para renombrar o mover el archivo en sí, mira [Biblioteca](/es/new/library/overview#carpetas-mover-y-copiar); los datos siguen al archivo.

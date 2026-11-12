@@ -1,0 +1,52 @@
+---
+title: "Conexiones"
+description: "Guarda una vez las credenciales de tu FTP, S3 y otros servicios y reutilízalas en cualquier workflow."
+icon: "plug"
+noindex: true
+---
+
+Una **conexión** le dice a Wesog cómo llegar a uno de **tus** servicios, por ejemplo el FTP de una agencia, un bucket de S3 o una aplicación en la nube, para que los workflows puedan leer de él o enviarle resultados. Guardas los datos de acceso una vez y los reutilizas en todas partes.
+
+## Dónde está
+
+Barra lateral > **Credenciales** (**Configuración de credenciales**). La página se titula **Conecta tus servicios una sola vez** y tiene cuatro pestañas:
+
+| Pestaña | Qué contiene |
+|---|---|
+| **Credenciales** | Datos de acceso reutilizables: usuario y contraseña de un FTP, clave de acceso y clave secreta de S3, o las claves de otro proveedor. |
+| **Conexiones** | Una credencial enlazada con un servidor o bucket, una carpeta y cómo se usará. |
+| **Canales** | Un grupo de conexiones FTP y S3 que se usan juntas como un origen o destino. |
+| **Perfiles** | Grupos de ajustes reutilizables para distintos workflows o entornos. |
+
+## Camino recomendado
+
+<Steps>
+  <Step title="Añade una credencial">
+    Pulsa **Nueva credencial**, elige el tipo (FTP o S3), ponle un **Nombre de las credenciales** (por ejemplo `FTP redacción`) y escribe el **Usuario** y la **Contraseña**, o la clave de acceso y el secreto.
+  </Step>
+  <Step title="Crea una conexión">
+    Pulsa **Nueva conexión**, escribe el **Nombre de la conexión**, elige la **Credencial** y rellena el servidor o bucket y el directorio remoto. Si el directorio no existe, Wesog pregunta si quieres **Crear** uno nuevo o **Cambiar** a uno existente.
+  </Step>
+  <Step title="Guarda tus canales">
+    Opcional: pulsa **Nuevo canal** y selecciona varias conexiones para usarlas juntas.
+  </Step>
+</Steps>
+
+Ejemplo de la pantalla: *Credencial Agencia > FTP Agencia /fotos/ > Canal Fotógrafos*.
+
+## Úsalas
+
+Cuando construyes o editas un [workflow](/es/new/workflows/run-by-api), los pasos de FTP y S3 te dejan elegir una de tus conexiones o canales en vez de escribir otra vez los datos. Los secretos se guardan cifrados y no se vuelven a mostrar después de guardar: para cambiar uno, escríbelo de nuevo.
+
+Borrar una credencial borra también las conexiones que la usan; Wesog te las lista antes de confirmar.
+
+## Conexiones o FTP/S3 Wesog
+
+| Quieres... | Usa |
+|---|---|
+| Que un remitente deje archivos en Wesog | [FTP y S3 Wesog](/es/new/settings/ftp-s3) |
+| Que Wesog lea de, o escriba en, un servidor tuyo | Una conexión (esta página) |
+
+## Por API
+
+Las conexiones se gestionan solo en la plataforma. Tus workflows las usan al ejecutarse; no envías secretos por la API.

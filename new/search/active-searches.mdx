@@ -1,0 +1,67 @@
+---
+title: "Active searches and alerts"
+description: "Be told when new files match a search, without polling."
+icon: "bell"
+noindex: true
+---
+
+An **active search** repeats a search for you and notifies you when new files match it: *"new photos of the Madrid fashion week"*. It is the way to react to new content without polling the API. In the platform it is the **Active searches** page; the notices are called **alerts**.
+
+Active searches belong to a **person**, not to an API key. They are created and managed in the platform or from an AI agent connected by [MCP](/new/search/connect-agents). There are no REST endpoints for them (see [If your program needs to react](#if-your-program-needs-to-react)).
+
+## From the platform
+
+### Create one
+
+- On **Search**, ask for it in your words (*"tell me when there are photos of Rosalía"*), or run a search and press **Notify me of new ones** under the results.
+- In both cases Wesog shows you a proposal: how it understood the search, where it will look and how many results there would be today. If something is doubtful it asks you first. **The alert does not exist until you press Create alert**, so an alert that understood the wrong thing never sends noise.
+- You choose the frequency and, if you want, an expiry on the proposal, or ask for it in your words (*"tell me as soon as..."*, *"once a day"*).
+
+### Manage them
+
+Open **Active searches** in the left menu (under **Search**). The page has no button to create a new one: they are created from **Search**. For each one you see the search, its date, its **Alert frequency**, its **Expiry** and its state (**Active** or **Inactive**). From there you can **Activate** or **Deactivate** it, **Edit active search**, delete it and **View results** to see what it found, split into **Images** and **Videos** and ordered by **Similar** or **Most recent**.
+
+### How it behaves
+
+- It only tells you about files that arrive **after** it was created, and never twice about the same file.
+- You choose how often: **Immediate** (within seconds), **Hourly** (the default; one notice with everything new) or **Daily** (one summary a day).
+- Notices arrive in the notification bell. Tick **Also email me a summary** to get an email too.
+- It never expires unless you set an end date (**1 week**, **1 month** or a date). When the date arrives it pauses by itself and you get a notice in the bell; to resume it, remove the date or set a new one.
+- What arrives while an alert is paused is not notified when you resume it.
+- It is also paused if you pause it yourself, if you lose access to the organization, if your plan no longer allows that many alerts, or after several failures in a row (you can resume it).
+
+### Limits
+
+Your plan sets how many active alerts you can have and how many can be **Immediate**. The Free plan has none. Paused alerts do not count. If your plan goes down, the alerts that no longer fit are paused and do not resume by themselves when it goes up. See your numbers in **Current tenant settings > Subscription** (organization menu). Each alert also notifies at most a limited number of times per hour and per day (what arrives in between is grouped into the next notice). More in [Limits and plans](/new/start/limits-and-plans).
+
+## By API
+
+Not available. Active searches are created and managed by a person in the platform, or by an AI agent connected by [MCP](/new/search/connect-agents) ("alert me when new photos of the fashion week arrive"). The agent asks you to confirm before it creates one.
+
+### If your program needs to react
+
+Use one of these two patterns:
+
+- Let the alert tell a person (bell or email), and have the person or your agent open the results.
+- Make your program [search](/new/search/search) on a schedule, asking for the latest files (an empty `query` with `sort` set to `created_desc`, or a `created_at` date range in `filters`), and remember the last `entity_id` you processed.
+
+```python
+import os, time, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+last_seen = 0
+
+while True:
+    r = requests.post(f"{API}/library/search", headers=H,
+                      json={"query": "", "sort": "created_desc", "limit": 50})
+    r.raise_for_status()
+    new = [i for i in r.json()["items"] if (i.get("entity_id") or 0) > last_seen]
+    for item in reversed(new):
+        print("new file", item["entity_id"], item["relative_path"])
+    if new:
+        last_seen = max(i["entity_id"] for i in new)
+    time.sleep(300)
+```
+
+Each search counts towards the searches of your plan, so do not poll more often than you need. The first run treats everything as new; to start from "now", set `last_seen` to the highest `entity_id` of a first call.

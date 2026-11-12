@@ -1,0 +1,207 @@
+---
+title: "Subir contenido"
+description: "Añade archivos a la Biblioteca desde la plataforma, por API (sencilla y por partes) o por el FTP y S3 de Wesog."
+icon: "upload"
+noindex: true
+---
+
+Hay tres formas de meter archivos en Wesog: desde la plataforma, por API, y por el FTP o S3 de Wesog. Los archivos guardados en la Biblioteca se indexan, así que puedes [buscarlos](/es/new/search/search) en pocos minutos.
+
+## Desde la plataforma
+
+En **Biblioteca**, pulsa **Añadir contenido**; se abren las opciones de subida (**Opciones de carga**). Eliges qué pasa con los archivos. La Biblioteca admite imágenes, vídeos y audio: cualquier otro archivo (un PDF, un documento) se rechaza con un aviso.
+
+| Opción | Qué hace |
+|---|---|
+| **Subir a Wesog** | *Guarda e indexa en tu biblioteca.* El archivo se guarda y se puede buscar. |
+| **Indexar** | *Indexa sin guardar permanentemente.* Wesog analiza el archivo pero no conserva el original. |
+| **Subir a FTP Wesog** | *Añade archivos al directorio FTP seleccionado.* Mira [FTP y S3 de Wesog](#ftp-y-s3-de-wesog). |
+| **Subir desde local** | *Selecciona archivos de tu equipo.* |
+| **Subir desde biblioteca** | *Elige archivos guardados en Wesog.* |
+
+Arrastra archivos o carpetas a la ventana de subida, o selecciónalos desde tu equipo. Mientras suben ves el progreso (*Subiendo 3/10*), y el **Historial de subidas** lista las subidas recientes con sus errores. **Cancelar subida** detiene el resto.
+
+## Por API
+
+Necesitas una clave con el permiso `library` (o sin permisos limitados). Mira [Claves de API](/es/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+### Subir un archivo (hasta 100 MB)
+
+`POST /storage/upload`, como `multipart/form-data`: el archivo en `file` y su ruta de destino en `relative_path`.
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/storage/upload" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -F 'file=@IMG_0412.jpg' \
+  -F 'relative_path=events/2026/madrid/IMG_0412.jpg'
+```
+
+```python Python
+import os, uuid, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+
+with open("IMG_0412.jpg", "rb") as f:
+    r = requests.post(
+        f"{API}/storage/upload",
+        headers={"X-API-Key": os.environ["WESOG_API_KEY"], "Idempotency-Key": str(uuid.uuid4())},
+        files={"file": f},
+        data={"relative_path": "events/2026/madrid/IMG_0412.jpg"},
+    )
+r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+import { openAsBlob } from "node:fs";
+
+const API = "https://api-platform.wesog.com/api/v1";
+
+const form = new FormData();
+form.append("file", await openAsBlob("IMG_0412.jpg"), "IMG_0412.jpg");
+form.append("relative_path", "events/2026/madrid/IMG_0412.jpg");
+const r = await fetch(`${API}/storage/upload`, {
+  method: "POST",
+  headers: { "X-API-Key": process.env.WESOG_API_KEY, "Idempotency-Key": crypto.randomUUID() },
+  body: form,
+});
+console.log(await r.json());
+```
+</CodeGroup>
+
+```json
+{ "relative_path": "events/2026/madrid/IMG_0412.jpg", "action": "created", "resource_id": 1048223 }
+```
+
+- `action` es `created`, o `replaced` cuando la ruta ya existía: **subir a una ruta que existe reemplaza el archivo.**
+- `resource_id` es el **id numérico** del archivo: úsalo como `row_id` para [editar sus metadatos](/es/new/library/metadata), en `resource_ids` para enviarlo a un [workflow](/es/new/workflows/run-by-api), y para [borrarlo](/es/new/library/trash). La respuesta puede traer también `source_table` (cópialo tal como viene); si no lo trae, lo obtienes de una [búsqueda](/es/new/search/search) o de `GET /storage/objects`. Mira [Identificadores](/es/new/library/overview#identificadores-resource_id-entity_id-y-source_table).
+- El archivo se indexa y se puede buscar en pocos minutos.
+- Una llamada repetida con el mismo `Idempotency-Key` en 24 horas devuelve la primera respuesta en lugar de subir dos veces (un cuerpo distinto con la misma clave es `409`). Mira [Idempotencia](/es/new/start/idempotency).
+
+### Subir un archivo grande por partes
+
+Para archivos de más de 100 MB (vídeos). Tres pasos:
+
+1. `POST /storage/upload/multipart/init` con `relative_path`, `expected_size_bytes` y, opcionalmente, `content_type` y `part_size_bytes` (partes de 5 a 64 MB, como mucho 10.000; por defecto 24 MB). Recibes un `upload_id`, `part_size_bytes`, `total_parts` y una `upload_url` por parte.
+2. Envía cada parte con `PUT` a su `upload_url`; el cuerpo son los bytes de esa parte.
+3. `POST /storage/upload/multipart/complete` con `relative_path`, `upload_id` y `total_parts`. Envía `"skip_library_ingestion": false` para que el archivo se indexe; por defecto un archivo enviado por partes se guarda sin indexar.
+
+Si algo falla, `POST /storage/upload/multipart/abort` con `relative_path` y `upload_id` descarta las partes (`204`, sin cuerpo).
+
+<CodeGroup>
+```bash cURL
+SIZE=$(stat -c %s final.mp4)
+
+curl -X POST "$WESOG_API/storage/upload/multipart/init" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d "{\"relative_path\": \"events/2026/final.mp4\", \"expected_size_bytes\": $SIZE, \"content_type\": \"video/mp4\"}"
+# después, PUT de cada parte a su upload_url, y:
+curl -X POST "$WESOG_API/storage/upload/multipart/complete" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"relative_path": "events/2026/final.mp4", "upload_id": "up_3b9f", "total_parts": 11, "skip_library_ingestion": false}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+path, name = "events/2026/final.mp4", "final.mp4"
+
+init = requests.post(f"{API}/storage/upload/multipart/init", headers=H, json={
+    "relative_path": path,
+    "expected_size_bytes": os.path.getsize(name),
+    "content_type": "video/mp4",
+}).json()
+
+try:
+    with open(name, "rb") as f:
+        for part in init["parts"]:
+            requests.put(part["upload_url"], data=f.read(part["size_bytes"])).raise_for_status()
+    done = requests.post(f"{API}/storage/upload/multipart/complete", headers=H, json={
+        "relative_path": init["relative_path"],
+        "upload_id": init["upload_id"],
+        "total_parts": init["total_parts"],
+        "skip_library_ingestion": False,
+    })
+    done.raise_for_status()
+    print(done.json())      # relative_path, action, resource_id
+except Exception:
+    requests.post(f"{API}/storage/upload/multipart/abort", headers=H,
+                  json={"relative_path": path, "upload_id": init["upload_id"]})
+    raise
+```
+
+```javascript JavaScript
+import { openAsBlob, statSync } from "node:fs";
+
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+const path = "events/2026/final.mp4", name = "final.mp4";
+
+const init = await (await fetch(`${API}/storage/upload/multipart/init`, {
+  method: "POST", headers: H,
+  body: JSON.stringify({ relative_path: path, expected_size_bytes: statSync(name).size, content_type: "video/mp4" }),
+})).json();
+
+const file = await openAsBlob(name);
+let offset = 0;
+for (const part of init.parts) {
+  const chunk = file.slice(offset, offset + part.size_bytes);
+  offset += part.size_bytes;
+  const put = await fetch(part.upload_url, { method: "PUT", body: chunk });
+  if (!put.ok) throw new Error(`falló la parte ${part.part_number}`);
+}
+const done = await fetch(`${API}/storage/upload/multipart/complete`, {
+  method: "POST", headers: H,
+  body: JSON.stringify({ relative_path: init.relative_path, upload_id: init.upload_id, total_parts: init.total_parts, skip_library_ingestion: false }),
+});
+console.log(await done.json());
+```
+</CodeGroup>
+
+La respuesta de `init`:
+
+```json
+{
+  "relative_path": "events/2026/final.mp4",
+  "upload_id": "up_3b9f",
+  "part_size_bytes": 67108864,
+  "total_parts": 11,
+  "parts": [ { "part_number": 1, "upload_url": "https://...", "size_bytes": 67108864 } ]
+}
+```
+
+La `upload_url` de cada parte es una dirección temporal: no añadas tu clave de API cuando hagas el `PUT`.
+
+### Errores y límites
+
+| Estado | Significado |
+|---|---|
+| `400`, `422` | La petición no es válida (por ejemplo un archivo vacío). |
+| `401`, `403` | Falta la clave o no es válida, o sus permisos no incluyen `library`. |
+| `404`, `409` | En `complete`: la subida no existe, o no están todas las partes. |
+| `413` | El archivo supera el límite de una subida sencilla: envíalo por partes. |
+| `429` | Demasiadas peticiones. Espera `Retry-After`. |
+
+La Biblioteca admite imágenes, vídeos y audio. Además cuenta en el almacenamiento de tu plan. Mira [Límites y planes](/es/new/start/limits-and-plans).
+
+## FTP y S3 de Wesog
+
+Tu organización tiene un **FTP** y un **S3** de Wesog: un sitio donde tú o tus sistemas pueden dejar archivos con las herramientas que ya usáis (un cliente FTP, una cámara o un envío de agencia, una herramienta S3). Los dos son el mismo espacio, al que se llega de dos formas. Los accesos se crean en **Ajustes del tenant actual > Almacenamiento** (por quien administra la organización), mira [FTP y S3 de Wesog](/es/new/settings/ftp-s3).
+
+En la plataforma, abre **FTP Wesog** en la Biblioteca: *Archivos que llegan por FTP o S3 de Wesog.* Puedes recorrer sus carpetas, crear una **Nueva carpeta**, renombrar, descargar, previsualizar y **Subir archivos** a ella. Los archivos que subes ahí *se quedan en el área FTP de esta carpeta. No se añaden a la Biblioteca*: se guardan tal cual, sin indexar. Cuando un nombre ya existe eliges **Omitir los que ya existen**, **Reemplazar** o **Conservar ambos**.
+
+Lo que llega al FTP o S3 se borra solo a los pocos días de llegar; la sección **FTP Wesog** muestra los días que le quedan, y no se borra lo que un workflow aún está usando. Lo que hace útiles esos archivos es un workflow cuya entrada sea ese FTP o S3: toma cada archivo nuevo, lo procesa y guarda el resultado en la Biblioteca, en una salida FTP o S3, o lo devuelve por API. Mira [Workflows](/es/new/workflows/overview).
+
+<Note>
+Si renombras una carpeta del área FTP que vigila un workflow, el workflow deja de encontrarla. La plataforma te avisa y deja esos workflows parados; apunta su entrada a la carpeta nueva y vuelve a ponerlos en marcha.
+</Note>
+
+Por API el FTP y el S3 se usan con los protocolos FTP y S3, no con estos endpoints.

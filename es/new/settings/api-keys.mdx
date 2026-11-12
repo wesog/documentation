@@ -1,0 +1,109 @@
+---
+title: "Claves de API"
+description: "Crea, limita, rota y para claves de API, y registra las direcciones web permitidas para los tokens de cliente."
+icon: "key"
+noindex: true
+---
+
+Una clave de API identifica tu software cuando llama a la API. Cada clave tiene un nombre, alcances opcionales, límites propios opcionales y, si buscas desde tu propia página web, las direcciones de esa página.
+
+## Desde la plataforma
+
+Solo un administrador puede gestionar claves. Ve a **Ajustes del tenant actual > General** y busca la tarjeta **Claves API** (mira [Organización y usuarios](/es/new/settings/organization-and-users) para abrir los ajustes).
+
+<Steps>
+  <Step title="Crea la clave">
+    Pulsa **Crear clave API**. La clave nueva aparece **completa solo esta vez**: pulsa **Copiar** y guárdala en tu gestor de contraseñas o en los secretos de tu servidor.
+  </Step>
+  <Step title="Ponle nombre y elige qué puede hacer">
+    Pulsa **Editar** en la clave. Escribe un **Nombre** (por ejemplo `Integración con el CMS`) y marca los **Alcances** que necesita. Sin ninguno marcado la etiqueta dice **Acceso completo**.
+  </Step>
+  <Step title="Opcional: pon límites">
+    En **Límites propios** escribe **Peticiones por minuto** y **Peticiones al mes**. Vacío significa «solo el límite del plan». No pueden superar el del plan.
+  </Step>
+</Steps>
+
+Cada clave de la lista muestra su estado (**Activa** o **Deshabilitada**), sus alcances, las fechas **Creada**, **Último uso** y **Expira**, y las peticiones del mes, incluidas las **rechazadas por límite**.
+
+### Alcances
+
+| Alcance (como se ve) | Valor del campo | Abre |
+|---|---|---|
+| **Búsqueda** | `search` | Buscar, abrir resultados y la búsqueda conversacional. |
+| **Solo lectura** | `read` | Todo lo que solo lee, buscar incluido. |
+| **Herramientas** | `tools` | Las herramientas de IA: listar, ejecutar, leer o cancelar una ejecución. |
+| **Workflows** | `workflows` | Workflows, sus ejecuciones, revisiones y las herramientas de IA. |
+| **Biblioteca y almacenamiento** | `library` | Archivos, carpetas, subidas, papelera, tesauro y entidades. |
+| **Agentes (MCP)** | `mcp` | La conexión para ChatGPT, Claude o tu propio agente. |
+
+Una clave sin alcances tiene **Acceso completo** a lo que puede hacer una clave de API. Aun así, algunas acciones necesitan que marques su alcance de forma explícita: editar los metadatos de un archivo y borrar o restaurar archivos (`library`), y lanzar una instancia de workflow (`workflows`). Una llamada fuera de los alcances responde `403` con `api_key_scope_denied`. Más en [Autenticación](/es/new/start/authentication).
+
+### Rotar, desactivar, borrar
+
+- **Rotar** crea un secreto nuevo con el mismo nombre, alcances, límites y direcciones permitidas, y **el antiguo deja de funcionar al momento**. Ten el secreto nuevo listo en tu aplicación antes de pulsar.
+- **Desactivar** detiene una clave en unos segundos sin borrarla. Puedes **Activarla** de nuevo.
+- **Revocar** la elimina para siempre.
+- Una clave **expira al año** de crearse o rotarse; la tarjeta muestra **Expira**.
+
+## Opcional: limitar los tokens de cliente a tus páginas (`allowed_origins`)
+
+Si pones un buscador en **tu propia web**, tu servidor usa una clave para crear [tokens de cliente](/es/new/search/search-in-your-website) de vida corta para el navegador. Por defecto esos tokens funcionan desde cualquier página. Si quieres que solo funcionen desde tus propias páginas, un administrador puede registrar sus direcciones web en la clave, en el campo `allowed_origins`: desde entonces un token usado desde cualquier otra dirección se rechaza. No hace falta fijarlo para crear tokens.
+
+Reglas de cada dirección:
+
+- Formato `https://www.misitio.com` (esquema, host y opcionalmente un puerto). Sin ruta, parámetros, comodines ni credenciales.
+- Solo `https`. `http` se acepta únicamente para `localhost`, `127.0.0.1` y `[::1]`, para desarrollo.
+- Hasta 10 direcciones por clave. Las mayúsculas y el puerto por defecto se normalizan.
+- Una clave sin direcciones crea tokens que funcionan desde cualquier página; una clave con direcciones crea tokens que solo funcionan desde ellas.
+- Rotar la clave conserva sus direcciones. Quitar una dirección termina al momento los tokens en uso desde ella.
+- La clave necesita el alcance `search` o `read`, o ningún alcance. Las claves limitadas a `workflows`, `tools`, `library` o `mcp` no pueden crear tokens de cliente.
+
+La pantalla de claves todavía no muestra este campo. Hoy `allowed_origins` se fija con las operaciones de gestión de claves, que necesitan un administrador con sesión iniciada (no aceptan una clave de API). Si lo necesitas y no puedes llamarlas, pide a tu contacto de Wesog.
+
+<CodeGroup>
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+# SESSION_TOKEN: el token de sesión de un administrador con sesión iniciada
+# KEY_REF: la referencia de la clave, tal como la lista GET /api-keys
+
+curl -X PATCH "$WESOG_API/api-keys/$KEY_REF" \
+  -H "Authorization: Bearer $SESSION_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"allowed_origins": ["https://www.misitio.com"]}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"Authorization": f"Bearer {os.environ['SESSION_TOKEN']}"}
+
+r = requests.patch(f"{API}/api-keys/{os.environ['KEY_REF']}", headers=headers,
+                   json={"allowed_origins": ["https://www.misitio.com"]})
+print(r.status_code, r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+
+const r = await fetch(`${API}/api-keys/${process.env.KEY_REF}`, {
+  method: "PATCH",
+  headers: { Authorization: `Bearer ${process.env.SESSION_TOKEN}`, "Content-Type": "application/json" },
+  body: JSON.stringify({ allowed_origins: ["https://www.misitio.com"] }),
+});
+console.log(r.status, await r.json());
+```
+</CodeGroup>
+
+Errores: `400` `api_key_origin_invalid` (una dirección tiene mal el formato), `400` `api_key_origins_too_many` (más de 10), `400` `api_key_scope_unknown` (un alcance que no existe), `400` `api_key_limit_above_plan` (un límite por encima del de tu plan), `503` `client_tokens_unavailable` (inténtalo más tarde).
+
+## Gestionar claves por API
+
+Las operaciones detrás de la pantalla son `GET /api-keys`, `POST /api-keys`, `PATCH /api-keys/{ref}`, `POST /api-keys/{ref}/rotate`, `DELETE /api-keys/{ref}` y `GET /api-keys/usage?month=AAAA-MM`. Son para administradores con sesión iniciada y no forman parte de la referencia de la API, porque una clave de API no puede crear ni cambiar claves. El cuerpo de `POST` y `PATCH` puede llevar `name`, `scopes`, `max_requests_per_minute`, `max_requests_per_month`, `allowed_origins` y, en `PATCH`, `is_enabled`. El secreto aparece en la respuesta de `POST` y de rotar, solo una vez.
+
+## Buenas prácticas
+
+- Una clave por aplicación o integración; ponle el nombre de la integración.
+- Da a cada clave los alcances mínimos que necesita: una clave que solo busca debería tener solo `search`.
+- Rota una clave cuando se vaya alguien que la conocía, o si pudo filtrarse.
+- Las claves nunca van en páginas web, apps móviles ni repositorios públicos.

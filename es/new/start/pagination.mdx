@@ -1,0 +1,80 @@
+---
+title: "Paginación"
+description: "Cómo leer listas largas: limit y offset para listas y búsquedas, start_after para carpetas."
+icon: "list"
+noindex: true
+---
+
+Las listas nunca llegan de una sola vez. Hay dos formas de pedir la página siguiente, según la operación.
+
+## Búsquedas y listas con `limit` y `offset`
+
+`POST /library/search`, `GET /tools`, `GET /workflows`, `GET /workflow-instances` y `GET /trash/library` aceptan `limit` (cuántos) y `offset` (cuántos saltar). `limit` llega hasta 200.
+
+Una búsqueda te dice dónde empieza la página siguiente: cuando `next_offset` viene en la respuesta, envíalo como `offset`; cuando falta, tienes la última página. `total` es cuántos archivos coinciden (`total_is_estimated` es `true` cuando es aproximado en resultados muy grandes). Listas como `GET /tools` responden `items`, `total`, `limit` y `offset`.
+
+<CodeGroup>
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+offset, found = 0, []
+while offset is not None:
+    r = requests.post(f"{API}/library/search", headers=headers,
+                      json={"query": "final de tenis", "limit": 100, "offset": offset})
+    r.raise_for_status()
+    page = r.json()
+    found += page["items"]
+    offset = page.get("next_offset")
+print(len(found))
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+
+let offset = 0;
+const found = [];
+while (offset !== undefined && offset !== null) {
+  const r = await fetch(`${API}/library/search`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ query: "final de tenis", limit: 100, offset }),
+  });
+  const page = await r.json();
+  found.push(...page.items);
+  offset = page.next_offset;
+}
+console.log(found.length);
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -X POST "$WESOG_API/library/search" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "final de tenis", "limit": 100, "offset": 0}'
+# página siguiente: repite con "offset" igual al "next_offset" de la respuesta
+```
+</CodeGroup>
+
+## Carpetas con `start_after`
+
+`GET /storage/objects` lista una carpeta en orden alfabético. Cuando `has_more` es `true`, repite la llamada con `start_after` igual al `next_start_after` que recibiste. `$FOLDER` es la carpeta que listas, por ejemplo una que creaste en la Biblioteca.
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl "$WESOG_API/storage/objects?prefix=$FOLDER/&limit=100&start_after=$NEXT_START_AFTER" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+## Buenas costumbres
+
+- Pide el tamaño de página que necesitas (hasta 200 en búsquedas), no un archivo cada vez.
+- No te apoyes en `total` para parar: para cuando no haya `next_offset` o `has_more` sea `false`.
+- Los archivos subidos o borrados mientras paginas pueden desplazar las páginas siguientes. Para una copia exacta de una carpeta, vuelve a listarla al final.
+- Cada página es una petición y cuenta para tus [límites](/es/new/start/limits-and-plans).

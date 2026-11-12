@@ -1,0 +1,105 @@
+---
+title: "Workflows"
+description: "What workflows are in Wesog: templates, Studio, your workflows, executions and reviews, and what you can do from the platform or by API."
+icon: "diagram-project"
+noindex: true
+---
+
+A **workflow** is a recipe you build or choose in Wesog and that works on your files without you doing it by hand. For example: caption every photo that arrives, find the people, and save the result in a folder. Workflows chain [tools](/new/tools/overview) and send the result where you decide.
+
+## How it is organized
+
+Open **Workflows** in the left menu. The page has four tabs:
+
+| Tab (EN / ES) | What it is for |
+|---|---|
+| **MY WORKFLOWS** / **MIS WORKFLOWS** | The workflows your organization has working or ready: start, pause, edit, duplicate, delete. |
+| **TEMPLATES** / **PLANTILLAS** | Ready-made recipes (from Wesog and your own) to start from. |
+| **EXECUTIONS** / **EJECUCIONES** | The history of what has run: what finished, what failed and why. |
+| **REVIEW** / **REVISIÓN** | The results that wait for a person to approve or correct them. A badge shows how many are pending. |
+
+The pieces, in order:
+
+1. **Template.** A recipe. It says which steps run and what they need.
+2. **Your workflow.** A template with its **input** (where the files come from) and its **output** (where the result goes) chosen. In the API this is a *launched workflow* or *instance* (`/workflow-instances`).
+3. **Execution.** One run of a workflow on one file or batch.
+4. **Review.** An optional stop in the middle: a person checks the result before it is saved.
+
+### Steps
+
+A workflow runs its steps in order on each file: **Faces**, **Known people**, **Keywords**, **Caption**, **Visible text (OCR)**, **Colours**, **IPTC metadata**, **Translate**, **Transcription** and **Highlight clips** (these two for video), **Review** (a person checks before saving), **Condition** and **Convert format**. They run on Wesog's servers: closing the browser does not stop them.
+
+### Inputs and outputs
+
+| Input | Meaning |
+|---|---|
+| Upload from the computer | You upload the files when you launch it. |
+| Library | Files that are or arrive in a folder of your [Library](/new/library/overview). |
+| FTP or S3 | The [FTP or S3 of Wesog](/new/library/upload#ftp-and-s3-of-wesog), or an FTP or S3 of your own (added in **Credentials**). |
+| **API** | Your program sends the files. See [Run a workflow by API](/new/workflows/run-by-api). |
+
+| Output | Meaning |
+|---|---|
+| Library | The result is saved in a Library folder (copies with their data; originals are not changed). |
+| Download | The results are ready to download (kept for one day). |
+| FTP, S3 | The result is sent to a server. |
+| **API** | Nothing is saved: your program reads the metadata the workflow generates. |
+
+An input that watches a Library folder, an FTP or an S3 (**Continuous monitoring**) processes every file that arrives without you launching it, and once what was already there when you activate it. A workflow cannot save into the folder it watches.
+
+## From the platform
+
+### Create a workflow
+
+There are three ways:
+
+- **With the assistant.** Ask in your words on **Search**, or press the **Create with AI** button of **Workflows** (*"add a caption and keywords to what comes into the FTP and keep it in the Library"*). The assistant prepares a draft with its diagram and asks what is missing. **Approve and create** creates the workflow deactivated; **Activate** starts it.
+- **From a template (simple mode).** On **MY WORKFLOWS**, if you have none, you see *Choose how to create your workflow*: press **Explore templates**, pick a template, choose its files, input and output, and start it. You can also go to **TEMPLATES** and press **Use template**.
+- **In Workflow Studio (advanced mode).** Press **Open Workflow Studio** (the **+ Workflow Studio** button) to build your own flow by connecting steps. **Create workflow** opens it too.
+
+You can also launch a workflow by hand on a file or folder of the Library: right-click it and choose **Templates**; the submenu shows the workflows that fit. The workflow has to be active.
+
+On a template you can also open **Information**, see its **Versions**, **Duplicate** it or **Open in Studio**.
+
+### Work with your workflows
+
+In **MY WORKFLOWS** each row shows the name, category, status, message and last change. From the actions of a row you can:
+
+- **Activate** or **Deactivate** it. A continuous workflow (one that watches a folder or an FTP) can also be paused and resumed (**Pause**, **Resume**). When you resume you choose whether the files that arrived while it was stopped are processed too.
+- **Retry execution** after a failure.
+- **Download output**, **Open location** of the result, **View template**.
+- **Duplicate and edit**, **Open in Workflow Studio**, **Convert to tool** or **Delete workflow**.
+
+You can select several rows to copy, move to a folder, edit tags or visibility, export or delete them.
+
+### Follow what happens
+
+**EXECUTIONS** groups the runs by workflow with counters (in progress, succeeded, failed, no activity) and a filter by status: **Completed**, **Failed**, **Running** and **Stopped**. Search by workflow, execution, trigger, node or error, and use **View full error** and **Copy execution ID** when you need to report a problem.
+
+### Review results
+
+See [Reviews](/new/workflows/reviews).
+
+## By API
+
+Part of the above can be done by API, mainly to **run** a workflow and **follow** it:
+
+| Operation | Endpoint |
+|---|---|
+| List your workflows | `GET /workflows` |
+| List the executions of a workflow | `GET /workflows/{workflow_id}/executions` |
+| List your launched workflows | `GET /workflow-instances` |
+| Read a launched workflow | `GET /workflow-instances/{instance_id}` |
+| Start or stop a launched workflow | `POST /workflow-instances/{instance_id}/launch` |
+| Send files to a workflow with API input | `POST /workflow-instances/{instance_id}/api/requests` |
+| Read the result of a file | `GET /workflow-instances/{instance_id}/api/requests/{request_id}` |
+
+All of them are explained in [Run a workflow by API](/new/workflows/run-by-api).
+
+<Note>
+Creating workflows or launching a template, the Studio, the templates and the reviews are done in the platform (or by an AI agent connected by [MCP](/new/search/connect-agents)); they have no public API endpoints.
+</Note>
+
+## Limits
+
+Your plan sets how many workflows can be active at a time (deactivated ones do not count; the limit is checked when you activate) and how many executions you have per month and per minute. Each workflow has a maximum number of outputs. When you reach a limit the platform tells you and the API answers `429`. A workflow has no schedule of its own: to make it work at given times use a scheduled task. See [Limits and plans](/new/start/limits-and-plans).

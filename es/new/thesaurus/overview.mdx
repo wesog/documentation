@@ -1,0 +1,35 @@
+---
+title: "Tesauro"
+description: "El vocabulario propio de tu organización: conceptos con sus etiquetas, sinónimos y jerarquía en varios idiomas."
+icon: "book-open"
+noindex: true
+---
+
+El **Tesauro** es el vocabulario de tu organización para clasificar el contenido. Se compone de **términos** (también llamados conceptos), ordenados en **categorías** y **subcategorías**. Cada término tiene su definición, sus etiquetas en cada idioma, sus sinónimos, sus términos más genéricos y más específicos, sus términos relacionados, una nota de alcance y su categoría interna.
+
+No es un diccionario general: solo tiene los términos que tu organización añade. La herramienta **Keywords V2** trabaja a partir de él, así que necesita que tu organización tenga uno.
+
+## Desde la plataforma
+
+Abre **Tesauro** en el menú lateral (la pantalla se titula **Tesauros**).
+
+- **Recorrer.** Las categorías están a la izquierda; abre una para ver sus subcategorías y términos. **Buscar término...** busca un término, **Buscar categorías...** una categoría, y **Buscador alfabético** va por letras. **Estadísticas** muestra el tamaño del vocabulario.
+- **Añadir.** **Nuevo término**, **Nueva categoría** (y **Añadir subcategoría**) los crean. Un término necesita su etiqueta en inglés y una categoría padre (*El término en inglés es obligatorio*, *Debes seleccionar una categoría padre*).
+- **Editar un término.** Ábrelo para ver su ficha, con:
+  1. identidad del concepto (su ID),
+  2. definición,
+  3. etiquetas por idioma (la etiqueta preferida de cada idioma),
+  4. sinónimos por idioma (variantes del mismo concepto, no conceptos nuevos),
+  5. jerarquía: **Más genérico (BT)** y **Más específico (NT)**,
+  6. términos relacionados (**RT**),
+  7. nota de alcance (qué incluye y qué excluye el concepto),
+  8. categoría interna,
+  9. uso semántico (**Usado para**),
+  10. prompts para IA y uso visual.
+
+  Usa **Añadir sinónimo** para añadir un sinónimo y **Guardar término** para guardar. **Eliminar término** lo quita.
+- **Categorías.** **Renombrar categoría** y **Eliminar categoría**. Solo puedes eliminar categorías vacías y creadas a mano; una que contenga términos o subcategorías no se puede eliminar.
+
+## Por API
+
+No hay API pública para el tesauro. Se gestiona en la plataforma, y las herramientas que lo usan lo leen por sí solas; no lo envías en la petición.

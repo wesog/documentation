@@ -1,0 +1,105 @@
+---
+title: "Workflows"
+description: "Qué son los workflows en Wesog: plantillas, Studio, tus workflows, ejecuciones y revisiones, y qué puedes hacer desde la plataforma o por API."
+icon: "diagram-project"
+noindex: true
+---
+
+Un **workflow** es una receta que construyes o eliges en Wesog y que trabaja sobre tus archivos sin que lo hagas a mano. Por ejemplo: poner descripción a cada foto que llega, buscar a las personas y guardar el resultado en una carpeta. Los workflows encadenan [herramientas](/es/new/tools/overview) y envían el resultado donde tú decidas.
+
+## Cómo se organiza
+
+Abre **Workflows** en el menú lateral. La pantalla tiene cuatro pestañas:
+
+| Pestaña (ES / EN) | Para qué sirve |
+|---|---|
+| **MIS WORKFLOWS** / **MY WORKFLOWS** | Los workflows que tu organización tiene funcionando o listos: ponerlos en marcha, pausarlos, editarlos, duplicarlos, borrarlos. |
+| **PLANTILLAS** / **TEMPLATES** | Recetas ya hechas (de Wesog y propias) para empezar. |
+| **EJECUCIONES** / **EXECUTIONS** | El historial de lo que se ha ejecutado: qué terminó, qué falló y por qué. |
+| **REVISIÓN** / **REVIEW** | Los resultados que esperan a que una persona los apruebe o corrija. Una insignia muestra cuántos hay pendientes. |
+
+Las piezas, en orden:
+
+1. **Plantilla.** Una receta. Dice qué pasos se ejecutan y qué necesitan.
+2. **Tu workflow.** Una plantilla con su **entrada** (de dónde vienen los archivos) y su **salida** (adónde va el resultado) elegidas. En la API es un *workflow lanzado* o *instancia* (`/workflow-instances`).
+3. **Ejecución.** Una pasada de un workflow sobre un archivo o un lote.
+4. **Revisión.** Una parada opcional en medio: una persona comprueba el resultado antes de guardarlo.
+
+### Pasos
+
+Un workflow ejecuta sus pasos en orden sobre cada archivo: **Caras**, **Famosos**, **Palabras clave**, **Descripción**, **Texto visible (OCR)**, **Colores**, **Metadatos IPTC**, **Traducir**, **Transcripción** y **Clips destacados** (estos dos, en vídeo), **Revisión** (una persona revisa antes de guardar), **Condición** y **Convertir formato**. Funcionan en los servidores de Wesog: cerrar el navegador no los para.
+
+### Entradas y salidas
+
+| Entrada | Significado |
+|---|---|
+| Subida desde el ordenador | Subes los archivos al lanzarlo. |
+| Biblioteca | Archivos que están o llegan a una carpeta de tu [Biblioteca](/es/new/library/overview). |
+| FTP o S3 | El [FTP o S3 de Wesog](/es/new/library/upload#ftp-y-s3-de-wesog), o un FTP o S3 vuestro (que se da de alta en **Credenciales**). |
+| **API** | Tu programa envía los archivos. Mira [Ejecutar un workflow por API](/es/new/workflows/run-by-api). |
+
+| Salida | Significado |
+|---|---|
+| Biblioteca | El resultado se guarda en una carpeta de la Biblioteca (copias con sus datos; los originales no se tocan). |
+| Descarga | Los resultados quedan listos para descargar (se conservan un día). |
+| FTP, S3 | El resultado se envía a un servidor. |
+| **API** | No se guarda nada: tu programa lee los metadatos que genera el workflow. |
+
+Una entrada que vigila una carpeta de la Biblioteca, un FTP o un S3 (**Monitorización continua**) procesa cada archivo que llega sin que lo lances, y una vez lo que ya había al activarla. Un workflow no puede guardar en la carpeta que vigila.
+
+## Desde la plataforma
+
+### Crear un workflow
+
+Hay tres formas:
+
+- **Con el asistente.** Pídelo con tus palabras en el **Buscador**, o pulsa el botón **Asistente IA** de **Workflows** (*«pon descripción y palabras clave a lo que llegue al FTP y déjalo en la Biblioteca»*). El asistente prepara un borrador con su diagrama y te pregunta lo que falte. **Aprobar y crear** crea el workflow desactivado; **Activar** lo pone en marcha.
+- **Desde una plantilla (modo sencillo).** En **MIS WORKFLOWS**, si no tienes ninguno, ves *Elige cómo crear tu workflow*: pulsa **Explorar plantillas**, elige una plantilla, escoge sus archivos, entrada y salida, y ponla en marcha. También puedes ir a **PLANTILLAS** y pulsar **Usar plantilla**.
+- **En Workflow Studio (modo avanzado).** Pulsa **Abrir Workflow Studio** (el botón **+ Workflow Studio**) para construir tu propio flujo conectando pasos. **Crear workflow** también lo abre.
+
+También puedes lanzar un workflow a mano sobre un archivo o una carpeta de la Biblioteca: haz clic con el botón derecho y elige **Plantillas**; el submenú muestra los workflows que encajan. El workflow tiene que estar activo.
+
+En una plantilla puedes abrir también **Información**, ver sus **Versiones**, **Duplicarla** o **Abrir en Studio**.
+
+### Trabajar con tus workflows
+
+En **MIS WORKFLOWS** cada fila muestra el nombre, la categoría, el estado, el mensaje y el último cambio. Desde las acciones de una fila puedes:
+
+- **Activarlo** o **Desactivarlo**. Un workflow continuo (el que vigila una carpeta o un FTP) también puede **Pausarse** y **Reanudarse**. Al reanudar eliges si se procesan también los archivos que llegaron mientras estuvo parado.
+- **Reintentar ejecución** tras un fallo.
+- **Descargar salida**, **Abrir ubicación** del resultado, **Ver plantilla**.
+- **Duplicar y modificar**, **Abrir en WorkflowStudio**, **Convertir en herramienta** o **Eliminar Workflow**.
+
+Puedes seleccionar varias filas para copiarlas, moverlas a una carpeta, editar etiquetas o visibilidad, exportarlas o eliminarlas.
+
+### Seguir lo que pasa
+
+**EJECUCIONES** agrupa las ejecuciones por workflow con contadores (en curso, correctas, fallidas, sin actividad) y un filtro por estado: **Completadas**, **Con error**, **En ejecución** y **Detenidas**. Busca por workflow, ejecución, trigger, nodo o error, y usa **Ver error completo** y **Copiar execution id** cuando necesites comunicar un problema.
+
+### Revisar resultados
+
+Mira [Revisiones](/es/new/workflows/reviews).
+
+## Por API
+
+Parte de lo anterior se puede hacer por API, sobre todo para **ejecutar** un workflow y **seguirlo**:
+
+| Operación | Endpoint |
+|---|---|
+| Listar tus workflows | `GET /workflows` |
+| Listar las ejecuciones de un workflow | `GET /workflows/{workflow_id}/executions` |
+| Listar tus workflows lanzados | `GET /workflow-instances` |
+| Leer un workflow lanzado | `GET /workflow-instances/{instance_id}` |
+| Poner en marcha o parar un workflow lanzado | `POST /workflow-instances/{instance_id}/launch` |
+| Enviar archivos a un workflow con entrada API | `POST /workflow-instances/{instance_id}/api/requests` |
+| Leer el resultado de un archivo | `GET /workflow-instances/{instance_id}/api/requests/{request_id}` |
+
+Todas se explican en [Ejecutar un workflow por API](/es/new/workflows/run-by-api).
+
+<Note>
+Crear workflows o lanzar una plantilla, el Studio, las plantillas y las revisiones se hacen en la plataforma (o con un agente de IA conectado por [MCP](/es/new/search/connect-agents)); no tienen endpoints públicos en la API.
+</Note>
+
+## Límites
+
+Tu plan fija cuántos workflows pueden estar activos a la vez (los desactivados no cuentan; el límite se comprueba al activar) y cuántas ejecuciones tienes al mes y por minuto. Cada workflow tiene un máximo de salidas. Al llegar a un límite la plataforma te lo dice y la API responde `429`. Un workflow no tiene horario propio: para que trabaje a unas horas usa una tarea programada. Mira [Límites y planes](/es/new/start/limits-and-plans).

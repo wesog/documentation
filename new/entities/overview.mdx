@@ -1,0 +1,43 @@
+---
+title: "Entities"
+description: "The people and other records Wesog knows: Wesog's public entities, your own private ones, and how workflows and tools use them."
+icon: "user-group"
+noindex: true
+---
+
+**Entities** are the data tables of your organization. The most used are **people**: when Wesog finds a face in a photo or video it compares it with a catalogue of people, and when it looks enough like one it marks the file with their name. The catalogue has two sources:
+
+- **Wesog**: public entities (celebrities and public figures) that everybody can use. You cannot edit them.
+- **Private**: the people and records your organization adds. Only your organization sees them.
+
+Each entity type is a table with its attributes (columns) and rows. Your plan sets how many entity tables you can have. Creating a new entity type (a new table) is done, for now, by the Wesog team; in the existing tables you can add rows and attributes.
+
+## From the platform
+
+Open **Entities** in the left menu.
+
+- Use **Entity source** to see Wesog's entities or your private ones. Search by name (**Search by name...**), filter by occupation or group, or by date of birth, and switch between card view and table view.
+- **Create entity** adds a person to your private catalogue: give the full name and use **Add photos and choose faces** to give photos of their face (JPG or PNG, up to 2 MB each) and select which detected face is theirs. You can also fill in occupations, groups, nationality, dates of birth and death, and the name in other languages (**Custom labels**). The new entity is processed in the background (*submitted for ingestion*).
+- Open an entity to see its record, edit it (**Edit entity**) or delete it (**Delete entity**; this is permanent). The **Associated content** tab lists the files it appears in; **Open in library** goes to them.
+- In a table you can **Import** and **Export**, **Add row**, **Add attribute**, filter, save views (private or shared) and **Create relation with another entity**.
+- You can also add a person from a photo in the Library: in the file's entities, **Add identity**, or **Mark as unknown**, **Change identity** or **Remove from this image** for a recognised one.
+
+Changing an entity's label applies to what is processed afterwards, not to what was already processed.
+
+### Where entities are used
+
+| Where | How |
+|---|---|
+| **Tag Photos** and **Celebrity Recognition** (Tools), and the **Known people** step of a workflow | Choose the **Entity source**: **Wesog**, **Private** or **Both**. For private entities you can limit to some groups or collections. |
+| **Search** | Name a person ("photos of..." or with **@**); if a name belongs to several people, Wesog asks you which one. |
+| **Library** | The people of a photo or video are shown and editable in the file's entities. |
+
+Wesog only recognises people who are in the catalogue (Wesog's or yours). A face that is not in it is detected but stays unidentified. It does not look anything up on the internet to know who someone is.
+
+## By API
+
+There is no public API to create or edit entities. What you can do by API is use them:
+
+- Run [Celebrity Recognition or Tag Photos](/new/tools/overview) with the entity source you want.
+- Read the people recognised in a file: `metadata.detected_identities` in a [search](/new/search/search) result, or the people fields of [the file's data](/new/library/metadata).
+- Send files to a [workflow](/new/workflows/run-by-api) that includes a **Known people** step; the people recognised come in `persons` (certain) and `persons_probable` (probable, with their probability).

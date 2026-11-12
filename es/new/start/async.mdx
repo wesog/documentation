@@ -1,0 +1,83 @@
+---
+title: "Tareas asíncronas"
+description: "Qué hacer cuando una llamada responde 202: consultar la ejecución, leer el resultado y cancelarla."
+icon: "hourglass-half"
+noindex: true
+---
+
+Algunos trabajos tardan más de lo que una llamada web debería esperar: un vídeo, un lote grande, un workflow. Esas operaciones responden **`202 Accepted`** con algo que consultar después, y tú lo **consultas** (polling).
+
+Hay dos tipos:
+
+| Lo inicias con | Lo consultas con | Termina como |
+|---|---|---|
+| `POST /tools/{tool}` | `GET /tools/runs/{run_id}` | `succeeded`, `failed`, `timeout` o `cancelled` |
+| `POST /workflow-instances/{id}/api/requests` | `GET /workflow-instances/{id}/api/requests/{request_id}` | `succeeded` o `failed` |
+
+## Herramientas: respuesta ahora o después
+
+`POST /tools/{tool}` nunca espera al resultado: pone la ejecución en cola y responde `202` con un `run_id` y un `poll_path`. Después consultas `GET /tools/runs/{run_id}`: responde `202` mientras la ejecución está `queued` o `running` y `200` con el resultado cuando ha terminado. El campo opcional `timeout_ms` se acepta pero no cambia esto.
+
+`IMAGE_URL` es la dirección de una imagen tuya, accesible desde internet. También puedes enviar el archivo, mira la página de cada [herramienta](/es/new/tools/overview).
+
+<CodeGroup>
+```python Python
+import os, time, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.post(f"{API}/tools/image_tag", headers=headers,
+                  json={"image_url": os.environ["IMAGE_URL"]})
+while r.status_code == 202:
+    time.sleep(1.5)
+    r = requests.get(f"{API}/tools/runs/{r.json()['run_id']}", headers=headers)
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+
+let r = await fetch(`${API}/tools/image_tag`, {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ image_url: process.env.IMAGE_URL }),
+});
+let body = await r.json();
+while (r.status === 202) {
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  r = await fetch(`${API}/tools/runs/${body.run_id}`, { headers });
+  body = await r.json();
+}
+console.log(body);
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl -X POST "$WESOG_API/tools/image_tag" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d "{\"image_url\": \"$IMAGE_URL\"}"
+
+# si respondió 202, consulta la ejecución con el run_id que te dio
+curl "$WESOG_API/tools/runs/$RUN_ID" -H "X-API-Key: $WESOG_API_KEY"
+```
+</CodeGroup>
+
+Consulta cada 1 o 2 segundos. Cancela una ejecución que ya no necesitas con `POST /tools/runs/{run_id}/cancel`.
+
+## Workflows: una petición por archivo
+
+`POST /workflow-instances/{id}/api/requests` responde `202` al instante con un `request_id` por archivo. Cada archivo se procesa por separado, así que unos pueden terminar antes que otros. `GET .../api/requests/{request_id}` responde `202` mientras trabaja y `200` con `results` cuando ha terminado. Si falló, `status` es `failed` y `error` dice por qué. Mira [Ejecutar un workflow](/es/new/workflows/run-by-api).
+
+## Sin webhooks
+
+Wesog **no** llama a tu servidor cuando algo termina: consultas tú. Tu integración se mantiene sencilla (sin abrir ninguna dirección pública) y un resultado se puede volver a leer después de leerlo.
+
+Si necesitas reaccionar a contenido nuevo según llega, usa las [búsquedas activas](/es/new/search/active-searches) (un aviso, y opcionalmente un correo, cuando nuevos archivos coinciden con una búsqueda), o consulta cada pocos segundos solo mientras esperas algo.
+
+## Si se corta la conexión
+
+Un `202` es una promesa: el trabajo continúa aunque pierdas la conexión. Si no recibiste la respuesta, **repite la llamada con la misma `Idempotency-Key`** (mira [Idempotencia](/es/new/start/idempotency)) y recibes el mismo `run_id` o `request_id` en lugar de empezar el trabajo dos veces.

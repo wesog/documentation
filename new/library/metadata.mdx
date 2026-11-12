@@ -1,0 +1,120 @@
+---
+title: "Edit metadata"
+description: "Read and change the caption, keywords, headline, place and other data of a file."
+icon: "pen-to-square"
+noindex: true
+---
+
+Every file in the Library has data: headline, caption, keywords, people, place, dates, author, rights and technical fields. Wesog fills much of it for you with [tools](/new/tools/overview) and [workflows](/new/workflows/overview); you can read it and correct it yourself.
+
+## From the platform
+
+- **One file.** In **Library**, open the file to see its data. Edit what is wrong and save. A change is searchable within a few seconds. The people recognised in a photo or video are edited in the same place: you can mark a person as unknown, change the identity or add one.
+- **Many files.** Open **Tools** and choose **MetaEditor**. It edits the metadata of a selection of photos (from your computer or from the Library), with color labels and AI tools to generate captions and keywords. *Save a copy to the library* keeps the original where it was.
+- **Automatic.** Run a tool such as Caption or Keywords, or a workflow, to generate the data.
+
+## By API
+
+You need a key with the `library` scope **selected** to change data; a key with no scopes cannot (reading also works with `search` or `read`). See [API keys](/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+The path of both calls is `/library/tables/{source_table}/rows/{row_id}`:
+
+- `row_id` is the numeric id of the file: the `entity_id` of a [search](/new/search/search) result, or the `resource_id` of an [upload](/new/library/upload).
+- `source_table` is the type of resource the file is stored as (for example `storage_image`). **Copy it as returned** by the search or the upload; do not build it. See [Identifiers](/new/library/overview#identifiers-resource_id-entity_id-and-source_table).
+
+### Read the data
+
+`GET` returns all the stored data. `fields` asks only for some (comma-separated); `platform_language` (two letters) gives person names in that language.
+
+<CodeGroup>
+```bash cURL
+curl "$WESOG_API/library/tables/storage_image/rows/1048223?fields=headline,caption,keyword,city,country" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+r = requests.get(f"{API}/library/tables/storage_image/rows/1048223", headers=H,
+                 params={"fields": "headline,caption,keyword,city,country"})
+r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/library/tables/storage_image/rows/1048223?fields=headline,caption,keyword,city,country`, { headers: H });
+console.log(await r.json());
+```
+</CodeGroup>
+
+```json
+{
+  "id": 1048223,
+  "headline": "Nadal celebrates a point",
+  "caption": "Rafael Nadal celebrates a point during the final in Madrid.",
+  "keyword": ["tennis", "Nadal", "Madrid"],
+  "city": "Madrid",
+  "country": "Spain"
+}
+```
+
+### Change the data
+
+`PATCH` with only the fields that change; the others stay as they are. The answer is the file as it is now.
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH "$WESOG_API/library/tables/storage_image/rows/1048223" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"caption": "Rafael Nadal celebrates a point during the final in Madrid.", "keyword": ["tennis", "Nadal", "Madrid"]}'
+```
+
+```python Python
+r = requests.patch(
+    f"{API}/library/tables/storage_image/rows/1048223",
+    headers=H,
+    json={"caption": "Rafael Nadal celebrates a point during the final in Madrid.",
+          "keyword": ["tennis", "Nadal", "Madrid"]},
+)
+r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const r = await fetch(`${API}/library/tables/storage_image/rows/1048223`, {
+  method: "PATCH",
+  headers: { ...H, "Content-Type": "application/json" },
+  body: JSON.stringify({
+    caption: "Rafael Nadal celebrates a point during the final in Madrid.",
+    keyword: ["tennis", "Nadal", "Madrid"],
+  }),
+});
+console.log(await r.json());
+```
+</CodeGroup>
+
+The names of the fields are the ones that `GET` returns for that file (for example `caption`, `headline`, `description`, `keyword`, `city`, `country`, `event`, `author`). Read the file first to see which ones it has. An unknown name is refused with `422` and the code `unknown_library_fields`, together with the list of valid names.
+
+### Errors
+
+| Status | Meaning |
+|---|---|
+| `401`, `403` | Missing or invalid key, or the key has no `library` scope selected. |
+| `404` | There is no file with that `source_table` and `row_id` in your organization. |
+| `422` | `unknown_library_fields`, or a value of the wrong type. See [Errors](/new/start/errors). |
+| `429` | Too many requests. Wait `Retry-After`. |
+
+### Good to know
+
+- A change is searchable within a few seconds.
+- To rename or move the file itself, see [Library](/new/library/overview#folders-move-and-copy); the data follows the file.

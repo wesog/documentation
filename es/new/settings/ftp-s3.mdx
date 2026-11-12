@@ -1,0 +1,58 @@
+---
+title: "FTP y S3 Wesog"
+description: "Crea accesos FTP o S3 para enviar archivos a Wesog con tus propias herramientas y controla sus carpetas y permisos."
+icon: "folder-tree"
+noindex: true
+---
+
+**FTP Wesog** y **S3 Wesog** son puertas que Wesog da a tu organización para que cámaras, sistemas de redacción, agencias y scripts dejen archivos en ella con las herramientas que ya usan (un cliente FTP, SFTP o cualquier cliente S3). Los archivos llegan a un área de entrada de tu organización y desde ahí pueden arrancar un [workflow](/es/new/workflows/run-by-api) o guardarse en la [Biblioteca](/es/new/library/upload).
+
+Son distintos de las [Conexiones](/es/new/settings/connections), que permiten a Wesog llegar a **tus** servidores FTP o S3.
+
+## Crear un acceso
+
+Solo los administradores gestionan accesos. Ve a **Ajustes del tenant actual > Almacenamiento** (mira [Organización y usuarios](/es/new/settings/organization-and-users)).
+
+<Steps>
+  <Step title="Nuevo acceso">
+    Pulsa **Nuevo acceso** (**Crear acceso de almacenamiento**).
+  </Step>
+  <Step title="Elige el protocolo">
+    **FTP** te da un usuario y una contraseña. **S3** te da una clave de acceso y una clave secreta. El FTP funciona también por FTPS y SFTP con el mismo usuario y contraseña.
+  </Step>
+  <Step title="Ponle nombre y limítalo">
+    Escribe un **Nombre visible** y una **Descripción** para recordar para qué sirve. En **Carpetas permitidas** elige las carpetas que puede usar; sin ninguna seleccionada llega a todas. Marca los **Permisos**: **Leer**, **Escribir**, **Listar** y **Borrar objetos**.
+  </Step>
+  <Step title="Guarda el secreto">
+    Elige **Generar secreto automáticamente** o escribe uno. Pulsa **Crear acceso** y copia la contraseña o la clave secreta. Podrás volver a verla en los detalles del acceso, o rotarla.
+  </Step>
+</Steps>
+
+Abre **Ver detalles** en un acceso para ver lo que debes dar al remitente: en FTP el **host**, el **puerto**, el **usuario** y la contraseña; en S3 el endpoint, la clave de acceso y la clave secreta.
+
+## Gestionar un acceso
+
+| Acción | Dónde | Efecto |
+|---|---|---|
+| **Desactivar** / **Activar** | **Más acciones** del acceso | Lo detiene o lo reanuda al momento sin borrarlo. |
+| **Rotar secreto** | **Más acciones** | Crea una contraseña o clave secreta nueva. La antigua deja de funcionar. |
+| **Eliminar acceso** | **Más acciones** | Elimina el acceso para siempre. |
+
+La lista muestra el estado, el protocolo, los permisos y cuándo se usó cada acceso por última vez (**Último uso**, o **Nunca usado**). Puedes filtrar por protocolo y estado y buscar por nombre.
+
+## Seguridad
+
+- **Exigir FTP cifrado**: activado, los usuarios de tu organización solo pueden entrar con FTPS (FTP con cifrado) o SFTP, y el FTP sin cifrar se rechaza. Desactivado, funcionan FTP sin cifrar, FTPS y SFTP.
+- **Claves SSH (SFTP)**: en los detalles de un acceso FTP puedes añadir claves públicas para que un remitente entre por SFTP sin escribir la contraseña (la contraseña sigue funcionando). Pega el contenido del fichero `.pub`, nunca la clave privada. Tipos admitidos: ed25519, ECDSA y RSA de 2048 bits o más. Cada acceso tiene un máximo de claves, mostrado como «n de máx».
+- Da a cada remitente su propio acceso, con solo las carpetas y permisos que necesita.
+
+## Qué pasa con los archivos
+
+- Los archivos enviados al área FTP o S3 de Wesog se **borran 7 días después de llegar**, salvo que un workflow siga usándolos. Guarda en la Biblioteca lo que quieras conservar: en la barra de la Biblioteca usa **Copiar en FTP Wesog** para enviar contenido en sentido contrario, y la opción **Añadir a FTP Wesog** del menú contextual.
+- Un workflow puede usar el FTP o S3 de Wesog como entrada («Cada foto que llegue al FTP Wesog: ...») y enviar sus resultados a tu propio FTP o S3 con una [conexión](/es/new/settings/connections).
+
+## Por API
+
+Los accesos se crean y rotan en la plataforma; no hay operación para claves de API. Los archivos que llegan se pueden listar y leer como cualquier otro archivo de tu organización con `GET /storage/objects` (alcance `library`), mira [Paginación](/es/new/start/pagination).
+
+Los planes no cambian cuántos accesos puedes crear, pero tu almacenamiento (de 5 GB en Free a 5.120 GB en Premium) y el tamaño de las transferencias sí cuentan. Mira [Límites y planes](/es/new/start/limits-and-plans).

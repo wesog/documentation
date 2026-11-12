@@ -1,0 +1,120 @@
+---
+title: "Conecta ChatGPT, Claude o tu agente"
+description: "Deja que un asistente de IA busque, organice y procese tu archivo con tus propios permisos."
+icon: "plug"
+noindex: true
+---
+
+Wesog habla **MCP**, el estándar que usan los asistentes de IA para conectarse a herramientas. Una vez conectados, ChatGPT, Claude o tu propio agente pueden buscar tus fotos y vídeos, leer sus datos, organizar la Biblioteca, lanzar tus workflows, crear [búsquedas activas](/es/new/search/active-searches) y responder preguntas sobre cómo funciona Wesog.
+
+La dirección que hay que darles es:
+
+```
+https://api-platform.wesog.com/api/v1/mcp
+```
+
+## Desde la plataforma
+
+Abre el menú de la organización, elige **Ajustes del tenant actual** y ve a la pestaña **General**. La sección **Conectar agentes de IA** muestra la dirección del servidor, las instrucciones para cada cliente y **Tus agentes conectados**.
+
+### ChatGPT y Claude (web y apps)
+
+1. Copia la dirección del servidor de **Conectar agentes de IA**.
+2. En ChatGPT o Claude añade un **conector personalizado** con esa dirección. **No hace falta clave.**
+3. El asistente te lleva a Wesog para iniciar sesión. Revisa lo que podrá hacer (**Buscar y ver**, **Editar y organizar la Biblioteca**, **Compartir y revisar**, **Procesar con workflows**) y pulsa **Permitir**.
+
+Ves tus agentes conectados en **Tus agentes conectados** y puedes pulsar **Desconectar** en cualquiera de ellos cuando quieras.
+
+### Claude Code y otros clientes con clave
+
+Crea una clave de API con el permiso `mcp` (mira [Claves de API](/es/new/settings/api-keys)) y dásela al cliente.
+
+## Por API
+
+MCP es en sí una API: no llamas a `POST /mcp` a mano, lo hace el cliente. Configura el cliente con la dirección y una clave:
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+claude mcp add --transport http wesog "$WESOG_API/mcp" \
+  --header "X-API-Key: $WESOG_API_KEY"
+```
+
+Para un cliente que se configura con JSON:
+
+```json
+{
+  "mcpServers": {
+    "wesog": {
+      "type": "http",
+      "url": "https://api-platform.wesog.com/api/v1/mcp",
+      "headers": { "X-API-Key": "TU_CLAVE" }
+    }
+  }
+}
+```
+
+La clave va en `X-API-Key` (o `Authorization: Bearer`). Una clave con permisos limitados necesita el permiso `mcp`. Mira [Autenticación](/es/new/start/authentication).
+
+Para comprobar la conexión desde un script, lista las herramientas que ofrece el servidor (la llamada MCP `tools/list`):
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/mcp" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+
+r = requests.post(
+    f"{API}/mcp",
+    headers={"X-API-Key": os.environ["WESOG_API_KEY"], "Accept": "application/json, text/event-stream"},
+    json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+)
+print(r.status_code, r.text[:300])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+
+const r = await fetch(`${API}/mcp`, {
+  method: "POST",
+  headers: {
+    "X-API-Key": process.env.WESOG_API_KEY,
+    "Content-Type": "application/json",
+    Accept: "application/json, text/event-stream",
+  },
+  body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+});
+console.log(r.status, (await r.text()).slice(0, 300));
+```
+</CodeGroup>
+
+Un cliente MCP normal empieza con un saludo `initialize`; para un uso real emplea una biblioteca MCP en lugar de peticiones a mano.
+
+## Qué puede y qué no puede hacer el agente
+
+- Ve lo que **tú** ves y hace lo que **tú** puedes hacer, nada más. Si perteneces a varias organizaciones, la conexión es tuya y funciona en cada una con tu rol allí.
+- Antes de **borrar, rechazar, parar o compartir** algo te pide confirmación; crear una búsqueda activa o activar un workflow también necesita tu visto bueno.
+- Cada búsqueda que hace cuenta en las búsquedas de tu plan.
+- Guarda la clave (si la usas) tan en privado como una contraseña. Con una clave, el agente actúa como esa clave.
+
+## Cosas que pedirle
+
+*«Busca fotos de la final de Madrid de la semana pasada y haz una selección de 12.»* · *«¿Qué workflows míos han fallado hoy?»* · *«Avísame cuando lleguen fotos nuevas de la semana de la moda.»* · *«Mueve las fotos aprobadas a la carpeta Publicadas.»*
+
+## Errores
+
+| Estado | Significado |
+|---|---|
+| `401` | Falta la clave o no es válida. |
+| `403` | La clave tiene permisos limitados y ninguno es `mcp`. |
+| `429` | Superaste los límites de tu clave o de tu plan. Espera `Retry-After`. |
+
+Para programas que no son asistentes de IA, usa directamente la [API](/es/new/start/quickstart).

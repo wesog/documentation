@@ -1,0 +1,49 @@
+---
+title: "Plan y facturación"
+description: "Consulta y cambia tu plan, compra créditos, descarga facturas y cancela."
+icon: "credit-card"
+noindex: true
+---
+
+Tu plan fija tus usuarios, almacenamiento, peticiones, búsquedas y créditos mensuales. Las cifras de cada plan están en [Límites y planes](/es/new/start/limits-and-plans).
+
+## Dónde está
+
+Dos entradas llevan al mismo sitio:
+
+- **Ajustes del tenant actual > Suscripción** (un administrador abre el menú de la organización en la barra lateral y pulsa el engranaje).
+- El botón **Mejorar cuenta** de la barra lateral, que abre la comparación de planes.
+
+## Qué ves
+
+- **Plan actual**: su estado (**Activa**, **En prueba**, **Pago pendiente**, **Cancelada**), el ciclo de cobro, la fecha de renovación, el almacenamiento y los usuarios.
+- **Comparación de planes**: Free, Freelance, Creator, Team y Premium, con precios por mes y por año. El precio anual se muestra como «al mes en pago anual».
+- **Créditos**: el **Cupo mensual** gastado hasta ahora, tu **Saldo comprado** y los **Movimientos** (consumo, recargas, reembolsos). El cupo del plan se gasta primero, después los créditos comprados, que no caducan.
+- **Facturas**: fecha, número, plan, importe y estado (**Pagada**, **Pendiente**, **Pago fallido**, ...), con un botón **Descargar**.
+
+## Cambiar de plan
+
+<Steps>
+  <Step title="Elige">
+    En la comparación pulsa **Cambiar plan** o **Cambiar a** el plan que quieras, y escoge **Mensual** o **Anual**.
+  </Step>
+  <Step title="Confirma">
+    La confirmación te dice el importe y el ciclo. Pulsa **Confirmar y continuar** para ir al pago.
+  </Step>
+</Steps>
+
+Volver a Free se aplica **de inmediato** y la confirmación lista lo que pierdes. Cancelar un plan de pago (**Configuración avanzada > Cancelar suscripción**) tiene efecto **al final del periodo en curso**: el plan sigue activo hasta esa fecha y después la organización pasa a Free. La **Renovación automática** se puede desactivar en la misma sección.
+
+## Comprar créditos
+
+En **Créditos**, bajo **Recargar créditos**, elige un pack y pulsa **Comprar**. Tras el pago, los créditos aparecen en unos segundos. **Gestionar facturación** abre la página del proveedor de pagos para tarjetas y datos fiscales.
+
+## Reglas que conviene conocer
+
+- Solo los administradores ven y cambian la suscripción.
+- Cuando se alcanza un límite, las llamadas a la API responden `429` y la plataforma muestra un aviso con un enlace para mejorar el plan. Mira [Errores](/es/new/start/errors).
+- Tu plan puede incluir una variación pactada de las cifras estándar. La página muestra las que te aplican.
+
+## Por API
+
+El plan y la facturación se gestionan solo en la plataforma. Lo que puedes leer desde la API es tu consumo: las cabeceras `RateLimit-*` de cada respuesta y, por clave, el contador de peticiones que se muestra en [Claves de API](/es/new/settings/api-keys).

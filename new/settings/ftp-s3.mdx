@@ -1,0 +1,58 @@
+---
+title: "FTP and S3 Wesog"
+description: "Create FTP or S3 accesses to send files to Wesog with your own tools, and control their folders and permissions."
+icon: "folder-tree"
+noindex: true
+---
+
+**FTP Wesog** and **S3 Wesog** are doors that Wesog gives your organization so that cameras, newsroom systems, agencies and scripts can drop files in it with the tools they already have (an FTP client, SFTP, or any S3 client). Files arrive in a landing area of your organization and from there they can start a [workflow](/new/workflows/run-by-api) or be saved in the [Library](/new/library/upload).
+
+They are different from [Connections](/new/settings/connections), which let Wesog reach **your** FTP or S3 servers.
+
+## Create an access
+
+Only administrators manage accesses. Go to **Current tenant settings > Storage** (see [Organization and users](/new/settings/organization-and-users)).
+
+<Steps>
+  <Step title="New access">
+    Press **New access** (**Create storage access**).
+  </Step>
+  <Step title="Choose the protocol">
+    **FTP** gives you a user name and a password. **S3** gives you an access key and a secret key. FTP also works over FTPS and SFTP with the same user and password.
+  </Step>
+  <Step title="Name it and limit it">
+    Set a **Display name** and a **Description** to remember what it is for. Under **Allowed folders** choose the folders it may use; with none selected it reaches all of them. Tick the **Permissions**: **Read**, **Write**, **List** and **Delete objects**.
+  </Step>
+  <Step title="Save the secret">
+    Choose **Generate secret automatically** or type one (at least the minimum shown). Press **Create access** and copy the password or secret key. You can show it again later from the access details, or rotate it.
+  </Step>
+</Steps>
+
+Open **View details** on an access to see what to give to the sender: for FTP the **host**, the **port**, the **user** and the password; for S3 the endpoint, the access key and the secret key.
+
+## Manage an access
+
+| Action | Where | Effect |
+|---|---|---|
+| **Disable** / **Enable** | **More actions** of the access | Stops or resumes it at once without deleting it. |
+| **Rotate secret** | **More actions** | Creates a new password or secret key. The old one stops working. |
+| **Delete access** | **More actions** | Removes the access for good. |
+
+The list shows the state, the protocol, the permissions and when each access was **Last used** (or **Never used**). You can filter by protocol and state and search by name.
+
+## Security
+
+- **Require encrypted FTP**: when on, the users of your organization can only sign in with FTPS (FTP with encryption) or SFTP, and plain FTP is refused. When off, plain FTP, FTPS and SFTP all work.
+- **SSH keys (SFTP)**: in the details of an FTP access you can add public keys so that a sender signs in over SFTP without typing the password (the password keeps working). Paste the contents of the `.pub` file, never the private key. Allowed types: ed25519, ECDSA and RSA of 2048 bits or more. Each access has a maximum number of keys, shown as "n of max".
+- Give each sender its own access, with only the folders and permissions it needs.
+
+## What happens to the files
+
+- Files sent to the Wesog FTP or S3 area are **deleted 7 days after they arrive**, unless a workflow is still using them. Save to the Library what you want to keep: in the Library toolbar use **Copy to Wesog FTP** to send content the other way, and the **Add to FTP Wesog** option of the context menu.
+- A workflow can use the Wesog FTP or S3 as its input ("Every photo that reaches the Wesog FTP: ..."), and send its results to your own FTP or S3 with a [connection](/new/settings/connections).
+
+## By API
+
+Accesses are created and rotated in the platform; there is no API-key operation for them. Files that arrive can then be listed and read like any other file of your organization with `GET /storage/objects` (scope `library`), see [Pagination](/new/start/pagination).
+
+Plans do not change how many accesses you can create, but your storage (5 GB in Free up to 5,120 GB in Premium) and the sizes of the transfers do count. See [Limits and plans](/new/start/limits-and-plans).

@@ -1,0 +1,86 @@
+---
+title: "Herramientas"
+description: "Las herramientas de IA de Wesog: qué hace cada una, cómo usarla desde la plataforma y por API."
+icon: "wand-magic-sparkles"
+noindex: true
+---
+
+Las herramientas ejecutan una tarea de IA sobre un archivo y te dan el resultado, sin guardar el archivo en tu Biblioteca. Úsalas para añadir datos a una foto o vídeo que recibes, para probar una tarea antes de automatizarla o para llamar a Wesog desde tu propio programa. Para ejecutar la misma tarea sobre muchos archivos según llegan, usa un [workflow](/es/new/workflows/overview).
+
+## Dónde están
+
+En el menú de la izquierda abre **Herramientas**. Las herramientas están agrupadas igual que en el catálogo de la API:
+
+- **Imagen**: Tag Photos, Celebrity Recognition, Caption, OCR, Keywords, Same image (SAME) y Content Credentials.
+- **Video**: Tag Videos, Video Celebrity Recognition (aparece como Celebrity Recognition), Video Transcription y Clip Generation.
+- **Envío**: atajos para enviar archivos con TransferLink y por FTP. Abren las secciones de la Biblioteca para compartir y para FTP, así que no son herramientas que se puedan llamar por API: ver [Biblioteca](/es/new/library/overview).
+
+## Catálogo
+
+| Herramienta | Grupo | `slug` de la API | Entrada | Te da |
+|---|---|---|---|---|
+| [Tag Photos](/es/new/tools/tag-photos) | Imagen | `image_tag` | Imagen | Descripción, palabras clave, texto, personas, colores |
+| [Celebrity Recognition](/es/new/tools/celebrity-recognition) | Imagen | `image_celebrity_recognition` | Imagen | Personas de la foto |
+| [Caption](/es/new/tools/caption) | Imagen | `caption` | Imagen | Descripción |
+| [OCR](/es/new/tools/ocr) | Imagen | `ocr` | Imagen | Texto de la imagen |
+| [Keywords](/es/new/tools/keywords) | Imagen | `keywords` | Imagen | Palabras clave |
+| [Same image (SAME)](/es/new/tools/same-image) | Imagen | `same_image` | Dos imágenes | Misma foto / misma escena |
+| [Content Credentials](/es/new/tools/content-credentials) | Imagen | `c2pa` | Imagen | Origen y firma (C2PA) |
+| [Tag Videos](/es/new/tools/tag-videos) | Video | `tag_videos` | Vídeo | Personas, transcripción, momentos clave |
+| [Video Celebrity Recognition](/es/new/tools/video-celebrity-recognition) | Video | `video_celebrity_recognition` | Vídeo | Personas y cuándo aparecen |
+| [Video Transcription](/es/new/tools/video-transcription) | Video | `video_transcription` | Vídeo | Transcripción con hablantes |
+| [Clip Generation](/es/new/tools/clip-generation) | Video | `clip_generation` | Vídeo | Clips más relevantes |
+
+`GET $WESOG_API/tools` lista las herramientas que tu clave puede ejecutar, con los campos que acepta cada una y si tu plan la incluye (`catalog_use_allowed`).
+
+## Cómo se usa cualquier herramienta
+
+1. **Elige la entrada.** Las imágenes van en el campo `image` (un archivo) o `image_url` (una dirección web pública); los vídeos en `video` o `video_url`; Same image recibe `image_a` e `image_b`. Envía el archivo **o** la dirección, nunca los dos. Keywords usa los nombres en español `imagen` e `imagen_url`.
+2. **Llama a `POST $WESOG_API/tools/{slug}`.** Puedes enviar los campos como `multipart/form-data` (necesario para subir un archivo) o como JSON.
+3. **Pide el resultado.** La llamada responde `202 Accepted` con un `run_id`; lees el resultado con `GET $WESOG_API/tools/runs/{run_id}` hasta que responda `200`. Detalles en [Tareas asíncronas](/es/new/start/async).
+
+```bash
+export WESOG_API=https://api-platform.wesog.com/api/v1
+export WESOG_API_KEY="<tu clave>"
+
+curl "$WESOG_API/tools" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+La clave debe poder usar **Herramientas** (permiso `tools`), ver [Claves de API](/es/new/settings/api-keys).
+
+## Síncrona o asíncrona
+
+| Respuesta | Significado |
+|---|---|
+| `202` | La ejecución está aceptada y sigue en marcha (`queued` o `running`). Sondea `poll_path`. |
+| `200` | La ejecución terminó. `status` es `succeeded`, `failed`, `timeout` o `cancelled`. Si salió bien, los campos de la herramienta van en el nivel superior del cuerpo. |
+
+La llamada nunca espera al resultado y responde siempre `202`; `timeout_ms` (de 1000 a 600000) se acepta pero no cambia eso. Las imágenes suelen terminar en segundos y los vídeos en minutos, así que escribe siempre tu programa para sondear. `POST $WESOG_API/tools/runs/{run_id}/cancel` detiene una ejecución que ya no necesitas.
+
+## Créditos, planes y límites
+
+Cada ejecución cuenta contra la asignación mensual de tu plan; cuando se agota, se usan los créditos que hayas comprado ([Plan y facturación](/es/new/settings/plan-and-billing)). No todos los planes incluyen todas las herramientas: una herramienta que tu plan no incluye aparece en `GET /tools` con `catalog_use_allowed: false`. Tu clave tiene además peticiones por minuto y por mes ([Límites](/es/new/start/limits-and-plans)).
+
+## Revisión
+
+Las herramientas muestran el resultado en pantalla y te dejan corregirlo antes de guardarlo o descargarlo (descripción, keywords, texto, las personas reconocidas, la transcripción). No tienen cola de revisión propia. Para que una persona apruebe los resultados antes de escribirlos en tus archivos, pon la herramienta en un workflow con un paso de **Revisión**: [Revisiones](/es/new/workflows/reviews). Por API siempre recibes el resultado tal como se produce.
+
+## Salida y nombres de campo
+
+La API devuelve el resultado de la herramienta en el nivel superior del cuerpo, junto a `run_id`, `status` y `response_mode`. Trae también `input_echo` (lo que enviaste) y algunos campos de control (`updated_at`, `batch_id`, `session_id`...) que tu programa puede ignorar. Los ejemplos de esta sección muestran solo los campos que importan. Algunas herramientas nombran sus campos en español (`People detectadas`, `Momentos clave`, `Transcripción`, `Credenciales de contenido`): úsalos exactamente como aparecen en cada página.
+
+## Páginas de herramientas
+
+<CardGroup cols={2}>
+  <Card title="Tag Photos" href="/es/new/tools/tag-photos" icon="tags">Descripción, keywords, texto, personas y colores en una llamada.</Card>
+  <Card title="Celebrity Recognition" href="/es/new/tools/celebrity-recognition" icon="face-smile">Personas conocidas en una foto.</Card>
+  <Card title="Caption" href="/es/new/tools/caption" icon="closed-captioning">La descripción de una foto.</Card>
+  <Card title="OCR" href="/es/new/tools/ocr" icon="font">El texto de una imagen.</Card>
+  <Card title="Keywords" href="/es/new/tools/keywords" icon="key">Palabras clave sugeridas.</Card>
+  <Card title="Same image" href="/es/new/tools/same-image" icon="images">Misma foto o misma escena.</Card>
+  <Card title="Content Credentials" href="/es/new/tools/content-credentials" icon="shield-check">Origen y firma de una imagen.</Card>
+  <Card title="Tag Videos" href="/es/new/tools/tag-videos" icon="film">Personas, transcripción y momentos clave.</Card>
+  <Card title="Video Celebrity Recognition" href="/es/new/tools/video-celebrity-recognition" icon="user-group">Personas conocidas en un vídeo.</Card>
+  <Card title="Video Transcription" href="/es/new/tools/video-transcription" icon="closed-captioning">Lo que se dice, con hablantes.</Card>
+  <Card title="Clip Generation" href="/es/new/tools/clip-generation" icon="scissors">Los clips más relevantes.</Card>
+</CardGroup>

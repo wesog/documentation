@@ -1,0 +1,187 @@
+---
+title: "Video Transcription"
+description: "Transcribe what is said in a video, segment by segment, with the speaker of each one."
+icon: "closed-captioning"
+noindex: true
+---
+
+**Video Transcription** (`video_transcription`) turns the speech of a video into text.
+
+## What it does
+
+It listens to the audio, writes what is said in segments with start and end times and tells the speakers apart. You can pick the audio language or let Wesog detect it. The result can be downloaded as subtitles.
+
+## When to use it
+
+Use it when you need the text of a video: subtitles, quotes, search. For people and key moments as well, use [Tag Videos](/new/tools/tag-videos).
+
+## Inputs
+
+One video per run, as a file or as a public web address.
+
+## Parameters
+
+| On screen | API field | Values | Default |
+|---|---|---|---|
+| Select the source (Library, Local or FTP) | `video` (file) or `video_url` | A file, or a public web address | Required: one of the two |
+| Audio language (Idioma del audio) | `language_code` | `es`, `en`, `fr`, `it`, `de`, `nl`, `pt`, `ru`. Empty means automatic detection | `es` |
+| Entity source: Wesog / Private / both | `use_wesog_entities` | `true`: Wesog's catalogue is used. `false`: only your organization's own entities (Private) | `true` |
+| Filter by groups… | `category_entity_ids` | List of groups, each as `{"entity_id": "<id>"}`. Together with `use_wesog_entities: true` it is the option **both** | empty |
+| (API only) | `timeout_ms` | Whole number, 1000 to 600000 | See *Synchronous or asynchronous* below |
+
+Groups are sent as a JSON list, for example `"category_entity_ids": [{"entity_id": "<GROUP_ID>"}]`; that needs a JSON request, not form fields. You get the ids from [Entities](/new/entities/overview). **Private** on screen is `use_wesog_entities: false`; **both** is `true` with groups.
+
+## Output
+
+Result of a finished run. The tool returns the same fields as Tag Videos; the one you want here is `Transcripción`. The values are illustrative.
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "succeeded",
+  "response_mode": "completed",
+  "Transcripción": [
+    {
+      "index": 0,
+      "text": "Good evening and welcome.",
+      "start": 0.4,
+      "end": 3.1,
+      "speaker": "Speaker 1",
+      "speaker_id": "spk_0"
+    },
+    {
+      "index": 1,
+      "text": "Thank you for having me.",
+      "start": 3.4,
+      "end": 5.0,
+      "speaker": "Speaker 2",
+      "speaker_id": "spk_1"
+    }
+  ]
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `Transcripción` | Segments ordered in time: `index`, `text`, `start`, `end` (seconds), `speaker`, `speaker_id`. |
+| `People detectadas, Momentos clave` | Also present, as in [Tag Videos](/new/tools/tag-videos). |
+
+## Review
+
+The tool itself has no review queue: the result appears on screen as soon as it is processed. You can correct it before saving or downloading. In the result you can edit the text, speaker and times of each segment, delete segments, add a translation, and download the transcript as SubRip (.srt), WebVTT (.vtt) or text (.txt).
+
+If you want a person to approve results before they are written to your files, or you process files as they arrive, put this tool in a workflow with a **Review** step (see [Reviews](/new/workflows/reviews)). By API you always receive the result as the tool produced it; there is no review step.
+
+## From the platform
+
+1. In the left menu open **Tools**. The tools are grouped as **Image**, **Video** and **Share**.
+2. In the group **Video**, click **Video Transcription**.
+3. Under **Select the source**, choose **Library**, **Local** (your computer) or **FTP**, and pick the video or videos. Click **Next**.
+4. Choose the **Audio language** (or **Detect language**).
+5. Click **Process**. If it takes long, click **Continue in background** and follow it from the executions; you will be notified. When it finishes you see the result; use **Save to library** or **Download**. In the result, download the transcript as SubRip, WebVTT or text.
+
+## By API
+
+Set the address once and reuse it. Every call needs your API key in the `X-API-Key` header ([Authentication](/new/start/authentication)); the key must be allowed to use **Tools** (scope `tools`).
+
+<CodeGroup>
+```bash cURL
+export WESOG_API=https://api-platform.wesog.com/api/v1
+export WESOG_API_KEY="<your key>"
+export VIDEO_URL="https://YOUR-SERVER/clip.mp4"
+
+curl -X POST "$WESOG_API/tools/video_transcription" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "video_url=$VIDEO_URL" \
+  -F "language_code=en"
+```
+
+```python Python
+import os
+import time
+import requests
+
+API = "https://api-platform.wesog.com/api/v1"
+HEADERS = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+VIDEO_URL = "https://YOUR-SERVER/clip.mp4"  # a public address of your own video
+
+r = requests.post(f"{API}/tools/video_transcription", headers=HEADERS, json={
+    "video_url": VIDEO_URL,
+    "language_code": "en"
+})
+r.raise_for_status()
+while r.status_code == 202:  # still running: ask again
+    time.sleep(2)
+    r = requests.get(f"{API}/tools/runs/{r.json()['run_id']}", headers=HEADERS)
+    r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+const VIDEO_URL = "https://YOUR-SERVER/clip.mp4"; // a public address of your own video
+
+let r = await fetch(`${API}/tools/video_transcription`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+  "video_url": VIDEO_URL,
+  "language_code": "en"
+}),
+});
+let data = await r.json();
+while (r.status === 202) { // still running: ask again
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  r = await fetch(`${API}/tools/runs/${data.run_id}`, { headers });
+  data = await r.json();
+}
+console.log(data);
+```
+</CodeGroup>
+
+To send a file instead of an address, use `multipart/form-data` and put the file in the field `video`:
+
+```bash
+curl -X POST "$WESOG_API/tools/video_transcription" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "video=@clip.mp4"
+```
+
+Use the file **or** the address for each input, never both in the same request.
+
+### Synchronous or asynchronous
+
+The call to `POST /tools/video_transcription` starts a run. The platform answers `202 Accepted` with a `run_id` and a `poll_path`:
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "queued",
+  "response_mode": "accepted",
+  "poll_path": "/api/v1/tools/runs/357569a6-d9ec-4ead-885b-68ad792321a5",
+  "progress": { "completed": 0, "total": 1, "percent": 0, "label": "En cola" }
+}
+```
+
+The `run_id` is the one you get in your own answer; the value above only shows the shape. Ask for the result with `GET $WESOG_API/tools/runs/$RUN_ID` every one or two seconds:
+
+- `202` while the run is `queued` or `running`: the same small body as above.
+- `200` when it has finished. `status` tells how it ended: `succeeded`, `failed`, `timeout` or `cancelled`. If it succeeded, the fields of the tool are at the top level of the body, next to `run_id`, `status` and `response_mode: "completed"`. If it failed, `error` carries a `code` and a `message`.
+
+The call never waits for the result: it always answers `202`, so your program must poll. `timeout_ms` (1000 to 600000) is accepted but does not change that. To stop a run you no longer need, send `POST $WESOG_API/tools/runs/$RUN_ID/cancel`. More in [Async tasks](/new/start/async).
+
+## Limits and errors
+
+- **Credits and plan.** Each run counts against the monthly allowance of your plan. When the allowance is used up, the credits you bought are used (see [Plan and billing](/new/settings/plan-and-billing)). If your plan does not include this tool, `GET /tools` shows it with `catalog_use_allowed: false`.
+- **Rate limits.** The usual limits per minute and per month of your key apply ([Limits](/new/start/limits-and-plans)).
+- **Time.** Videos take minutes, not seconds: do not hold the connection; poll the run.
+| Status | `code` | What to do |
+|---|---|---|
+| `401` | `unauthorized` | Send your key in `X-API-Key`. |
+| `403` | `forbidden` | The key cannot use tools: add the scope `tools`, or use a key without scopes. |
+| `404` | `not_found` | The `run_id` does not exist in your organization. |
+| `422` | `validation_error` | A field is not valid or an input is missing, or you sent a file **and** an address for the same input. `errors` lists the fields to fix. |
+| `429` | `api_key_rate_limit_reached` | Wait the seconds in `Retry-After` and retry. |
+
+Every error has `code`, `message` and `request_id`; quote the `request_id` to support. More in [Errors](/new/start/errors).

@@ -1,0 +1,38 @@
+---
+title: "Reviews"
+description: "Let a person approve or correct the results of a workflow before they are saved."
+icon: "list-check"
+noindex: true
+---
+
+A **review** is a step of a workflow: each file waits for a person to check its data, and correct it if needed, before it goes on to the outputs. If the person approves, the workflow goes on and saves the results; if they reject it, that file does not go on and its results are not written. It is useful when a mistake would be costly, for example before publishing.
+
+A workflow without a **Review** step saves its results by itself.
+
+## From the platform
+
+### Add the step
+
+Add the **Review** step to the workflow, in Workflow Studio or by asking the assistant (*"a person should check the captions before they are saved"*). In the step you choose:
+
+- **Who reviews**: **Any team member** or **Administrators only**.
+- **How many hours there are to review**: 1, 8, 24, 72 (the default) or 168 (one week).
+- **What happens if nobody reviews in time**: **It stops (as rejected)** (the default) or **It goes on (as approved)**.
+
+### Review the results
+
+Open **Workflows** and go to the **REVIEW** (*REVISIÓN*) tab, or use **Reviews** under **More options** in the left menu. A badge on **Workflows** shows how many items are pending, and a notice reaches the bell when a file waits for review.
+
+- Each review shows its workflow, category, execution date and how many items are pending (*N items pending review*).
+- Search with **Search reviews...** and filter by **Status** and category. The states are: **Manual review** (waiting for a person), **Automated review**, **Approved**, **Modified**, **Rejected** and **Expired**.
+- Press **Open review** to see the items. For each one you can check the result, correct the fields the step allows, and approve it. You can approve the items one by one or all together.
+- The review screen adapts to the workflow: it can show the image or video, the recognised people and keywords, a transcript, tables and editable fields.
+
+A person always decides, or the deadline, as you chose in the step. You can also ask the assistant *"what do I have pending review?"*.
+
+## By API
+
+There are no endpoints to list or decide reviews. What your program can see:
+
+- If you send a file to a workflow with API input and the workflow has a review, the request stays at `status: "in_review"` until a person approves it in the platform, and then it ends as `succeeded`. See [Run a workflow by API](/new/workflows/run-by-api#4-read-each-result).
+- An AI agent connected by [MCP](/new/search/connect-agents) can decide pending reviews on behalf of the person who connected it; it asks you to confirm.

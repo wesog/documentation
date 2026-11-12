@@ -1,0 +1,64 @@
+---
+title: "Autenticación"
+description: "Cómo enviar tu clave de API, qué puede hacer una clave y qué significan los errores de autenticación."
+icon: "key"
+noindex: true
+---
+
+Toda llamada a la API necesita credenciales. Para integraciones, la credencial es una **clave de API** de tu organización, enviada en la cabecera `X-API-Key`.
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl "$WESOG_API/tools" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+Las páginas públicas de esta documentación se leen sin clave, pero la consola **Try it** de la referencia de la API necesita una.
+
+## Crea una clave
+
+Desde la plataforma: **Ajustes del tenant actual > General > Claves API > Crear clave API**. Por API, las claves solo las gestiona un administrador con sesión iniciada, no otra clave. Paso a paso, con alcances, límites y rotación, en [Claves de API](/es/new/settings/api-keys).
+
+La clave **solo se muestra una vez**. Trátala como una contraseña:
+
+- guárdala en tu **servidor**, nunca en una página web, una app móvil ni un repositorio público;
+- usa una clave por aplicación, para poder parar una sin parar las demás;
+- envíala solo por `https`.
+
+Si una página web necesita buscar en nombre de un visitante, no incluyas la clave: usa un [token de cliente](/es/new/search/search-in-your-website) de vida corta que cree tu servidor.
+
+## Qué puede hacer una clave
+
+Una clave actúa siempre con los permisos de un **rol de clave de API**. Ese rol puede leer tus datos, subir y actualizar archivos, ejecutar las herramientas de IA, ejecutar workflows y buscar. No puede gestionar usuarios, planes ni otras claves.
+
+Además puedes **limitar** una clave a algunas áreas con **alcances** (scopes):
+
+| Alcance | Nombre en la plataforma | Abre |
+|---|---|---|
+| `search` | Búsqueda | Buscar en tu Biblioteca, abrir un resultado y la búsqueda conversacional. |
+| `read` | Solo lectura | Todo lo que solo lee (`GET`), más buscar. |
+| `tools` | Herramientas | Solo las herramientas de IA: listarlas, ejecutar una, leer o cancelar una ejecución. |
+| `workflows` | Workflows | Workflows, sus ejecuciones y revisiones; también las herramientas de IA. |
+| `library` | Biblioteca y almacenamiento | Archivos, carpetas, subidas, papelera, tesauro y entidades. |
+| `mcp` | Agentes (MCP) | La conexión para ChatGPT, Claude o tu propio agente. |
+
+Reglas:
+
+- Una clave **sin alcances** («Acceso completo») puede hacer todo lo que permite el rol de clave de API. Una clave **con alcances** solo puede hacer lo que cubra al menos uno de ellos.
+- Algunas acciones sensibles **nunca** forman parte del acceso completo. Una clave solo puede hacerlas si marcas el alcance que las contiene: editar los metadatos de un archivo y borrar o restaurar archivos necesitan `library`; lanzar una instancia de workflow necesita `workflows`.
+- Cada operación de la [referencia de la API](/es/new/openapi/introduction) indica los alcances que la abren.
+
+## Otras formas de entrar
+
+La propia plataforma usa una sesión después de entrar con tu correo y contraseña, y la conexión MCP para asistentes de IA usa su propio inicio de sesión, mira [Conectar agentes](/es/new/search/connect-agents). Para tu propio software, usa una clave de API.
+
+## Errores de autenticación
+
+| Estado | `code` | Significa |
+|---|---|---|
+| `401` | `api_key_missing` | No hay cabecera `X-API-Key`. |
+| `401` | `api_key_invalid` | La clave no existe, se borró, caducó o se rotó. |
+| `403` | `api_key_scope_denied` | Los alcances de la clave no cubren esta operación. |
+| `403` | `account_deactivated` | La organización está desactivada. Contacta con soporte. |
+
+Todos los errores comparten una forma, mira [Errores](/es/new/start/errors).

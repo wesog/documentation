@@ -1,0 +1,78 @@
+---
+title: "Idempotencia"
+description: "Repite una llamada con seguridad tras un timeout con la cabecera Idempotency-Key."
+icon: "repeat"
+noindex: true
+---
+
+Si tu llamada agota el tiempo no sabes si el archivo se subió o si el workflow se lanzó. Si la repites, podría ocurrir dos veces.
+
+Envía una cabecera `Idempotency-Key` con un valor que elijas (un UUID) en las operaciones que crean o lanzan algo. Repetir la llamada con **la misma clave** te devuelve **la primera respuesta** en lugar de ejecutarla otra vez. La respuesta repetida lleva `Idempotent-Replayed: true`.
+
+`$INSTANCE_ID` es el id del workflow que lanzaste (mira [Ejecutar un workflow](/es/new/workflows/run-by-api)) y `$RESOURCE_ID` el id de un archivo de tu Biblioteca, tal como lo devuelve una búsqueda.
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+KEY=$(uuidgen)   # créala una vez por trabajo y reutilízala en cada reintento
+
+curl -X POST "$WESOG_API/workflow-instances/$INSTANCE_ID/api/requests" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H "Idempotency-Key: $KEY" \
+  -H 'Content-Type: application/json' \
+  -d "{\"resource_ids\": [$RESOURCE_ID]}"
+```
+
+## Dónde funciona
+
+Las operaciones que llevan el parámetro `Idempotency-Key` en la [referencia de la API](/es/new/openapi/introduction): ejecutar una herramienta, subir un archivo (también los pasos de subida grande), crear una carpeta, borrar un archivo, enviar archivos a un workflow y lanzar un workflow. En el resto la cabecera se ignora.
+
+## Reglas
+
+- La clave tiene de 1 a 128 caracteres: letras, dígitos, `-`, `_`, `:` y `.`.
+- Se recuerda **24 horas**, por clave de API, método y ruta.
+- Misma clave y **mismo** cuerpo: la primera respuesta otra vez, sin ejecutar nada.
+- Misma clave y **otro** cuerpo: `409` `idempotency_key_reuse`. Una clave identifica una operación; usa una nueva para una operación nueva.
+- Misma clave mientras la primera llamada **sigue en marcha**: `409` `idempotency_key_in_use` con `Retry-After`. Espera y repite.
+- Solo se recuerdan las respuestas **correctas**. Si la primera llamada falló (`4xx`, `429`, `5xx`) puedes repetirla con la misma clave y se ejecuta.
+
+## Un buen patrón
+
+Crea la clave cuando decides hacer la operación, guárdala con tu trabajo y úsala en cada reintento de ese trabajo.
+
+<CodeGroup>
+```python Python
+import os, uuid, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+key = str(uuid.uuid4())          # una por trabajo, conservada para sus reintentos
+r = requests.post(f"{API}/storage/folders", headers={**headers, "Idempotency-Key": key},
+                  json={"relative_path": "eventos/2027"})
+print(r.status_code, r.headers.get("Idempotent-Replayed"))
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const key = crypto.randomUUID(); // una por trabajo, conservada para sus reintentos
+const r = await fetch(`${API}/storage/folders`, {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json", "Idempotency-Key": key },
+  body: JSON.stringify({ relative_path: "eventos/2027" }),
+});
+console.log(r.status, r.headers.get("Idempotent-Replayed"));
+```
+
+```bash cURL
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+KEY=$(uuidgen)   # una por trabajo, conservada para sus reintentos
+
+curl -X POST "$WESOG_API/storage/folders" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H "Idempotency-Key: $KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"relative_path": "eventos/2027"}'
+```
+</CodeGroup>

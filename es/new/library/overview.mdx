@@ -1,0 +1,158 @@
+---
+title: "Biblioteca"
+description: "Cómo se organiza la Biblioteca, cómo recorrerla y qué identificador usar para cada archivo."
+icon: "folder-open"
+noindex: true
+---
+
+La **Biblioteca** es donde viven tus fotos, vídeos, documentos y audios, junto con todo lo que Wesog sabe de ellos (descripción, palabras clave, personas, lugar, fechas). La búsqueda, los workflows y las herramientas trabajan sobre la Biblioteca.
+
+Contiene fotos, vídeos y audio, y es un árbol de carpetas. Abajo del menú ves cuánto almacenamiento de tu plan usas. Un archivo se identifica por su **ruta** (`relative_path`, por ejemplo `events/2026/madrid/IMG_0412.jpg`) y, una vez indexado, por un **id numérico** que usan la búsqueda, los workflows y las llamadas de metadatos.
+
+## Desde la plataforma
+
+Abre **Biblioteca** en el menú lateral. A la izquierda tienes **Carpetas**, **Colecciones** y **Filtros**, y accesos a **FTP Wesog**, **Compartidas conmigo**, **Mis compartidas**, **Duplicados**, **Favoritos**, **Papelera** y **Temporales**.
+
+- Abre una carpeta para ver sus archivos. Con el botón derecho en un archivo o carpeta tienes **Nueva carpeta**, **Renombrar**, **Mover a carpeta**, **Copiar**, **Cortar**, **Pegar**, **Descargar**, **Compartir**, **Guardar en favoritos**, **Plantillas** (lanzar un workflow que encaje) y **Mover a papelera**. En carpetas grandes la operación sigue en segundo plano.
+- **Comparte** un archivo, carpeta o colección con un usuario de Wesog por email (**Lector** o **Editor**; lo ve en **Compartidas conmigo**), o con **Crear enlace** (quien lo abre tiene que iniciar sesión en Wesog; **Desactivar enlace** lo corta).
+- Para enviar archivos a alguien sin cuenta usa **TransferLink** (un enlace de descarga) o **Envío FTP** en **Enviar**.
+- Abre un archivo para ver sus datos y editarlos. Mira [Editar metadatos](/es/new/library/metadata).
+- Añade archivos con las opciones de subida. Mira [Subir contenido](/es/new/library/upload).
+- Los archivos borrados van a **Papelera**. Mira [Papelera y restaurar](/es/new/library/trash).
+
+## Por API
+
+Necesitas una clave con el permiso `library`, o sin permisos limitados para las llamadas de solo lectura (editar, borrar y restaurar necesitan `library` marcado). Mira [Claves de API](/es/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+| Para | Llamada |
+|---|---|
+| Listar una carpeta | `GET /storage/objects?prefix=events/2026/` (añade `recursive=true` para bajar) |
+| Crear una carpeta | `POST /storage/folders` `{"relative_path": "events/2027"}` |
+| Renombrar o mover un archivo o carpeta | `POST /storage/rename-object` con `source_relative_path` y `destination_relative_path` (añade `"recursive": true` para una carpeta) |
+| Copiar | `POST /storage/copy-object`, mismos campos |
+| Subir | [Subir contenido](/es/new/library/upload) |
+| Leer o cambiar los datos de un archivo | [Editar metadatos](/es/new/library/metadata) |
+| Borrar o restaurar | [Papelera y restaurar](/es/new/library/trash) |
+
+Los datos de los archivos, y su búsqueda, los siguen cuando los mueves o renombras.
+
+### Listar una carpeta
+
+<CodeGroup>
+```bash cURL
+curl "$WESOG_API/storage/objects?prefix=events/2026/&limit=100" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+page = requests.get(f"{API}/storage/objects", headers=H, params={"prefix": "events/2026/", "limit": 100}).json()
+for item in page["items"]:
+    print(item["relative_path"], item.get("resource_id"), item["is_dir"])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+
+const r = await fetch(`${API}/storage/objects?prefix=events/2026/&limit=100`, { headers: H });
+const page = await r.json();
+for (const item of page.items) console.log(item.relative_path, item.resource_id, item.is_dir);
+```
+</CodeGroup>
+
+```json
+{
+  "prefix": "events/2026/",
+  "recursive": false,
+  "limit": 100,
+  "has_more": false,
+  "returned_count": 1,
+  "items": [
+    {
+      "relative_path": "events/2026/madrid/IMG_0412.jpg",
+      "is_dir": false,
+      "size_bytes": 3481923,
+      "last_modified": "2026-11-10T08:12:44Z",
+      "is_indexed": true,
+      "resource_id": "1048223",
+      "resource_type": "image",
+      "title": "Pasarela en Cibeles",
+      "content_type": "image/jpeg",
+      "tags": ["pasarela", "moda"]
+    }
+  ]
+}
+```
+
+Pagina con `start_after`: cuando `has_more` es `true`, envía `next_start_after` como `start_after` en la llamada siguiente. `is_indexed: true` significa que el archivo ya se puede encontrar buscando. Mira [Paginación](/es/new/start/pagination).
+
+### Carpetas, mover y copiar
+
+<CodeGroup>
+```bash cURL
+curl -X POST "$WESOG_API/storage/folders" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"relative_path": "events/2027"}'
+
+curl -X POST "$WESOG_API/storage/rename-object" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"source_relative_path": "events/2026/madrid/IMG_0412.jpg", "destination_relative_path": "events/2026/madrid/final/IMG_0412.jpg"}'
+```
+
+```python Python
+requests.post(f"{API}/storage/folders", headers=H, json={"relative_path": "events/2027"}).raise_for_status()
+
+r = requests.post(f"{API}/storage/rename-object", headers=H, json={
+    "source_relative_path": "events/2026/madrid/IMG_0412.jpg",
+    "destination_relative_path": "events/2026/madrid/final/IMG_0412.jpg",
+})
+print(r.json())   # moved_count, status, failed_count, failed_paths
+```
+
+```javascript JavaScript
+await fetch(`${API}/storage/folders`, {
+  method: "POST", headers: { ...H, "Content-Type": "application/json" },
+  body: JSON.stringify({ relative_path: "events/2027" }),
+});
+
+const r = await fetch(`${API}/storage/rename-object`, {
+  method: "POST", headers: { ...H, "Content-Type": "application/json" },
+  body: JSON.stringify({
+    source_relative_path: "events/2026/madrid/IMG_0412.jpg",
+    destination_relative_path: "events/2026/madrid/final/IMG_0412.jpg",
+  }),
+});
+console.log(await r.json());
+```
+</CodeGroup>
+
+Crear una carpeta que ya existe no es un error. Mover responde `{"moved_count": 1, "status": "renamed", "failed_count": 0, "failed_paths": []}`; copiar responde lo mismo con `copied_count` y `"status": "copied"`. Errores: `404` si el origen no existe, `409` si el destino ya existe.
+
+## Identificadores: `resource_id`, `entity_id` y `source_table`
+
+El mismo archivo aparece con varios nombres en la API. Esto es lo que es cada uno y cuál usar.
+
+| Dónde lo ves | Campo | Qué es | Para qué usarlo |
+|---|---|---|---|
+| Resultado de búsqueda | `entity_id` (número) | El **id numérico del archivo**. | El `row_id` para abrirlo o editarlo, los `resource_ids` de un [workflow](/es/new/workflows/run-by-api), el `resource_id` para borrarlo. |
+| Resultado de búsqueda | `resource_id` (`res_...`) | Un identificador interno de ese resultado en la búsqueda. | Nada más: no lo uses en otras llamadas. |
+| Subida, listado de carpeta, papelera | `resource_id` (número, a veces escrito como cadena como `"1048223"`) | El **mismo id numérico** que `entity_id`. | Lo mismo que `entity_id`. |
+| Resultado de búsqueda, subida | `source_table` | El **tipo de recurso** con que está guardado el archivo (por ejemplo `storage_image`). | El `source_table` de la ruta de las llamadas de abrir y editar. **Cópialo tal como viene**; no lo construyas. |
+| Resultado de búsqueda, listado | `relative_path` | La ruta del archivo en la Biblioteca. | Mover, renombrar, copiar. |
+
+Es decir: el número es la identidad del archivo, se llame como se llame el campo; el valor `res_...` solo sirve para el resultado de búsqueda; y `source_table` viaja con el número.
+
+```text
+búsqueda    -> { "resource_id": "res_62a24365063b", "entity_id": 1048223, "source_table": "storage_image" }
+abrir/editar -> /library/tables/storage_image/rows/1048223
+workflow    -> {"resource_ids": [1048223]}
+borrar      -> {"resource_id": "1048223"}
+```

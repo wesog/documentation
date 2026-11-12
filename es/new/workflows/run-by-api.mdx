@@ -1,0 +1,197 @@
+---
+title: "Ejecutar un workflow por API"
+description: "Envía archivos a un workflow con su entrada API, lee el resultado de cada uno, y pon en marcha, para y sigue tus workflows."
+icon: "play"
+noindex: true
+---
+
+Con la **entrada API** tu programa envía archivos de tu Biblioteca a un workflow y lee los resultados, sin abrir la plataforma. Esta página cubre también las llamadas para listar, poner en marcha, parar y seguir tus workflows. Para saber qué son los workflows, mira la [visión general](/es/new/workflows/overview).
+
+## Desde la plataforma
+
+Prepara el workflow una vez:
+
+1. Abre **Workflows**, ve a **PLANTILLAS** y pulsa **Usar plantilla** (o abre **Workflow Studio**).
+2. En la entrada, elige **API** (*Recibir los recursos por API*).
+3. Elige la salida. Con la salida **API** el workflow no guarda nada: tu programa lee los metadatos que genera. Cualquier otra salida (una carpeta de la Biblioteca, FTP, S3) también vale.
+4. Créalo y **Actívalo**. El detalle del workflow muestra **Uso por API** con la dirección exacta, con su id, y ejemplos listos (*Cómo enviar recursos*, *Cómo consultar los resultados*).
+
+El id del workflow en la API es su `instance_id` (el *workflow lanzado*). Léelo en el detalle o con `GET /workflow-instances` más abajo.
+
+## Por API
+
+Necesitas una clave con el permiso `workflows` (o sin permisos limitados) para estas llamadas; poner en marcha y parar necesita `workflows` marcado explícitamente. Mira [Claves de API](/es/new/settings/api-keys).
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+```
+
+### 1. Encontrar el workflow
+
+`GET /workflow-instances` lista tus workflows lanzados; filtra con `workflow_id` o `status`, y pagina con `limit` y `offset`.
+
+<CodeGroup>
+```bash cURL
+curl "$WESOG_API/workflow-instances?limit=20" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+
+for inst in requests.get(f"{API}/workflow-instances", headers=H, params={"limit": 20}).json():
+    print(inst["instance_id"], inst["name"], inst["status"])
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+
+for (const inst of await (await fetch(`${API}/workflow-instances?limit=20`, { headers: H })).json()) {
+  console.log(inst.instance_id, inst.name, inst.status);
+}
+```
+</CodeGroup>
+
+```json
+[
+  { "instance_id": "ins_9d2f", "name": "Fotos de agencia", "status": "running", "template_id": "wf_71aa",
+    "created_at": "2026-11-01T08:00:00Z", "updated_at": "2026-11-01T08:00:00Z" }
+]
+```
+
+`GET /workflow-instances/{instance_id}` lee uno. `GET /workflows` lista los workflows en sí (`id`, `name`, `description`, `is_active`, `workflow_kind`, `tags`); filtra con `deployment_status`, `tag` o `folder_path`.
+
+### 2. Obtener los ids de los archivos
+
+Cada archivo se envía con su id numérico: el `resource_id` de la respuesta de la [subida](/es/new/library/upload), o el `entity_id` de un resultado de [búsqueda](/es/new/search/search) (son el mismo número). No uses el valor `res_...` de un resultado de búsqueda. Mira [Identificadores](/es/new/library/overview#identificadores-resource_id-entity_id-y-source_table).
+
+### 3. Enviar los archivos
+
+`POST /workflow-instances/{instance_id}/api/requests` con un `resource_id` o una lista en `resource_ids` (hasta 100). Responde `202` enseguida con un `request_id` por archivo. Cada archivo se procesa en su propia ejecución. Usa un `Idempotency-Key` para que un reintento tras un fallo de red no procese los archivos dos veces (la misma clave devuelve la primera respuesta durante 24 horas; mira [Idempotencia](/es/new/start/idempotency)).
+
+<CodeGroup>
+```bash cURL
+export INSTANCE_ID="ins_9d2f"   # del paso 1
+
+curl -X POST "$WESOG_API/workflow-instances/$INSTANCE_ID/api/requests" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"resource_ids": [1048223, 1048224]}'
+```
+
+```python Python
+import os, time, uuid, requests
+
+API = "https://api-platform.wesog.com/api/v1"
+H = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+INSTANCE_ID = os.environ["INSTANCE_ID"]          # del paso 1
+
+sent = requests.post(
+    f"{API}/workflow-instances/{INSTANCE_ID}/api/requests",
+    headers={**H, "Idempotency-Key": str(uuid.uuid4())},
+    json={"resource_ids": [1048223, 1048224]},
+)
+sent.raise_for_status()                          # 202
+for req in sent.json()["requests"]:
+    while True:
+        r = requests.get(f"{API}/workflow-instances/{INSTANCE_ID}/api/requests/{req['request_id']}", headers=H)
+        if r.status_code != 202:
+            break
+        time.sleep(5)
+    print(req["resource_id"], r.json()["status"], r.json().get("results"))
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const H = { "X-API-Key": process.env.WESOG_API_KEY };
+const INSTANCE_ID = process.env.INSTANCE_ID;     // del paso 1
+
+const sent = await fetch(`${API}/workflow-instances/${INSTANCE_ID}/api/requests`, {
+  method: "POST",
+  headers: { ...H, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+  body: JSON.stringify({ resource_ids: [1048223, 1048224] }),
+});
+for (const req of (await sent.json()).requests) {
+  let r;
+  do {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    r = await fetch(`${API}/workflow-instances/${INSTANCE_ID}/api/requests/${req.request_id}`, { headers: H });
+  } while (r.status === 202);
+  console.log(req.resource_id, (await r.json()).status);
+}
+```
+</CodeGroup>
+
+Respuesta `202`:
+
+```json
+{
+  "instance_id": "ins_9d2f",
+  "request_id": "req_a1",
+  "requests": [
+    { "request_id": "req_a1", "resource_id": 1048223, "status": "accepted" },
+    { "request_id": "req_a2", "resource_id": 1048224, "status": "accepted" }
+  ],
+  "status_path": "/api/v1/workflow-instances/ins_9d2f/api/requests/{request_id}"
+}
+```
+
+`status_path` es una plantilla: pon en ella el `request_id` de cada archivo.
+
+### 4. Leer cada resultado
+
+`GET /workflow-instances/{instance_id}/api/requests/{request_id}` responde `202` mientras el archivo se procesa y `200` cuando ha terminado. Repítelo cada pocos segundos (por ejemplo cada 5) mientras responda `202`; cada consulta cuenta como una petición de tu plan. Mira [Asincronía y sondeo](/es/new/start/async).
+
+```json
+{
+  "request_id": "req_a1",
+  "resource_id": 1048223,
+  "status": "succeeded",
+  "submitted_at": "2026-11-12T10:00:00Z",
+  "finished_at": "2026-11-12T10:00:07Z",
+  "results": [ { "caption": "Una modelo desfila por la pasarela.", "keywords": ["pasarela", "moda"] } ]
+}
+```
+
+- Mientras trabaja, `status` vale `queued`, `running` o `in_review` (una [revisión](/es/new/workflows/reviews) espera a una persona).
+- Termina como `succeeded`, `failed` o `cancelled`. `results` contiene los datos que el workflow produjo para ese archivo (los campos dependen del workflow). Si un archivo falla, solo ese tiene `status: "failed"` con un `error`; los demás siguen.
+- `persons` contiene las personas reconocidas con seguridad; las probables vienen aparte en `persons_probable`, con su probabilidad.
+- Los resultados se conservan **30 días**. Después la petición responde `404` (`request_not_found`).
+
+### 5. Poner en marcha, parar y seguir un workflow
+
+Un workflow que toma sus archivos de una carpeta, un FTP o nuevas subidas trabaja solo una vez en marcha:
+
+```bash
+curl -X POST "$WESOG_API/workflow-instances/$INSTANCE_ID/launch" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"launch_mode": "start", "process_existing": false}'
+```
+
+`launch_mode` es `start` o `stop`. `process_existing: true` procesa también lo que ya hay en la entrada. La respuesta es el workflow lanzado con su nuevo `status`. Poner en marcha y parar necesita una clave con el permiso **`workflows` marcado explícitamente**; una clave sin permisos limitados no puede.
+
+`GET /workflows/{workflow_id}/executions?limit=20` lista las últimas ejecuciones de un workflow y sus estados:
+
+```json
+[ { "execution_id": "exe_55b", "status": "completed", "started_at": "2026-11-12T10:00:00Z", "ended_at": "2026-11-12T10:00:07Z" } ]
+```
+
+### Errores
+
+Todo error trae `code` y `message`; mira [Errores](/es/new/start/errors).
+
+| Estado | Significado |
+|---|---|
+| `401` | Falta la clave de API o no es válida. |
+| `403` | La clave tiene permisos limitados y ninguno es `workflows`. |
+| `404` | `workflow_not_found` (no hay ningún workflow con ese id en tu organización) o `request_not_found`. |
+| `409` | El workflow está parado (`workflow_stopped`), su entrada no es **API** (`workflow_input_not_api`), o el mismo `Idempotency-Key` aún está en marcha. Actívalo y vuelve a intentarlo. |
+| `422` | La petición no es válida: ids que no están en tu Biblioteca, una lista vacía o de más de 100. Si no se acepta ningún archivo (`no_resource_accepted`) cada uno explica el motivo en `error`. |
+| `429` | Superaste las peticiones por minuto o al mes de tu plan. `Retry-After` dice cuántos segundos esperar. |
+
+### Límites
+
+Como mucho **100** archivos por petición; resultados conservados **30 días**; las ejecuciones y archivos procesados de tu plan al mes. Mira [Límites y planes](/es/new/start/limits-and-plans).

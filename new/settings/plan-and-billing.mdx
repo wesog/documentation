@@ -1,0 +1,49 @@
+---
+title: "Plan and billing"
+description: "See and change your plan, buy credits, download invoices and cancel."
+icon: "credit-card"
+noindex: true
+---
+
+Your plan sets your users, storage, requests, searches and monthly credits. The figures of every plan are in [Limits and plans](/new/start/limits-and-plans).
+
+## Where it is
+
+Two entry points lead to the same place:
+
+- **Current tenant settings > Subscription** (an administrator opens the organization menu in the sidebar and presses the gear).
+- The **Upgrade account** button of the sidebar, which opens the plan comparison.
+
+## What you see
+
+- **Current plan**: its status (**Active**, **Trial**, **Payment pending**, **Canceled**), the billing cycle, the renewal date, storage and users.
+- **Plan comparison**: Free, Freelance, Creator, Team and Premium, with prices by month and by year. The annual price is shown as "per month billed annually".
+- **Credits**: the **Monthly allowance** used so far, your **Purchased balance** and the **Movements** (usage, top-ups, refunds). The plan's allowance is spent first, then purchased credits, which never expire.
+- **Invoices**: date, number, plan, amount and status (**Paid**, **Due**, **Payment failed**, ...), with a **Download** button.
+
+## Change plan
+
+<Steps>
+  <Step title="Choose">
+    In the comparison press **Change plan** or **Switch to** the plan you want, and pick **Monthly** or **Annual**.
+  </Step>
+  <Step title="Confirm">
+    The confirmation tells you the amount and the cycle. Press **Confirm and continue** to go to the payment.
+  </Step>
+</Steps>
+
+Going back to Free applies **at once** and the confirmation lists what you lose. Cancelling a paid plan (**Advanced settings > Cancel subscription**) takes effect at the **end of the current period**: the plan stays active until that date and then the organization moves to Free. **Automatic renewal** can be turned off in the same section.
+
+## Buy credits
+
+In **Credits**, under **Top up credits**, choose a pack and press **Buy**. After the payment the credits appear in a few seconds. **Manage billing** opens the payment provider's page for cards and tax data.
+
+## Rules to know
+
+- Only administrators see and change the subscription.
+- When a limit is reached, API calls answer `429` and the platform shows a notice with a link to upgrade. See [Errors](/new/start/errors).
+- Your plan may include an agreed variation of the standard figures. The page shows the ones that apply to you.
+
+## By API
+
+Plan and billing are managed in the platform only. What you can read from the API is your usage: the `RateLimit-*` headers of each answer and, for each key, the request counter shown in [API keys](/new/settings/api-keys).

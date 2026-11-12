@@ -1,0 +1,64 @@
+---
+title: "Authentication"
+description: "How to send your API key, what a key may do and what the authentication errors mean."
+icon: "key"
+noindex: true
+---
+
+Every call to the API needs credentials. For integrations the credential is an **API key** of your organization, sent in the `X-API-Key` header.
+
+```bash
+export WESOG_API="https://api-platform.wesog.com/api/v1"
+
+curl "$WESOG_API/tools" -H "X-API-Key: $WESOG_API_KEY"
+```
+
+Public pages of this documentation are readable without a key, but the **Try it** console of the API reference needs one.
+
+## Create a key
+
+From the platform: **Current tenant settings > General > API keys > Create API key**. From the API, keys are managed only by a signed-in administrator, not with another key. Step by step, with scopes, limits and rotation, in [API keys](/new/settings/api-keys).
+
+The key is shown **only once**. Treat it like a password:
+
+- keep it on your **server**, never in a web page, a mobile app or a public repository;
+- use one key per application, so that you can stop one without stopping the others;
+- send it only over `https`.
+
+If a web page needs to search on behalf of a visitor, do not ship the key: use a short-lived [client token](/new/search/search-in-your-website) minted by your server.
+
+## What a key may do
+
+A key always acts with the permissions of an **API key role**. That role can read your data, upload and update files, run the AI tools, run workflows and search. It cannot manage users, plans or other keys.
+
+On top of that you can **limit** a key to some areas with **scopes**:
+
+| Scope | Name in the platform | Opens |
+|---|---|---|
+| `search` | Search | Searching your Library, opening a result and the conversational search. |
+| `read` | Read only | Everything that only reads (`GET`), plus searching. |
+| `tools` | Tools | Only the AI tools: list them, run one, read or cancel a run. |
+| `workflows` | Workflows | Workflows, their runs and reviews; also the AI tools. |
+| `library` | Library and storage | Files, folders, uploads, the trash, the thesaurus and entities. |
+| `mcp` | Agents (MCP) | The connection for ChatGPT, Claude or your own agent. |
+
+Rules:
+
+- A key **with no scopes** ("Full access") can do everything the API key role allows. A key **with scopes** can do only what at least one of them covers.
+- A few sensitive actions are **never** part of full access. A key can do them only if you tick the scope that contains them: editing the metadata of a file and deleting or restoring files need `library`; launching a workflow instance needs `workflows`.
+- Each operation of the [API reference](/new/openapi/introduction) lists the scopes that open it.
+
+## Other ways to sign in
+
+The platform itself uses a session after you sign in with your email and password, and the MCP connection for AI assistants uses its own sign-in, see [Connect agents](/new/search/connect-agents). For your own software, use an API key.
+
+## Authentication errors
+
+| Status | `code` | Meaning |
+|---|---|---|
+| `401` | `api_key_missing` | There is no `X-API-Key` header. |
+| `401` | `api_key_invalid` | The key does not exist, was deleted, expired or was rotated. |
+| `403` | `api_key_scope_denied` | The key's scopes do not cover this operation. |
+| `403` | `account_deactivated` | The organization is deactivated. Contact support. |
+
+All errors share one shape, see [Errors](/new/start/errors).

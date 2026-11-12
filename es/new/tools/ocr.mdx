@@ -1,0 +1,165 @@
+---
+title: "OCR"
+description: "Lee el texto que aparece en una imagen."
+icon: "font"
+noindex: true
+---
+
+**OCR** (`ocr`) lee el texto que aparece en una imagen: carteles, pancartas, camisetas, documentos.
+
+## Qué hace
+
+Encuentra el texto impreso en la imagen y lo devuelve como texto plano. Puedes indicarle el idioma del texto.
+
+## Cuándo usarla
+
+Úsala cuando el texto de la imagen importe para buscar o describir (nombres en una pancarta, un cartel, un documento). Si además quieres descripción y palabras clave, usa [Tag Photos](/es/new/tools/tag-photos).
+
+## Entradas
+
+Una imagen por ejecución, como archivo o como dirección web pública.
+
+## Parámetros
+
+| En pantalla | Campo de la API | Valores | Por defecto |
+|---|---|---|---|
+| Selecciona el origen (Biblioteca, Local o FTP) | `image` (archivo) o `image_url` | Un archivo, o una dirección web pública | Obligatorio: uno de los dos |
+| Idioma del texto | `lang` | Código de idioma, por ejemplo `es` o `en` | `es` en pantalla |
+| (solo API) | `timeout_ms` | Número entero, de 1000 a 600000 | Ver *Síncrona o asíncrona* más abajo |
+
+## Salida
+
+Resultado de una ejecución terminada, capturado en la plataforma con una imagen de dos líneas de texto. El campo se llama `auto_ocr`.
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "succeeded",
+  "response_mode": "completed",
+  "auto_ocr": "FASHION WEEK MADRID | September 2026"
+}
+```
+
+| Campo | Significado |
+|---|---|
+| `auto_ocr` | Todo el texto encontrado; las líneas van unidas con ` | `. Vacío si la imagen no tiene texto. |
+
+## Revisión
+
+La herramienta no tiene cola de revisión propia: el resultado aparece en pantalla en cuanto se procesa. Puedes corregirlo antes de guardarlo o descargarlo. El texto es un cuadro editable (**Texto OCR**) en el resultado; lo que escribas ahí es lo que se guarda.
+
+Si quieres que una persona apruebe los resultados antes de escribirlos en tus archivos, o procesas archivos según llegan, pon esta herramienta en un workflow con un paso de **Revisión** (ver [Revisiones](/es/new/workflows/reviews)). Por API siempre recibes el resultado tal como lo produce la herramienta; no hay paso de revisión.
+
+## Desde la plataforma
+
+1. En el menú de la izquierda abre **Herramientas**. Las herramientas están agrupadas en **Imagen**, **Video** y **Envío**.
+2. En el grupo **Imagen**, pulsa **OCR**.
+3. En **Selecciona el origen**, elige **Biblioteca**, **Local** (tu ordenador) o **FTP**, y escoge la imagen o las imágenes. Pulsa **Siguiente**.
+4. En **Configuración OCR** elige el **Idioma del texto**.
+5. Pulsa **Procesar**. Si tarda, pulsa **Continuar en segundo plano** y síguelo desde las ejecuciones; recibirás un aviso. Al terminar ves el resultado; usa **Guardar en biblioteca** o **Descargar**.
+
+## Por API
+
+Define la dirección una sola vez y reutilízala. Cada llamada necesita tu clave de API en la cabecera `X-API-Key` ([Autenticación](/es/new/start/authentication)); la clave debe poder usar **Herramientas** (permiso `tools`).
+
+<CodeGroup>
+```bash cURL
+export WESOG_API=https://api-platform.wesog.com/api/v1
+export WESOG_API_KEY="<tu clave>"
+export IMAGE_URL="https://TU-SERVIDOR/foto.jpg"
+
+curl -X POST "$WESOG_API/tools/ocr" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "image_url=$IMAGE_URL" \
+  -F "lang=en"
+```
+
+```python Python
+import os
+import time
+import requests
+
+API = "https://api-platform.wesog.com/api/v1"
+HEADERS = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+IMAGE_URL = "https://TU-SERVIDOR/foto.jpg"  # una dirección pública de tu propia imagen
+
+r = requests.post(f"{API}/tools/ocr", headers=HEADERS, json={
+    "image_url": IMAGE_URL,
+    "lang": "en"
+})
+r.raise_for_status()
+while r.status_code == 202:  # sigue en marcha: pregunta de nuevo
+    time.sleep(2)
+    r = requests.get(f"{API}/tools/runs/{r.json()['run_id']}", headers=HEADERS)
+    r.raise_for_status()
+print(r.json())
+```
+
+```javascript JavaScript
+const API = "https://api-platform.wesog.com/api/v1";
+const headers = { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" };
+const IMAGE_URL = "https://TU-SERVIDOR/foto.jpg"; // una dirección pública de tu propia imagen
+
+let r = await fetch(`${API}/tools/ocr`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+  "image_url": IMAGE_URL,
+  "lang": "en"
+}),
+});
+let data = await r.json();
+while (r.status === 202) { // sigue en marcha: pregunta de nuevo
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  r = await fetch(`${API}/tools/runs/${data.run_id}`, { headers });
+  data = await r.json();
+}
+console.log(data);
+```
+</CodeGroup>
+
+Para enviar un archivo en lugar de una dirección, usa `multipart/form-data` y pon el archivo en el campo `image`:
+
+```bash
+curl -X POST "$WESOG_API/tools/ocr" \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F "image=@photo.jpg"
+```
+
+En cada entrada usa el archivo **o** la dirección, nunca los dos en la misma petición.
+
+### Síncrona o asíncrona
+
+La llamada a `POST /tools/ocr` inicia una ejecución. La plataforma responde `202 Accepted` con un `run_id` y un `poll_path`:
+
+```json
+{
+  "run_id": "357569a6-d9ec-4ead-885b-68ad792321a5",
+  "status": "queued",
+  "response_mode": "accepted",
+  "poll_path": "/api/v1/tools/runs/357569a6-d9ec-4ead-885b-68ad792321a5",
+  "progress": { "completed": 0, "total": 1, "percent": 0, "label": "En cola" }
+}
+```
+
+El `run_id` es el que recibes en tu propia respuesta; el valor de arriba solo muestra la forma. Pide el resultado con `GET $WESOG_API/tools/runs/$RUN_ID` cada uno o dos segundos:
+
+- `202` mientras la ejecución está `queued` o `running`: el mismo cuerpo pequeño de arriba.
+- `200` cuando ha terminado. `status` indica cómo acabó: `succeeded`, `failed`, `timeout` o `cancelled`. Si acabó bien, los campos de la herramienta van en el nivel superior del cuerpo, junto a `run_id`, `status` y `response_mode: "completed"`. Si falló, `error` trae un `code` y un `message`.
+
+La llamada nunca espera al resultado: responde siempre `202`, así que tu programa debe sondear. `timeout_ms` (de 1000 a 600000) se acepta pero no cambia eso. Para detener una ejecución que ya no necesitas, envía `POST $WESOG_API/tools/runs/$RUN_ID/cancel`. Más en [Tareas asíncronas](/es/new/start/async).
+
+## Límites y errores
+
+- **Créditos y plan.** Cada ejecución cuenta contra la asignación mensual de tu plan. Cuando se agota, se usan los créditos que hayas comprado (ver [Plan y facturación](/es/new/settings/plan-and-billing)). Si tu plan no incluye esta herramienta, `GET /tools` la muestra con `catalog_use_allowed: false`.
+- **Límites de uso.** Se aplican los límites habituales por minuto y por mes de tu clave ([Límites](/es/new/start/limits-and-plans)).
+
+| Estado | `code` | Qué hacer |
+|---|---|---|
+| `401` | `unauthorized` | Envía tu clave en `X-API-Key`. |
+| `403` | `forbidden` | La clave no puede usar herramientas: añade el permiso `tools`, o usa una clave sin permisos limitados. |
+| `404` | `not_found` | El `run_id` no existe en tu organización. |
+| `422` | `validation_error` | Un campo no es válido o falta una entrada, o enviaste un archivo **y** una dirección para la misma entrada. `errors` lista los campos a corregir. |
+| `429` | `api_key_rate_limit_reached` | Espera los segundos de `Retry-After` y reintenta. |
+
+Todos los errores traen `code`, `message` y `request_id`; cita el `request_id` a soporte. Más en [Errores](/es/new/start/errors).

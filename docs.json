@@ -107,57 +107,97 @@
                   {
                     "group": "Get started",
                     "pages": [
-                      "new/quickstart",
-                      "new/concepts/authentication",
-                      "new/concepts/errors",
-                      "new/concepts/rate-limits"
+                      "new/start/introduction",
+                      "new/start/quickstart",
+                      "new/start/authentication",
+                      "new/start/errors",
+                      "new/start/limits-and-plans",
+                      "new/start/pagination",
+                      "new/start/async",
+                      "new/start/idempotency",
+                      "new/start/glossary"
                     ]
                   },
                   {
-                    "group": "Concepts",
+                    "group": "Search",
                     "pages": [
-                      "new/concepts/pagination",
-                      "new/concepts/async",
-                      "new/concepts/idempotency"
+                      "new/search/search",
+                      "new/search/conversational-search",
+                      "new/search/search-in-your-website",
+                      "new/search/active-searches",
+                      "new/search/connect-agents"
                     ]
                   },
                   {
-                    "group": "Use cases",
+                    "group": "Workflows",
                     "pages": [
-                      "new/guides/tag-photos",
-                      "new/guides/search",
-                      "new/guides/library",
-                      "new/guides/run-workflow",
-                      "new/guides/alerts",
-                      "new/guides/connect-agents"
+                      "new/workflows/overview",
+                      "new/workflows/run-by-api",
+                      "new/workflows/reviews"
                     ]
                   },
                   {
                     "group": "Tools",
                     "pages": [
-                      "new/platform-api/tools",
-                      "new/platform-api/tool-matrix",
-                      "new/platform-api/tool-ocr",
-                      "new/platform-api/tool-image-tag",
-                      "new/platform-api/tool-caption",
-                      "new/platform-api/tool-image-celebrity-recognition",
-                      "new/platform-api/tool-video-celebrity-recognition"
+                      "new/tools/overview",
+                      {
+                        "group": "Images",
+                        "pages": [
+                          "new/tools/tag-photos",
+                          "new/tools/celebrity-recognition",
+                          "new/tools/caption",
+                          "new/tools/ocr",
+                          "new/tools/same-image",
+                          "new/tools/keywords",
+                          "new/tools/content-credentials"
+                        ]
+                      },
+                      {
+                        "group": "Video",
+                        "pages": [
+                          "new/tools/tag-videos",
+                          "new/tools/video-celebrity-recognition",
+                          "new/tools/video-transcription",
+                          "new/tools/clip-generation"
+                        ]
+                      }
                     ]
                   },
                   {
-                    "group": "Conversational search",
+                    "group": "Entities",
                     "pages": [
-                      "new/platform-api/conversational-search"
+                      "new/entities/overview"
                     ]
                   },
                   {
-                    "group": "More",
+                    "group": "Thesaurus",
                     "pages": [
-                      "new/changes",
-                      "new/platform/intro",
-                      "new/platform-api/reference-model",
-                      "new/platform-api/domains",
-                      "new/platform-api/workflows"
+                      "new/thesaurus/overview"
+                    ]
+                  },
+                  {
+                    "group": "Library",
+                    "pages": [
+                      "new/library/overview",
+                      "new/library/upload",
+                      "new/library/metadata",
+                      "new/library/trash"
+                    ]
+                  },
+                  {
+                    "group": "Settings",
+                    "pages": [
+                      "new/settings/organization-and-users",
+                      "new/settings/api-keys",
+                      "new/settings/ftp-s3",
+                      "new/settings/connections",
+                      "new/settings/plan-and-billing"
+                    ]
+                  },
+                  {
+                    "group": "Changes",
+                    "pages": [
+                      "new/changes"
                     ]
                   }
                 ]
@@ -172,21 +212,45 @@
                     ]
                   },
                   {
+                    "group": "Search",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "POST /library/search",
+                      "GET /library/tables/{source_table}/rows/{row_id}"
+                    ]
+                  },
+                  {
+                    "group": "Workflows",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "GET /workflows",
+                      "GET /workflows/{workflow_id}/executions",
+                      "GET /workflow-instances",
+                      "GET /workflow-instances/{instance_id}",
+                      "POST /workflow-instances/{instance_id}/launch",
+                      "POST /workflow-instances/{instance_id}/api/requests",
+                      "GET /workflow-instances/{instance_id}/api/requests/{request_id}"
+                    ]
+                  },
+                  {
                     "group": "Tools",
                     "openapi": "new/openapi.json",
                     "pages": [
                       "GET /tools",
+                      "POST /tools/image_tag",
+                      "POST /tools/image_celebrity_recognition",
+                      "POST /tools/caption",
+                      "POST /tools/ocr",
+                      "POST /tools/same_image",
+                      "POST /tools/keywords",
+                      "POST /tools/keywords_v2",
+                      "POST /tools/c2pa",
+                      "POST /tools/tag_videos",
+                      "POST /tools/video_celebrity_recognition",
+                      "POST /tools/video_transcription",
+                      "POST /tools/clip_generation",
                       "GET /tools/runs/{run_id}",
-                      "POST /tools/runs/{run_id}/cancel",
-                      "POST /tools/{tool_id_or_slug}"
-                    ]
-                  },
-                  {
-                    "group": "Search",
-                    "openapi": "new/openapi.json",
-                    "pages": [
-                      "GET /library/tables/{source_table}/rows/{row_id}",
-                      "POST /library/search"
+                      "POST /tools/runs/{run_id}/cancel"
                     ]
                   },
                   {
@@ -205,19 +269,6 @@
                       "GET /trash/library",
                       "POST /trash/library/resources",
                       "POST /trash/library/{trash_id}/restore"
-                    ]
-                  },
-                  {
-                    "group": "Workflows",
-                    "openapi": "new/openapi.json",
-                    "pages": [
-                      "GET /workflows",
-                      "GET /workflows/{workflow_id}/executions",
-                      "GET /workflow-instances",
-                      "GET /workflow-instances/{instance_id}",
-                      "POST /workflow-instances/{instance_id}/launch",
-                      "POST /workflow-instances/{instance_id}/api/requests",
-                      "GET /workflow-instances/{instance_id}/api/requests/{request_id}"
                     ]
                   },
                   {
@@ -244,59 +295,99 @@
                 "tab": "Guías",
                 "groups": [
                   {
-                    "group": "Primeros pasos",
+                    "group": "Empezar",
                     "pages": [
-                      "es/new/quickstart",
-                      "es/new/concepts/authentication",
-                      "es/new/concepts/errors",
-                      "es/new/concepts/rate-limits"
+                      "es/new/start/introduction",
+                      "es/new/start/quickstart",
+                      "es/new/start/authentication",
+                      "es/new/start/errors",
+                      "es/new/start/limits-and-plans",
+                      "es/new/start/pagination",
+                      "es/new/start/async",
+                      "es/new/start/idempotency",
+                      "es/new/start/glossary"
                     ]
                   },
                   {
-                    "group": "Conceptos",
+                    "group": "Buscador",
                     "pages": [
-                      "es/new/concepts/pagination",
-                      "es/new/concepts/async",
-                      "es/new/concepts/idempotency"
+                      "es/new/search/search",
+                      "es/new/search/conversational-search",
+                      "es/new/search/search-in-your-website",
+                      "es/new/search/active-searches",
+                      "es/new/search/connect-agents"
                     ]
                   },
                   {
-                    "group": "Casos de uso",
+                    "group": "Workflows",
                     "pages": [
-                      "es/new/guides/tag-photos",
-                      "es/new/guides/search",
-                      "es/new/guides/library",
-                      "es/new/guides/run-workflow",
-                      "es/new/guides/alerts",
-                      "es/new/guides/connect-agents"
+                      "es/new/workflows/overview",
+                      "es/new/workflows/run-by-api",
+                      "es/new/workflows/reviews"
                     ]
                   },
                   {
                     "group": "Herramientas",
                     "pages": [
-                      "new/platform-api/tools",
-                      "new/platform-api/tool-matrix",
-                      "new/platform-api/tool-ocr",
-                      "new/platform-api/tool-image-tag",
-                      "new/platform-api/tool-caption",
-                      "new/platform-api/tool-image-celebrity-recognition",
-                      "new/platform-api/tool-video-celebrity-recognition"
+                      "es/new/tools/overview",
+                      {
+                        "group": "Imágenes",
+                        "pages": [
+                          "es/new/tools/tag-photos",
+                          "es/new/tools/celebrity-recognition",
+                          "es/new/tools/caption",
+                          "es/new/tools/ocr",
+                          "es/new/tools/same-image",
+                          "es/new/tools/keywords",
+                          "es/new/tools/content-credentials"
+                        ]
+                      },
+                      {
+                        "group": "Vídeo",
+                        "pages": [
+                          "es/new/tools/tag-videos",
+                          "es/new/tools/video-celebrity-recognition",
+                          "es/new/tools/video-transcription",
+                          "es/new/tools/clip-generation"
+                        ]
+                      }
                     ]
                   },
                   {
-                    "group": "Búsqueda conversacional",
+                    "group": "Entidades",
                     "pages": [
-                      "new/platform-api/conversational-search"
+                      "es/new/entities/overview"
                     ]
                   },
                   {
-                    "group": "Más",
+                    "group": "Tesauro",
                     "pages": [
-                      "es/new/changes",
-                      "new/platform/intro",
-                      "new/platform-api/reference-model",
-                      "new/platform-api/domains",
-                      "new/platform-api/workflows"
+                      "es/new/thesaurus/overview"
+                    ]
+                  },
+                  {
+                    "group": "Biblioteca",
+                    "pages": [
+                      "es/new/library/overview",
+                      "es/new/library/upload",
+                      "es/new/library/metadata",
+                      "es/new/library/trash"
+                    ]
+                  },
+                  {
+                    "group": "Ajustes",
+                    "pages": [
+                      "es/new/settings/organization-and-users",
+                      "es/new/settings/api-keys",
+                      "es/new/settings/ftp-s3",
+                      "es/new/settings/connections",
+                      "es/new/settings/plan-and-billing"
+                    ]
+                  },
+                  {
+                    "group": "Novedades",
+                    "pages": [
+                      "es/new/changes"
                     ]
                   }
                 ]
@@ -311,21 +402,45 @@
                     ]
                   },
                   {
+                    "group": "Búsqueda",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "POST /library/search",
+                      "GET /library/tables/{source_table}/rows/{row_id}"
+                    ]
+                  },
+                  {
+                    "group": "Workflows",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "GET /workflows",
+                      "GET /workflows/{workflow_id}/executions",
+                      "GET /workflow-instances",
+                      "GET /workflow-instances/{instance_id}",
+                      "POST /workflow-instances/{instance_id}/launch",
+                      "POST /workflow-instances/{instance_id}/api/requests",
+                      "GET /workflow-instances/{instance_id}/api/requests/{request_id}"
+                    ]
+                  },
+                  {
                     "group": "Herramientas",
                     "openapi": "new/openapi.json",
                     "pages": [
                       "GET /tools",
+                      "POST /tools/image_tag",
+                      "POST /tools/image_celebrity_recognition",
+                      "POST /tools/caption",
+                      "POST /tools/ocr",
+                      "POST /tools/same_image",
+                      "POST /tools/keywords",
+                      "POST /tools/keywords_v2",
+                      "POST /tools/c2pa",
+                      "POST /tools/tag_videos",
+                      "POST /tools/video_celebrity_recognition",
+                      "POST /tools/video_transcription",
+                      "POST /tools/clip_generation",
                       "GET /tools/runs/{run_id}",
-                      "POST /tools/runs/{run_id}/cancel",
-                      "POST /tools/{tool_id_or_slug}"
-                    ]
-                  },
-                  {
-                    "group": "Búsqueda",
-                    "openapi": "new/openapi.json",
-                    "pages": [
-                      "GET /library/tables/{source_table}/rows/{row_id}",
-                      "POST /library/search"
+                      "POST /tools/runs/{run_id}/cancel"
                     ]
                   },
                   {
@@ -344,19 +459,6 @@
                       "GET /trash/library",
                       "POST /trash/library/resources",
                       "POST /trash/library/{trash_id}/restore"
-                    ]
-                  },
-                  {
-                    "group": "Workflows",
-                    "openapi": "new/openapi.json",
-                    "pages": [
-                      "GET /workflows",
-                      "GET /workflows/{workflow_id}/executions",
-                      "GET /workflow-instances",
-                      "GET /workflow-instances/{instance_id}",
-                      "POST /workflow-instances/{instance_id}/launch",
-                      "POST /workflow-instances/{instance_id}/api/requests",
-                      "GET /workflow-instances/{instance_id}/api/requests/{request_id}"
                     ]
                   },
                   {

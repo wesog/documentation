@@ -1,0 +1,66 @@
+---
+title: "Glosario"
+description: "Las palabras que se usan en la plataforma y en la API, por orden alfabético."
+icon: "book-open"
+noindex: true
+---
+
+<AccordionGroup>
+  <Accordion title="Alcance (scope)">
+    Una restricción de una clave de API a algunas áreas de la API: `search`, `read`, `tools`, `workflows`, `library`, `mcp`. Mira [Autenticación](/es/new/start/authentication).
+  </Accordion>
+  <Accordion title="Biblioteca">
+    El lugar donde viven y se indexan tus archivos, con sus metadatos. Menú: **Biblioteca**.
+  </Accordion>
+  <Accordion title="Búsqueda activa">
+    Una búsqueda guardada para que Wesog busque nuevas coincidencias por su cuenta y te avise. Menú: **Búsquedas activas**. Mira [Búsquedas activas](/es/new/search/active-searches).
+  </Accordion>
+  <Accordion title="Caption (descripción)">
+    La descripción de una imagen o vídeo en una o dos frases, escrita por una herramienta de IA o por una persona. Se guarda en los metadatos del archivo.
+  </Accordion>
+  <Accordion title="Clave de API">
+    Un secreto que identifica tu software cuando llama a la API, enviado en la cabecera `X-API-Key`. La crea un administrador en **Ajustes del tenant actual > General > Claves API**. Mira [Claves de API](/es/new/settings/api-keys).
+  </Accordion>
+  <Accordion title="Clave de idempotencia">
+    Un valor que eliges y envías en la cabecera `Idempotency-Key` para que repetir una llamada nunca haga el trabajo dos veces. Mira [Idempotencia](/es/new/start/idempotency).
+  </Accordion>
+  <Accordion title="Conexión, credencial y canal">
+    Una **credencial** es un usuario y contraseña, o unas claves de acceso, guardados. Una **conexión** enlaza una credencial con un servidor o bucket y una carpeta. Un **canal** agrupa varias conexiones FTP y S3. Menú: **Credenciales**. Mira [Conexiones](/es/new/settings/connections).
+  </Accordion>
+  <Accordion title="Créditos">
+    La unidad que gastan las herramientas de IA y los workflows. Cada plan tiene un cupo mensual y puedes comprar más, que no caducan. Mira [Límites y planes](/es/new/start/limits-and-plans).
+  </Accordion>
+  <Accordion title="Ejecución (run)">
+    Una vez que un workflow o una herramienta se ejecutó sobre una entrada, con su estado y su resultado. Las ejecuciones de workflows aparecen en el menú **Workflows**.
+  </Accordion>
+  <Accordion title="Entidad">
+    Algo que Wesog puede reconocer y enlazar con tu contenido: una persona, un lugar, una marca, un equipo. Wesog ofrece entidades públicas y tú puedes crear las tuyas privadas. Menú: **Entidades**.
+  </Accordion>
+  <Accordion title="`entity_id` y `resource_id`">
+    Dos ids de un archivo de tu Biblioteca. `resource_id` es un id de texto como `res_62a24365063b`. `entity_id` es un número. Cada operación indica cuál espera.
+  </Accordion>
+  <Accordion title="Herramienta">
+    Una función de IA que puedes ejecutar sobre un archivo: etiquetar, describir, leer texto, reconocer personas. Menú: **Herramientas**.
+  </Accordion>
+  <Accordion title="MCP">
+    La forma estándar de que asistentes de IA como ChatGPT o Claude usen herramientas de otros productos. Wesog ofrece una conexión MCP para buscar y actuar sobre tu Biblioteca. Mira [Conectar agentes](/es/new/search/connect-agents).
+  </Accordion>
+  <Accordion title="Organización">
+    El espacio de tu cuenta: sus usuarios, Biblioteca, workflows, claves, plan y límites. En algunas pantallas de la aplicación todavía se llama **tenant**; es lo mismo. En la API, campos como `own_tenant` significan «pertenece a tu organización».
+  </Accordion>
+  <Accordion title="Plan">
+    Free, Freelance, Creator, Team o Premium. Fija usuarios, almacenamiento, peticiones, búsquedas y créditos. Mira [Límites y planes](/es/new/start/limits-and-plans).
+  </Accordion>
+  <Accordion title="Revisión">
+    Un paso en el que una persona comprueba y corrige lo que ha producido la IA antes de guardarlo. Menú: **Revisiones**, dentro de **Workflows**.
+  </Accordion>
+  <Accordion title="Tesauro">
+    El vocabulario controlado con el que se etiqueta el contenido con términos coherentes. Menú: **Tesauro**.
+  </Accordion>
+  <Accordion title="Token de cliente">
+    Una credencial de vida corta que tu servidor crea con una clave de API y entrega a una página web, para que la página busque por sí misma sin ver nunca la clave. Mira [Buscador en tu web](/es/new/search/search-in-your-website).
+  </Accordion>
+  <Accordion title="Workflow">
+    Una automatización hecha de pasos que arranca con un disparador (un archivo nuevo, una programación, una llamada a la API) y hace cosas con el contenido. Menú: **Workflows**.
+  </Accordion>
+</AccordionGroup>

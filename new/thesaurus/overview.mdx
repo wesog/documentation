@@ -1,0 +1,35 @@
+---
+title: "Thesaurus"
+description: "Your organization's own vocabulary: concepts with their labels, synonyms and hierarchy in several languages."
+icon: "book-open"
+noindex: true
+---
+
+The **Thesaurus** is your organization's own vocabulary to classify content. It is made of **terms** (also called concepts), ordered in **categories** and **subcategories**. Each term has its definition, its labels in each language, its synonyms, its broader and narrower terms, its related terms, a scope note and its internal category.
+
+It is not a general dictionary: it only has the terms your organization adds. The **Keywords V2** tool works from it, so it needs your organization to have one.
+
+## From the platform
+
+Open **Thesaurus** in the left menu (the page is titled **Thesauri**).
+
+- **Browse.** The categories are on the left; open one to see its subcategories and terms. **Search term...** looks for a term, **Search categories...** for a category, and **Alphabetical search** goes by letter. **Statistics** shows how big the vocabulary is.
+- **Add.** **New term**, **New category** (and **Add subcategory**) create them. A term needs its English label and a parent category (*English term is required*, *You must select a parent category*).
+- **Edit a term.** Open it to see its sheet, with:
+  1. identity of the concept (its ID),
+  2. definition,
+  3. labels by language (the preferred label of each language),
+  4. synonyms by language (variants of the same concept, not new concepts),
+  5. hierarchy: **Broader (BT)** and **Narrower (NT)**,
+  6. related terms (**RT**),
+  7. scope note (what the concept includes and excludes),
+  8. internal category,
+  9. semantic usage (**Used for**),
+  10. prompts for AI and visual use.
+
+  Use **Add synonym** to add a synonym, and **Save term** to save. **Delete term** removes it.
+- **Categories.** **Rename category** and **Delete category**. You can only delete categories that are empty and were created manually; one that contains terms or subcategories cannot be deleted.
+
+## By API
+
+There is no public API for the thesaurus. It is managed in the platform, and the tools that use it read it by themselves; you do not send it in the request.
