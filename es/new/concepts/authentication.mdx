@@ -1,0 +1,55 @@
+---
+title: "Autenticación"
+description: "Cómo crear, enviar, limitar y rotar una clave API."
+icon: "key"
+noindex: true
+---
+
+Todas las llamadas necesitan una **clave API** de tu organización, enviada en la cabecera `X-API-Key`.
+
+```bash
+curl 'https://api.wesog.com/api/v1/tools' -H "X-API-Key: $WESOG_API_KEY"
+```
+
+## Crear una clave
+
+En Wesog abre **Ajustes del tenant actual > General > Claves API** y pulsa **Nueva clave**. La clave se muestra **solo una vez**: Wesog guarda únicamente una huella de ella y no puede volver a mostrarla. Si la pierdes, rótala.
+
+Trátala como una contraseña:
+
+- guárdala en tu **servidor**, nunca en una página web, una aplicación móvil ni un repositorio público;
+- usa una clave por aplicación, para poder detener una sin detener las demás;
+- envíala solo por `https`.
+
+## Limitar lo que puede hacer una clave (scopes)
+
+Una clave **sin scopes** puede llamar a todo lo que permita el rol de su organización. Puedes limitar una clave a uno o varios scopes:
+
+| Scope | Abre |
+|---|---|
+| `search` | Buscar en tu Biblioteca y abrir un resultado. |
+| `read` | Todo lo que solo lee (`GET`), además de buscar. |
+| `library` | Archivos, carpetas, subidas, metadatos y papelera. |
+| `workflows` | Workflows, sus ejecuciones y las herramientas de IA (`/tools`). |
+| `mcp` | La conexión de agentes para ChatGPT, Claude o tu propio agente. |
+
+Cada operación de la [referencia de la API](/es/new/openapi/introduction) indica los scopes que la permiten. Una llamada fuera de los scopes de la clave responde `403` con el código `api_key_scope_denied`.
+
+## Límites por clave
+
+Cada clave puede tener su propio límite de peticiones por minuto y por mes, por debajo del límite de tu plan. Consulta [Límites](/es/new/concepts/rate-limits).
+
+## Rotar o detener una clave
+
+En la misma página, **Rotar** crea una clave nueva con el mismo nombre, scopes y límites, y la **antigua deja de funcionar al instante**: ten la clave nueva lista en tu aplicación antes de pulsarlo. **Desactivar** detiene una clave sin borrarla, y puedes volver a activarla. La página muestra cuándo se usó cada clave por última vez.
+
+## Errores de autenticación
+
+| Estado | `code` | Significado |
+|---|---|---|
+| `401` | `api_key_missing` | No hay cabecera `X-API-Key`. |
+| `401` | `api_key_invalid` | La clave no existe, se eliminó o se rotó. |
+| `403` | `api_key_scope_denied` | Los scopes de la clave no cubren esta operación. |
+| `403` | `account_deactivated` | La organización está desactivada. |
+
+Todos los errores tienen el mismo formato, consulta [Errores](/es/new/concepts/errors).

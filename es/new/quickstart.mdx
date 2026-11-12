@@ -1,0 +1,147 @@
+---
+title: "Inicio rápido: tus primeras llamadas en 5 minutos"
+description: "Crea una clave API, haz tu primera llamada, etiqueta una foto, lanza tu primera búsqueda y envía archivos a un workflow."
+icon: "rocket"
+noindex: true
+---
+
+Necesitas una cuenta de Wesog. Todo lo que sigue usa la dirección base `https://api.wesog.com/api/v1`.
+
+## 1. Crea una clave API
+
+En Wesog abre **Ajustes del tenant actual > General > Claves API** y pulsa **Nueva clave**. Ponle un nombre y, si quieres, limita lo que puede hacer (consulta [Autenticación](/es/new/concepts/authentication)). Copia la clave: **solo se muestra una vez**.
+
+Guárdala en una variable de entorno. No la pongas nunca en una página web ni en un repositorio público.
+
+```bash
+export WESOG_API_KEY="paste-your-key-here"
+```
+
+## 2. Comprueba que funciona
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.wesog.com/api/v1/tools?limit=5' \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+headers = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+r = requests.get("https://api.wesog.com/api/v1/tools", headers=headers, params={"limit": 5})
+r.raise_for_status()
+print([t["slug"] for t in r.json()["items"]])
+```
+
+```javascript JavaScript
+const headers = { "X-API-Key": process.env.WESOG_API_KEY };
+const r = await fetch("https://api.wesog.com/api/v1/tools?limit=5", { headers });
+if (!r.ok) throw new Error(await r.text());
+console.log((await r.json()).items.map((t) => t.slug));
+```
+</CodeGroup>
+
+Obtienes la lista de herramientas que incluye tu plan (`caption`, `ocr`, `image_tag`...). Si recibes `401`, la clave es incorrecta o falta; si recibes `403`, la clave tiene permisos (scopes) que no cubren esta llamada.
+
+## 3. Etiqueta tu primera foto
+
+<CodeGroup>
+```bash cURL
+curl -X POST 'https://api.wesog.com/api/v1/tools/caption' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"image_url": "https://example.com/photos/runway.jpg", "lang": "en"}'
+```
+
+```python Python
+r = requests.post(
+    "https://api.wesog.com/api/v1/tools/caption",
+    headers=headers,
+    json={"image_url": "https://example.com/photos/runway.jpg", "lang": "en"},
+)
+print(r.status_code, r.json())
+```
+
+```javascript JavaScript
+const r = await fetch("https://api.wesog.com/api/v1/tools/caption", {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ image_url: "https://example.com/photos/runway.jpg", lang: "en" }),
+});
+console.log(r.status, await r.json());
+```
+</CodeGroup>
+
+El estado `200` trae el resultado. El estado `202` significa que todavía se está ejecutando: lee [Asincronía y sondeo](/es/new/concepts/async). Para enviar un archivo en lugar de una dirección, usa `multipart/form-data` con el campo `image`. Todas las herramientas están en [Etiquetar fotos](/es/new/guides/tag-photos).
+
+## 4. Sube una foto y búscala
+
+Súbela (archivos de hasta 50 MB; los más grandes se suben por partes, consulta [Biblioteca](/es/new/guides/library)):
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/storage/upload' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Idempotency-Key: 6f1c2a9e-0000-4000-8000-000000000001' \
+  -F 'file=@runway.jpg' \
+  -F 'relative_path=events/2026/runway.jpg'
+```
+
+La foto queda indexada en pocos minutos. Después busca con lenguaje natural:
+
+<CodeGroup>
+```bash cURL
+curl -X POST 'https://api.wesog.com/api/v1/library/search' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "model walking the runway", "limit": 10}'
+```
+
+```python Python
+r = requests.post(
+    "https://api.wesog.com/api/v1/library/search",
+    headers=headers,
+    json={"query": "model walking the runway", "limit": 10},
+)
+for item in r.json()["items"]:
+    print(item["resource_id"], item["title"])
+```
+
+```javascript JavaScript
+const r = await fetch("https://api.wesog.com/api/v1/library/search", {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ query: "model walking the runway", limit: 10 }),
+});
+for (const item of (await r.json()).items) console.log(item.resource_id, item.title);
+```
+</CodeGroup>
+
+Más en [Búsqueda](/es/new/guides/search).
+
+## 5. Ejecuta tu primer workflow desde tu programa
+
+Un workflow (flujo de trabajo) puede recibir sus archivos desde la API. Localiza el tuyo y envíale fotos de tu Biblioteca:
+
+```bash
+# which launched workflows do I have?
+curl 'https://api.wesog.com/api/v1/workflow-instances' -H "X-API-Key: $WESOG_API_KEY"
+
+# send two photos (their resource_id) to the workflow
+curl -X POST 'https://api.wesog.com/api/v1/workflow-instances/INSTANCE_ID/api/requests' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: 6f1c2a9e-0000-4000-8000-000000000002' \
+  -d '{"resource_ids": [1048223, 1048224]}'
+```
+
+Recibes `202` y un `request_id` por foto. Lee cada resultado según vaya terminando: [Ejecutar un workflow](/es/new/guides/run-workflow).
+
+## Siguientes pasos
+
+<CardGroup cols={2}>
+  <Card title="Errores" icon="triangle-exclamation" href="/es/new/concepts/errors">Un único formato de error, con un request_id que puedes indicar al soporte.</Card>
+  <Card title="Límites" icon="gauge" href="/es/new/concepts/rate-limits">Peticiones por minuto y por mes, y cómo reaccionar ante un 429.</Card>
+  <Card title="Conectar ChatGPT o Claude" icon="plug" href="/es/new/guides/connect-agents">Deja que un asistente de IA use tu archivo.</Card>
+  <Card title="Referencia de la API" icon="book" href="/es/new/openapi/introduction">Todas las operaciones con ejemplos en cURL, Python y JavaScript.</Card>
+</CardGroup>

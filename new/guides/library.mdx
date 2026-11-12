@@ -1,0 +1,107 @@
+---
+title: "Upload and manage the Library"
+description: "Upload files, organise folders, change their data and delete or restore them."
+icon: "folder-open"
+noindex: true
+---
+
+The Library is a tree of folders. A file is identified by its **path** (`relative_path`, for example `events/2026/madrid/IMG_0412.jpg`) and, once indexed, by its **`resource_id`**, which search and workflows use.
+
+You need a key with the `library` scope (or no scopes).
+
+## Upload a file (up to 50 MB)
+
+<CodeGroup>
+```bash cURL
+curl -X POST 'https://api.wesog.com/api/v1/storage/upload' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Idempotency-Key: 6f1c2a9e-0000-4000-8000-000000000001' \
+  -F 'file=@IMG_0412.jpg' \
+  -F 'relative_path=events/2026/madrid/IMG_0412.jpg'
+```
+
+```python Python
+import os, uuid, requests
+
+with open("IMG_0412.jpg", "rb") as f:
+    r = requests.post(
+        "https://api.wesog.com/api/v1/storage/upload",
+        headers={"X-API-Key": os.environ["WESOG_API_KEY"], "Idempotency-Key": str(uuid.uuid4())},
+        files={"file": f},
+        data={"relative_path": "events/2026/madrid/IMG_0412.jpg"},
+    )
+r.raise_for_status()
+print(r.json())   # {"relative_path": ..., "action": "created", "resource_id": 1048223}
+```
+
+```javascript JavaScript
+import { openAsBlob } from "node:fs";
+
+const form = new FormData();
+form.append("file", await openAsBlob("IMG_0412.jpg"), "IMG_0412.jpg");
+form.append("relative_path", "events/2026/madrid/IMG_0412.jpg");
+const r = await fetch("https://api.wesog.com/api/v1/storage/upload", {
+  method: "POST",
+  headers: { "X-API-Key": process.env.WESOG_API_KEY, "Idempotency-Key": crypto.randomUUID() },
+  body: form,
+});
+console.log(await r.json());
+```
+</CodeGroup>
+
+The file is indexed and searchable within minutes. Uploading to a path that exists **replaces** the file. If the file is over the limit you get `413`.
+
+## Upload a big file in parts
+
+For files over 50 MB (videos):
+
+1. `POST /storage/upload/multipart/init` with `relative_path` and `expected_size_bytes`. You get an `upload_id`, the part size and one `upload_url` per part.
+2. Send each part with `PUT` to its `upload_url` (the body is the bytes of that part).
+3. `POST /storage/upload/multipart/complete` with `relative_path`, `upload_id` and `total_parts`.
+
+If something fails, `POST /storage/upload/multipart/abort` discards the parts.
+
+```python
+init = requests.post(f"{BASE}/storage/upload/multipart/init", headers=h,
+                     json={"relative_path": "events/final.mp4", "expected_size_bytes": size, "content_type": "video/mp4"}).json()
+with open("final.mp4", "rb") as f:
+    for part in init["parts"]:
+        requests.put(part["upload_url"], data=f.read(part["size_bytes"])).raise_for_status()
+requests.post(f"{BASE}/storage/upload/multipart/complete", headers=h,
+              json={"relative_path": init["relative_path"], "upload_id": init["upload_id"], "total_parts": init["total_parts"]}).raise_for_status()
+```
+
+## Look around
+
+`GET /storage/objects?prefix=events/2026/` lists a folder. Add `recursive=true` to go down. See [Pagination](/new/concepts/pagination).
+
+## Folders, move and copy
+
+| To | Call |
+|---|---|
+| Create a folder | `POST /storage/folders` `{"relative_path": "events/2027"}` |
+| Rename or move a file or folder | `POST /storage/rename-object` with `source_relative_path` and `destination_relative_path` (add `"recursive": true` for a folder) |
+| Copy | `POST /storage/copy-object`, same fields |
+
+The data of the files (and their search) follows them.
+
+## Change the data of a file
+
+`PATCH /library/tables/{source_table}/rows/{row_id}` changes the caption, keywords, headline, place... Send only what changes.
+
+```bash
+curl -X PATCH 'https://api.wesog.com/api/v1/library/tables/images/rows/1048223' \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"caption": "Rafael Nadal celebrates a point during the final in Madrid.", "keywords": ["tennis", "Nadal"]}'
+```
+
+`source_table` and `row_id` come from a search result (`resource_id` is the `row_id`). The names of the fields are the ones `GET` returns for that file; an unknown name is refused with `unknown_library_fields`.
+
+## Delete and restore
+
+`POST /trash/library/resources` with `{"resource_id": "1048223"}` moves a file to the trash: it disappears from search at once and stays recoverable for **30 days**.
+
+- `GET /trash/library` lists the trash.
+- `POST /trash/library/{trash_id}/restore` puts the file back.
+
+<Note>Deleting is safe to repeat with an `Idempotency-Key`. Emptying the trash for good is done in the app.</Note>

@@ -25,113 +25,345 @@
     }
   },
   "navigation": {
-    "versions": [
+    "languages": [
       {
-        "version": "Actual",
-        "default": true,
-        "tabs": [
+        "language": "en",
+        "versions": [
           {
-            "tab": "Guides",
-            "anchors": [
+            "version": "Actual",
+            "default": true,
+            "tabs": [
               {
-                "anchor": "Wesog Search",
-                "icon": "magnifying-glass",
-                "groups": [
+                "tab": "Guides",
+                "anchors": [
                   {
-                    "group": "Get Started",
-                    "pages": [
-                      "content/search/intro",
-                      "content/search/feats"
+                    "anchor": "Wesog Search",
+                    "icon": "magnifying-glass",
+                    "groups": [
+                      {
+                        "group": "Get Started",
+                        "pages": [
+                          "content/search/intro",
+                          "content/search/feats"
+                        ]
+                      },
+                      {
+                        "group": "Manage your content",
+                        "pages": [
+                          "content/search/manage-overview",
+                          "content/search/manage-upload",
+                          "content/search/manage-update",
+                          "content/search/manage-delete"
+                        ]
+                      },
+                      {
+                        "group": "Monitoring your operations",
+                        "pages": [
+                          "content/search/operations-overview"
+                        ]
+                      },
+                      {
+                        "group": "Search",
+                        "pages": [
+                          "content/search/search",
+                          "content/search/search-filters"
+                        ]
+                      }
                     ]
                   },
                   {
-                    "group": "Manage your content",
-                    "pages": [
-                      "content/search/manage-overview",
-                      "content/search/manage-upload",
-                      "content/search/manage-update",
-                      "content/search/manage-delete"
-                    ]
-                  },
-                  {
-                    "group": "Monitoring your operations",
-                    "pages": [
-                      "content/search/operations-overview"
-                    ]
-                  },
-                  {
-                    "group": "Search",
-                    "pages": [
-                      "content/search/search",
-                      "content/search/search-filters"
+                    "anchor": "Wesog Tag",
+                    "icon": "tag",
+                    "groups": [
+                      {
+                        "group": "Get Started",
+                        "pages": [
+                          "content/tag/intro"
+                        ]
+                      },
+                      {
+                        "group": "How to use",
+                        "pages": [
+                          "content/tag/request_tag"
+                        ]
+                      }
                     ]
                   }
                 ]
               },
               {
-                "anchor": "Wesog Tag",
-                "icon": "tag",
+                "tab": "API Reference",
+                "openapi": "https://api.wesog.com/openapi.json"
+              }
+            ]
+          },
+          {
+            "version": "Nueva plataforma",
+            "tag": "Beta",
+            "tabs": [
+              {
+                "tab": "Guides",
                 "groups": [
                   {
-                    "group": "Get Started",
+                    "group": "Get started",
                     "pages": [
-                      "content/tag/intro"
+                      "new/quickstart",
+                      "new/concepts/authentication",
+                      "new/concepts/errors",
+                      "new/concepts/rate-limits"
                     ]
                   },
                   {
-                    "group": "How to use",
+                    "group": "Concepts",
                     "pages": [
-                      "content/tag/request_tag"
+                      "new/concepts/pagination",
+                      "new/concepts/async",
+                      "new/concepts/idempotency"
+                    ]
+                  },
+                  {
+                    "group": "Use cases",
+                    "pages": [
+                      "new/guides/tag-photos",
+                      "new/guides/search",
+                      "new/guides/library",
+                      "new/guides/run-workflow",
+                      "new/guides/alerts",
+                      "new/guides/connect-agents"
+                    ]
+                  },
+                  {
+                    "group": "Tools",
+                    "pages": [
+                      "new/platform-api/tools",
+                      "new/platform-api/tool-matrix",
+                      "new/platform-api/tool-ocr",
+                      "new/platform-api/tool-image-tag",
+                      "new/platform-api/tool-caption",
+                      "new/platform-api/tool-image-celebrity-recognition",
+                      "new/platform-api/tool-video-celebrity-recognition"
+                    ]
+                  },
+                  {
+                    "group": "Conversational search",
+                    "pages": [
+                      "new/platform-api/conversational-search"
+                    ]
+                  },
+                  {
+                    "group": "More",
+                    "pages": [
+                      "new/platform/intro",
+                      "new/platform-api/reference-model",
+                      "new/platform-api/domains",
+                      "new/platform-api/workflows"
+                    ]
+                  }
+                ]
+              },
+              {
+                "tab": "API Reference",
+                "groups": [
+                  {
+                    "group": "Introduction",
+                    "pages": [
+                      "new/openapi/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Tools",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "GET /tools",
+                      "GET /tools/runs/{run_id}",
+                      "POST /tools/runs/{run_id}/cancel",
+                      "POST /tools/{tool_id_or_slug}"
+                    ]
+                  },
+                  {
+                    "group": "Search",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "GET /library/tables/{source_table}/rows/{row_id}",
+                      "POST /library/search"
+                    ]
+                  },
+                  {
+                    "group": "Library",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "PATCH /library/tables/{source_table}/rows/{row_id}",
+                      "POST /storage/folders",
+                      "GET /storage/objects",
+                      "POST /storage/upload",
+                      "POST /storage/upload/multipart/init",
+                      "POST /storage/upload/multipart/complete",
+                      "POST /storage/upload/multipart/abort",
+                      "POST /storage/rename-object",
+                      "POST /storage/copy-object",
+                      "GET /trash/library",
+                      "POST /trash/library/resources",
+                      "POST /trash/library/{trash_id}/restore"
+                    ]
+                  },
+                  {
+                    "group": "Workflows",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "GET /workflows",
+                      "GET /workflows/{workflow_id}/executions",
+                      "GET /workflow-instances",
+                      "GET /workflow-instances/{instance_id}",
+                      "POST /workflow-instances/{instance_id}/launch",
+                      "POST /workflow-instances/{instance_id}/api/requests",
+                      "GET /workflow-instances/{instance_id}/api/requests/{request_id}"
+                    ]
+                  },
+                  {
+                    "group": "Agents (MCP)",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "POST /mcp"
                     ]
                   }
                 ]
               }
             ]
-          },
-          {
-            "tab": "API Reference",
-            "openapi": "https://api.wesog.com/openapi.json"
           }
         ]
       },
       {
-        "version": "Nueva plataforma",
-        "tag": "Beta",
-        "tabs": [
+        "language": "es",
+        "versions": [
           {
-            "tab": "Guides",
-            "groups": [
+            "version": "Nueva plataforma",
+            "tag": "Beta",
+            "tabs": [
               {
-                "group": "Get started",
-                "pages": [
-                  "new/platform/intro",
-                  "new/platform-api/reference-model",
-                  "new/platform-api/domains",
-                  "new/platform-api/authentication"
+                "tab": "Guías",
+                "groups": [
+                  {
+                    "group": "Primeros pasos",
+                    "pages": [
+                      "es/new/quickstart",
+                      "es/new/concepts/authentication",
+                      "es/new/concepts/errors",
+                      "es/new/concepts/rate-limits"
+                    ]
+                  },
+                  {
+                    "group": "Conceptos",
+                    "pages": [
+                      "es/new/concepts/pagination",
+                      "es/new/concepts/async",
+                      "es/new/concepts/idempotency"
+                    ]
+                  },
+                  {
+                    "group": "Casos de uso",
+                    "pages": [
+                      "es/new/guides/tag-photos",
+                      "es/new/guides/search",
+                      "es/new/guides/library",
+                      "es/new/guides/run-workflow",
+                      "es/new/guides/alerts",
+                      "es/new/guides/connect-agents"
+                    ]
+                  },
+                  {
+                    "group": "Herramientas",
+                    "pages": [
+                      "new/platform-api/tools",
+                      "new/platform-api/tool-matrix",
+                      "new/platform-api/tool-ocr",
+                      "new/platform-api/tool-image-tag",
+                      "new/platform-api/tool-caption",
+                      "new/platform-api/tool-image-celebrity-recognition",
+                      "new/platform-api/tool-video-celebrity-recognition"
+                    ]
+                  },
+                  {
+                    "group": "Búsqueda conversacional",
+                    "pages": [
+                      "new/platform-api/conversational-search"
+                    ]
+                  },
+                  {
+                    "group": "Más",
+                    "pages": [
+                      "new/platform/intro",
+                      "new/platform-api/reference-model",
+                      "new/platform-api/domains",
+                      "new/platform-api/workflows"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Search",
-                "pages": [
-                  "new/platform-api/conversational-search"
-                ]
-              },
-              {
-                "group": "Tools",
-                "pages": [
-                  "new/platform-api/tools",
-                  "new/platform-api/tool-matrix",
-                  "new/platform-api/tool-ocr",
-                  "new/platform-api/tool-image-tag",
-                  "new/platform-api/tool-caption",
-                  "new/platform-api/tool-image-celebrity-recognition",
-                  "new/platform-api/tool-video-celebrity-recognition"
-                ]
-              },
-              {
-                "group": "Workflows",
-                "pages": [
-                  "new/platform-api/workflows"
+                "tab": "Referencia de la API",
+                "groups": [
+                  {
+                    "group": "Introducción",
+                    "pages": [
+                      "es/new/openapi/introduction"
+                    ]
+                  },
+                  {
+                    "group": "Herramientas",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "GET /tools",
+                      "GET /tools/runs/{run_id}",
+                      "POST /tools/runs/{run_id}/cancel",
+                      "POST /tools/{tool_id_or_slug}"
+                    ]
+                  },
+                  {
+                    "group": "Búsqueda",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "GET /library/tables/{source_table}/rows/{row_id}",
+                      "POST /library/search"
+                    ]
+                  },
+                  {
+                    "group": "Biblioteca",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "PATCH /library/tables/{source_table}/rows/{row_id}",
+                      "POST /storage/folders",
+                      "GET /storage/objects",
+                      "POST /storage/upload",
+                      "POST /storage/upload/multipart/init",
+                      "POST /storage/upload/multipart/complete",
+                      "POST /storage/upload/multipart/abort",
+                      "POST /storage/rename-object",
+                      "POST /storage/copy-object",
+                      "GET /trash/library",
+                      "POST /trash/library/resources",
+                      "POST /trash/library/{trash_id}/restore"
+                    ]
+                  },
+                  {
+                    "group": "Workflows",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "GET /workflows",
+                      "GET /workflows/{workflow_id}/executions",
+                      "GET /workflow-instances",
+                      "GET /workflow-instances/{instance_id}",
+                      "POST /workflow-instances/{instance_id}/launch",
+                      "POST /workflow-instances/{instance_id}/api/requests",
+                      "GET /workflow-instances/{instance_id}/api/requests/{request_id}"
+                    ]
+                  },
+                  {
+                    "group": "Agentes (MCP)",
+                    "openapi": "new/openapi.json",
+                    "pages": [
+                      "POST /mcp"
+                    ]
+                  }
                 ]
               }
             ]

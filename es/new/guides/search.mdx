@@ -1,0 +1,101 @@
+---
+title: "Búsqueda"
+description: "Busca en tu Biblioteca con lenguaje natural, recorre los resultados y abre un archivo."
+icon: "magnifying-glass"
+noindex: true
+---
+
+`POST /library/search` encuentra fotos, vídeos y documentos de tu organización a partir de una frase. No construyes filtros: dices lo que quieres.
+
+<CodeGroup>
+```bash cURL
+curl -X POST 'https://api.wesog.com/api/v1/library/search' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "Rafael Nadal celebrating a point in Madrid", "resource_types": ["image"], "limit": 20}'
+```
+
+```python Python
+import os, requests
+
+r = requests.post(
+    "https://api.wesog.com/api/v1/library/search",
+    headers={"X-API-Key": os.environ["WESOG_API_KEY"]},
+    json={"query": "Rafael Nadal celebrating a point in Madrid", "resource_types": ["image"], "limit": 20},
+)
+r.raise_for_status()
+page = r.json()
+print(page["total"], "results")
+for item in page["items"]:
+    print(item["resource_id"], item["title"], item["thumbnail_url"])
+```
+
+```javascript JavaScript
+const r = await fetch("https://api.wesog.com/api/v1/library/search", {
+  method: "POST",
+  headers: { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" },
+  body: JSON.stringify({ query: "Rafael Nadal celebrating a point in Madrid", resource_types: ["image"], limit: 20 }),
+});
+const page = await r.json();
+console.log(page.total, "results");
+for (const item of page.items) console.log(item.resource_id, item.title, item.thumbnail_url);
+```
+</CodeGroup>
+
+## Qué puedes pedir
+
+La `query` entiende personas, lugares, fechas, qué hay en la imagen y el tipo de archivo: *«Pedro Sánchez sonriendo en un mitin en 2024»*, *«playa al atardecer»*, *«vídeos de la final»*. Una `query` vacía lista la Biblioteca, de lo más nuevo a lo más antiguo (cambia el orden con `sort`).
+
+| Campo | Significado |
+|---|---|
+| `query` | Lo que buscas, en tu idioma. |
+| `resource_types` | `image`, `video`, `document`, `audio`. Vacío significa todos. |
+| `limit`, `offset` | Tamaño de página (1-200) y desde dónde empezar. Consulta [Paginación](/es/new/concepts/pagination). |
+| `sort` | Solo con una `query` vacía: `updated_desc`, `updated_asc`, `created_desc`, `name_asc`, `name_desc`. |
+| `filters` | Condiciones adicionales, por ejemplo un rango de fechas de creación. |
+
+Un rango de fechas:
+
+```json
+{
+  "query": "fashion week",
+  "filters": { "field_filters": [ { "field": "created_at", "op": "between", "value": { "from": "2026-09-01", "to": "2026-09-30" } } ] }
+}
+```
+
+## Qué obtienes
+
+```json
+{
+  "total": 128,
+  "total_is_estimated": false,
+  "next_offset": 20,
+  "items": [
+    {
+      "resource_id": "1048223",
+      "resource_type": "image",
+      "title": "Nadal celebrates a point",
+      "snippet": "Rafael Nadal celebrates a point during the final in Madrid.",
+      "thumbnail_url": "https://api.wesog.com/api/v1/search/resources/acme/images/1048223/media",
+      "own_tenant": true,
+      "metadata": { "field_values": { "headline": "Nadal celebrates a point", "city": "Madrid" } }
+    }
+  ]
+}
+```
+
+Los resultados llegan ordenados del mejor al peor. `metadata.field_values` contiene los datos descriptivos (titular, descripción, palabras clave, autor, lugar, fechas) y `metadata.detected_identities` las personas reconocidas. Usa `resource_id` para [abrir, editar o borrar](/es/new/guides/library) el archivo.
+
+## Abrir un resultado
+
+`GET /library/tables/{source_table}/rows/{row_id}` devuelve todos los datos guardados de un archivo. Usa el parámetro `fields` para pedir solo lo que necesitas.
+
+## Búsqueda conversacional
+
+Si montas un chat en tu propia web, la **búsqueda conversacional** mantiene el contexto («ahora solo los vídeos») y pregunta cuando una petición es ambigua. Es otra API: [Búsqueda conversacional](/new/platform-api/conversational-search).
+
+## Conviene saber
+
+- Cada búsqueda cuenta para las búsquedas de tu plan. Consulta [Límites](/es/new/concepts/rate-limits).
+- Un archivo recién subido puede tardar unos minutos en poder buscarse.
+- Buscar con una clave API llega a la Biblioteca de tu organización. Los archivos que otras organizaciones comparten contigo aparecen con `own_tenant: false`.

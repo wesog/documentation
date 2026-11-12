@@ -1,0 +1,55 @@
+---
+title: "Authentication"
+description: "How to create, send, limit and rotate an API key."
+icon: "key"
+noindex: true
+---
+
+Every call needs an **API key** of your organization, sent in the `X-API-Key` header.
+
+```bash
+curl 'https://api.wesog.com/api/v1/tools' -H "X-API-Key: $WESOG_API_KEY"
+```
+
+## Create a key
+
+In Wesog open **Current tenant settings > General > API keys** and press **New key**. The key is shown **only once**: Wesog keeps only a fingerprint of it and cannot show it again. If you lose it, rotate it.
+
+Treat it like a password:
+
+- keep it on your **server**, never in a web page, a mobile app or a public repository;
+- use one key per application, so that you can stop one without stopping the others;
+- send it only over `https`.
+
+## Limit what a key can do (scopes)
+
+A key with **no scopes** can call everything its organization role allows. You can limit a key to one or more scopes:
+
+| Scope | Opens |
+|---|---|
+| `search` | Searching your Library and opening a result. |
+| `read` | Everything that only reads (`GET`), plus searching. |
+| `library` | Files, folders, uploads, metadata and trash. |
+| `workflows` | Workflows, their runs, and the AI tools (`/tools`). |
+| `mcp` | The agent connection for ChatGPT, Claude or your own agent. |
+
+Each operation of the [API reference](/new/openapi/introduction) lists the scopes that open it. A call outside the key's scopes answers `403` with the code `api_key_scope_denied`.
+
+## Limits per key
+
+Each key can have its own limit of requests per minute and per month, below the limit of your plan. See [Limits](/new/concepts/rate-limits).
+
+## Rotate or stop a key
+
+In the same page, **Rotate** creates a new key with the same name, scopes and limits, and the **old one stops working at once**: have the new key ready in your application before you press it. **Disable** stops a key without deleting it, and you can enable it again. The page shows when each key was last used.
+
+## Authentication errors
+
+| Status | `code` | Meaning |
+|---|---|---|
+| `401` | `api_key_missing` | There is no `X-API-Key` header. |
+| `401` | `api_key_invalid` | The key does not exist, was deleted or was rotated. |
+| `403` | `api_key_scope_denied` | The key's scopes do not cover this operation. |
+| `403` | `account_deactivated` | The organization is deactivated. |
+
+All errors have the same shape, see [Errors](/new/concepts/errors).

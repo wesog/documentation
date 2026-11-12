@@ -1,0 +1,119 @@
+---
+title: "Ejecutar un workflow desde tu programa"
+description: "Envía archivos a un workflow con su entrada por API y lee el resultado de cada uno."
+icon: "diagram-project"
+noindex: true
+---
+
+Un **workflow** (flujo de trabajo) es una receta que construyes en Wesog (por ejemplo: poner descripción a cada foto, encontrar a las personas, guardar el resultado en una carpeta). Un **workflow lanzado** (una *instancia*) es esa receta con su entrada y su salida ya elegidas.
+
+Con la **entrada por API**, tu programa envía los archivos y lee los resultados sin abrir Wesog.
+
+<Steps>
+  <Step title="Prepáralo en Wesog">
+    Lanza un workflow con **API** como entrada. Los resultados solo se pueden recoger por la API cuando los archivos entran por la API. Anota su `instance_id` (o léelo con `GET /workflow-instances`).
+  </Step>
+  <Step title="Pon los archivos en tu Biblioteca">
+    Súbelos ([Biblioteca](/es/new/guides/library)) o usa archivos que ya estén. Cada uno tiene un `resource_id`.
+  </Step>
+  <Step title="Envíalos">
+    `POST /workflow-instances/{instance_id}/api/requests` con los `resource_ids` (hasta 100). Recibes `202` y un `request_id` por archivo.
+  </Step>
+  <Step title="Lee cada resultado">
+    `GET /workflow-instances/{instance_id}/api/requests/{request_id}` hasta que deje de ser `202`.
+  </Step>
+</Steps>
+
+## Encuentra el workflow
+
+<CodeGroup>
+```bash cURL
+curl 'https://api.wesog.com/api/v1/workflow-instances?limit=20' -H "X-API-Key: $WESOG_API_KEY"
+```
+
+```python Python
+import os, requests
+
+BASE = "https://api.wesog.com/api/v1"
+h = {"X-API-Key": os.environ["WESOG_API_KEY"]}
+for inst in requests.get(f"{BASE}/workflow-instances", headers=h, params={"limit": 20}).json():
+    print(inst["instance_id"], inst["name"], inst["status"])
+```
+
+```javascript JavaScript
+const BASE = "https://api.wesog.com/api/v1";
+const h = { "X-API-Key": process.env.WESOG_API_KEY };
+for (const inst of await (await fetch(`${BASE}/workflow-instances?limit=20`, { headers: h })).json()) {
+  console.log(inst.instance_id, inst.name, inst.status);
+}
+```
+</CodeGroup>
+
+## Envía archivos y recoge resultados
+
+<CodeGroup>
+```python Python
+import time, uuid, requests
+
+sent = requests.post(
+    f"{BASE}/workflow-instances/{INSTANCE_ID}/api/requests",
+    headers={**h, "Idempotency-Key": str(uuid.uuid4())},
+    json={"resource_ids": [1048223, 1048224]},
+)
+sent.raise_for_status()                      # 202
+for req in sent.json()["requests"]:
+    while True:
+        r = requests.get(f"{BASE}/workflow-instances/{INSTANCE_ID}/api/requests/{req['request_id']}", headers=h)
+        if r.status_code != 202:
+            break
+        time.sleep(2)
+    print(req["resource_id"], r.json()["status"], r.json().get("results"))
+```
+
+```javascript JavaScript
+const sent = await fetch(`${BASE}/workflow-instances/${INSTANCE_ID}/api/requests`, {
+  method: "POST",
+  headers: { ...h, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+  body: JSON.stringify({ resource_ids: [1048223, 1048224] }),
+});
+for (const req of (await sent.json()).requests) {
+  let r;
+  do {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    r = await fetch(`${BASE}/workflow-instances/${INSTANCE_ID}/api/requests/${req.request_id}`, { headers: h });
+  } while (r.status === 202);
+  console.log(req.resource_id, (await r.json()).status);
+}
+```
+
+```bash cURL
+curl -X POST "https://api.wesog.com/api/v1/workflow-instances/$INSTANCE_ID/api/requests" \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: 6f1c2a9e-0000-4000-8000-000000000002' \
+  -d '{"resource_ids": [1048223, 1048224]}'
+
+curl "https://api.wesog.com/api/v1/workflow-instances/$INSTANCE_ID/api/requests/$REQUEST_ID" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+</CodeGroup>
+
+## El resultado
+
+```json
+{
+  "request_id": "req_a1",
+  "resource_id": 1048223,
+  "status": "completed",
+  "submitted_at": "2026-11-12T10:00:00Z",
+  "finished_at": "2026-11-12T10:00:07Z",
+  "results": [ { "caption": "A model walks the runway.", "keywords": ["runway", "fashion"] } ]
+}
+```
+
+`results` contiene los datos que el workflow produjo para ese archivo (sus campos dependen del workflow). Si un archivo falla, solo ese tiene `status: "failed"` con un `error`; los demás continúan.
+
+## Iniciar y vigilar un workflow
+
+Los workflows que toman sus archivos de una carpeta, de un FTP o de subidas nuevas funcionan solos una vez iniciados: `POST /workflow-instances/{instance_id}/launch`. `GET /workflows/{workflow_id}/executions` lista sus últimas ejecuciones y estados.
+
+Consulta [Asincronía y sondeo](/es/new/concepts/async) para saber cómo esperar y [Errores](/es/new/concepts/errors) para ver cómo es un fallo.

@@ -1,0 +1,58 @@
+---
+title: "Connect ChatGPT, Claude or your agent"
+description: "Let an AI assistant search, organise and process your archive with your own permissions."
+icon: "plug"
+noindex: true
+---
+
+Wesog speaks **MCP**, the standard that AI assistants use to connect to tools. Once connected, ChatGPT, Claude or your own agent can search your photos and videos, see their data, organise the Library, run your workflows, create alerts and answer questions about how Wesog works.
+
+The address to give them is:
+
+```
+https://api.wesog.com/api/v1/mcp
+```
+
+## ChatGPT and Claude (web and apps)
+
+1. In Wesog open **Current tenant settings > General > Connect AI agents** and copy the server address.
+2. In ChatGPT or Claude add a **custom connector** with that address. **No key is needed.**
+3. The assistant takes you to Wesog to sign in. Review what it will be able to do and press **Allow**.
+
+You can see your connected agents on the same page and **Disconnect** any of them at any time.
+
+## Claude Code and other clients with a key
+
+Create an API key with the `mcp` scope (see [Authentication](/new/concepts/authentication)) and give it to the client:
+
+```bash
+claude mcp add --transport http wesog https://api.wesog.com/api/v1/mcp \
+  --header "X-API-Key: $WESOG_API_KEY"
+```
+
+For a client configured with JSON:
+
+```json
+{
+  "mcpServers": {
+    "wesog": {
+      "type": "http",
+      "url": "https://api.wesog.com/api/v1/mcp",
+      "headers": { "X-API-Key": "YOUR_KEY" }
+    }
+  }
+}
+```
+
+## What the agent can and cannot do
+
+- It sees what **you** see and does what **you** can do: nothing more. If you belong to several organizations, the connection is yours and works in each one with your role there.
+- Before it **deletes, rejects, stops or shares** something it asks you to confirm; creating an alert or activating a workflow also needs your go-ahead.
+- Every search it makes counts towards your plan's searches.
+- Keep the key (if you use one) as private as a password. With a key, the agent acts as that key.
+
+## Things to ask
+
+*"Find photos of the final in Madrid from last week and make a selection of 12."* · *"Which of my workflows failed today?"* · *"Alert me when new photos of the fashion week arrive."* · *"Move the approved photos to the folder Published."*
+
+For programs that are not AI assistants, use the [API](/new/quickstart) directly.

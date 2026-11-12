@@ -1,0 +1,41 @@
+---
+title: "Paginación"
+description: "Cómo leer listas largas: offset para listas y búsquedas, start_after para carpetas."
+icon: "list"
+noindex: true
+---
+
+Las listas nunca llegan de una sola vez. Hay dos formas de pedir la página siguiente, según la operación.
+
+## Búsquedas y listas con `limit` y `offset`
+
+`POST /library/search`, `GET /tools`, `GET /workflows`, `GET /workflow-instances` y `GET /trash/library` admiten `limit` (cuántos) y `offset` (cuántos saltar).
+
+Una búsqueda te dice dónde empieza la página siguiente: cuando `next_offset` viene en la respuesta, envíalo como `offset`; cuando falta, tienes la última página.
+
+```python
+offset, found = 0, []
+while offset is not None:
+    r = requests.post(f"{BASE}/library/search", headers=headers,
+                      json={"query": "tennis final", "limit": 100, "offset": offset})
+    page = r.json()
+    found += page["items"]
+    offset = page.get("next_offset")
+```
+
+`total` es el número de archivos que coinciden (`total_is_estimated` es `true` cuando es aproximado en resultados muy grandes).
+
+## Carpetas con `start_after`
+
+`GET /storage/objects` lista una carpeta en orden alfabético. Cuando `has_more` es `true`, repite la llamada con `start_after` igual al `next_start_after` que recibiste.
+
+```bash
+curl "https://api.wesog.com/api/v1/storage/objects?prefix=events/2026/&limit=100&start_after=events/2026/madrid/IMG_0412.jpg" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+## Buenas costumbres
+
+- Pide el tamaño de página que necesites (hasta 200 en las búsquedas), no un archivo cada vez.
+- No te fíes de `total` para parar: para cuando no haya `next_offset` / cuando `has_more` sea `false`.
+- Los archivos que se suban o se borren mientras paginas pueden desplazar las páginas siguientes; para obtener una copia exacta de una carpeta, vuelve a listarla al final.

@@ -1,0 +1,41 @@
+---
+title: "Pagination"
+description: "How to read long lists: offset for lists and searches, start_after for folders."
+icon: "list"
+noindex: true
+---
+
+Lists never come in one piece. There are two ways to ask for the next page, depending on the operation.
+
+## Searches and lists with `limit` and `offset`
+
+`POST /library/search`, `GET /tools`, `GET /workflows`, `GET /workflow-instances` and `GET /trash/library` take `limit` (how many) and `offset` (how many to skip).
+
+A search tells you where the next page starts: when `next_offset` is in the answer, send it as `offset`; when it is missing you have the last page.
+
+```python
+offset, found = 0, []
+while offset is not None:
+    r = requests.post(f"{BASE}/library/search", headers=headers,
+                      json={"query": "tennis final", "limit": 100, "offset": offset})
+    page = r.json()
+    found += page["items"]
+    offset = page.get("next_offset")
+```
+
+`total` is how many files match (`total_is_estimated` is `true` when it is approximate on very large results).
+
+## Folders with `start_after`
+
+`GET /storage/objects` lists a folder in alphabetical order. When `has_more` is `true`, repeat the call with `start_after` set to the `next_start_after` you got.
+
+```bash
+curl "https://api.wesog.com/api/v1/storage/objects?prefix=events/2026/&limit=100&start_after=events/2026/madrid/IMG_0412.jpg" \
+  -H "X-API-Key: $WESOG_API_KEY"
+```
+
+## Good habits
+
+- Ask for the page size you need (up to 200 in searches), not one file at a time.
+- Do not rely on `total` to stop: stop when there is no `next_offset` / `has_more` is `false`.
+- Files uploaded or deleted while you page can shift later pages; for an exact copy of a folder, list it again at the end.

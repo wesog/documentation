@@ -1,0 +1,54 @@
+---
+title: "Idempotency"
+description: "Repeat a call safely after a timeout with the Idempotency-Key header."
+icon: "repeat"
+noindex: true
+---
+
+If your call times out you do not know whether the file was uploaded or the workflow was launched. If you repeat it, it might happen twice.
+
+Send an `Idempotency-Key` header with a value you choose (a UUID) on the operations that create or launch something. Repeating the call with **the same key** gives you the **first answer again** instead of running it again. The repeated answer carries `Idempotent-Replayed: true`.
+
+```bash
+curl -X POST 'https://api.wesog.com/api/v1/workflow-instances/INSTANCE_ID/api/requests' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Idempotency-Key: 6f1c2a9e-0000-4000-8000-000000000002' \
+  -H 'Content-Type: application/json' \
+  -d '{"resource_ids": [1048223]}'
+```
+
+## Where it works
+
+Operations marked with the `Idempotency-Key` parameter in the [API reference](/new/openapi/introduction): running a tool, uploading a file (including the large-upload steps), creating a folder, deleting a file, sending files to a workflow and launching a workflow. Elsewhere the header is ignored.
+
+## Rules
+
+- The key is 1 to 128 characters: letters, digits, `-`, `_`, `:` and `.`.
+- It is remembered for **24 hours**, per API key, method and path.
+- Same key and **same** body: the first answer again, without running anything.
+- Same key and a **different** body: `409` `idempotency_key_reuse`. A key identifies one operation; use a new key for a new one.
+- Same key while the first call is **still running**: `409` `idempotency_key_in_use` with `Retry-After`. Wait and repeat.
+- Only **successful** answers are remembered. If the first call failed (`4xx`, `429`, `5xx`) you can repeat it with the same key and it runs.
+
+## A good pattern
+
+Create the key when you decide to do the operation (store it with your job), and use it for every retry of that job.
+
+<CodeGroup>
+```python Python
+import uuid, requests
+
+key = str(uuid.uuid4())          # one per job, kept for its retries
+r = requests.post(f"{BASE}/storage/folders", headers={**headers, "Idempotency-Key": key},
+                  json={"relative_path": "events/2027"})
+```
+
+```javascript JavaScript
+const key = crypto.randomUUID(); // one per job, kept for its retries
+const r = await fetch(`${BASE}/storage/folders`, {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json", "Idempotency-Key": key },
+  body: JSON.stringify({ relative_path: "events/2027" }),
+});
+```
+</CodeGroup>

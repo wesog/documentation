@@ -1,0 +1,49 @@
+---
+title: "Asincronía y sondeo"
+description: "Qué hacer cuando una llamada responde 202: consultar la ejecución, leer el resultado y cancelar."
+icon: "hourglass-half"
+noindex: true
+---
+
+Algunos trabajos tardan más de lo que una llamada web debería esperar: un vídeo, un lote grande, un workflow. Esas operaciones responden **`202 Accepted`** con algo que puedes consultar después, y tú lo **sondeas** (haces polling).
+
+Hay dos casos:
+
+| Lo inicias con | Lo sondeas con | Termina como |
+|---|---|---|
+| `POST /tools/{tool}` | `GET /tools/runs/{run_id}` | `succeeded`, `failed`, `timeout` o `cancelled` |
+| `POST /workflow-instances/{id}/api/requests` | `GET /workflow-instances/{id}/api/requests/{request_id}` | `completed` o `failed` |
+
+## Herramientas: respuesta ahora o después
+
+`POST /tools/{tool}` espera el resultado hasta `timeout_ms` (5000 ms por defecto).
+
+- Si termina a tiempo: `200` con el resultado.
+- Si no: `202` con un `run_id` y un `poll_path`.
+
+```python
+import time, requests
+
+r = requests.post(f"{BASE}/tools/image_tag", headers=headers,
+                  json={"image_url": "https://example.com/p.jpg", "timeout_ms": 3000})
+while r.status_code == 202:
+    time.sleep(1.5)
+    r = requests.get(f"{BASE}/tools/runs/{r.json()['run_id']}", headers=headers)
+print(r.json())
+```
+
+Sondea cada 1 o 2 segundos. Cancela una ejecución que ya no necesites con `POST /tools/runs/{run_id}/cancel`.
+
+## Workflows: una petición por archivo
+
+`POST /workflow-instances/{id}/api/requests` responde `202` al instante con un `request_id` por archivo. Cada archivo se procesa por separado, así que unos pueden terminar antes que otros. `GET .../api/requests/{request_id}` responde `202` mientras trabaja y `200` con `results` cuando ha terminado; si ha fallado, `status` es `failed` y `error` explica el motivo. Consulta [Ejecutar un workflow](/es/new/guides/run-workflow).
+
+## Webhooks
+
+Wesog **no** llama a tu servidor cuando algo termina: tú sondeas. Así tu integración es más sencilla (no hay que abrir ninguna dirección pública) y el estado siempre se puede volver a leer, porque el resultado sigue disponible después de leerlo.
+
+Si necesitas reaccionar al contenido nuevo según llega, usa las [alertas de búsqueda](/es/new/guides/alerts) (un aviso, y si quieres un correo, cuando hay archivos nuevos que coinciden con una búsqueda), o haz que tu programa sondee cada pocos segundos solo mientras espera algo.
+
+## Si se corta la conexión
+
+Un `202` es una promesa: el trabajo continúa aunque pierdas la conexión. Si no recibiste la respuesta, **repite la llamada con la misma `Idempotency-Key`** (consulta [Idempotencia](/es/new/concepts/idempotency)) y obtendrás el mismo `run_id` o `request_id` en lugar de iniciar el trabajo dos veces.

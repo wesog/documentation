@@ -1,0 +1,51 @@
+---
+title: "Límites"
+description: "Peticiones por minuto y por mes, las cabeceras RateLimit y cómo reaccionar ante un 429."
+icon: "gauge"
+noindex: true
+---
+
+Hay tres tipos de límites. Todos responden `429` cuando se alcanzan.
+
+| Límite | De dónde viene | `code` del 429 |
+|---|---|---|
+| Peticiones **por minuto** de una clave | Tu plan, o el valor más bajo que fijes en la clave | `api_key_rate_limit_reached` |
+| Peticiones **por mes** de una clave | Tu plan, o el valor más bajo que fijes en la clave | `api_key_request_limit_reached` |
+| **Búsquedas** por mes (y por minuto) de tu plan | Tu plan | `subscription_search_limit_reached` |
+
+Cada búsqueda que haces, desde la API o desde la aplicación, cuenta para las búsquedas de tu plan. Las cifras de tu plan están en **Ajustes del tenant actual > Suscripción**.
+
+## Cabeceras
+
+Cada respuesta a una llamada con clave API lleva el límite más próximo de tu clave:
+
+| Cabecera | Significado |
+|---|---|
+| `RateLimit-Limit` | Peticiones permitidas en la ventana actual. |
+| `RateLimit-Remaining` | Peticiones que quedan en la ventana. |
+| `RateLimit-Reset` | Segundos hasta que se reinicie la ventana. |
+| `RateLimit-Policy` | Todas las ventanas, por ejemplo `600;w=60`. |
+| `Retry-After` | Solo en `429`: segundos que debes esperar antes de reintentar. |
+
+Úsalas para frenar **antes** de alcanzar el límite:
+
+```python
+r = requests.get(url, headers=headers)
+if int(r.headers.get("RateLimit-Remaining", 1)) == 0:
+    time.sleep(int(r.headers["RateLimit-Reset"]))
+```
+
+## Tamaños y tiempos
+
+| Qué | Límite |
+|---|---|
+| Archivo en `POST /storage/upload` | 50 MB. Los archivos más grandes se suben por partes: [Biblioteca](/es/new/guides/library). |
+| Archivos en una llamada `api/requests` | 100 (`resource_ids`). |
+| Resultados por página de búsqueda | 200 (`limit`). |
+| Espera de `POST /tools/{tool}` | 5000 ms por defecto; `timeout_ms` la cambia. Pasado ese tiempo recibes `202` y sondeas. |
+| Claves de idempotencia | Se recuerdan 24 horas. |
+| Papelera | Los archivos permanecen 30 días. |
+
+## Cuando necesitas más
+
+Usa una clave por aplicación y reparte el trabajo pesado (un lote grande de fotos) a lo largo del tiempo. Para obtener límites más altos, contacta con tu representante de Wesog.

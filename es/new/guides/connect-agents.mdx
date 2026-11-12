@@ -1,0 +1,58 @@
+---
+title: "Conectar ChatGPT, Claude o tu agente"
+description: "Deja que un asistente de IA busque, organice y procese tu archivo con tus propios permisos."
+icon: "plug"
+noindex: true
+---
+
+Wesog habla **MCP**, el estándar que usan los asistentes de IA para conectarse a herramientas. Una vez conectado, ChatGPT, Claude o tu propio agente pueden buscar tus fotos y vídeos, ver sus datos, organizar la Biblioteca, ejecutar tus workflows, crear alertas y responder preguntas sobre cómo funciona Wesog.
+
+La dirección que debes darles es:
+
+```
+https://api.wesog.com/api/v1/mcp
+```
+
+## ChatGPT y Claude (web y aplicaciones)
+
+1. En Wesog abre **Ajustes del tenant actual > General > Conectar agentes de IA** y copia la dirección del servidor.
+2. En ChatGPT o Claude añade un **conector personalizado** con esa dirección. **No hace falta ninguna clave.**
+3. El asistente te lleva a Wesog para iniciar sesión. Revisa lo que podrá hacer y pulsa **Permitir**.
+
+Puedes ver tus agentes conectados en la misma página y **Desconectar** cualquiera de ellos en cualquier momento.
+
+## Claude Code y otros clientes con clave
+
+Crea una clave API con el scope `mcp` (consulta [Autenticación](/es/new/concepts/authentication)) y entrégasela al cliente:
+
+```bash
+claude mcp add --transport http wesog https://api.wesog.com/api/v1/mcp \
+  --header "X-API-Key: $WESOG_API_KEY"
+```
+
+Para un cliente que se configura con JSON:
+
+```json
+{
+  "mcpServers": {
+    "wesog": {
+      "type": "http",
+      "url": "https://api.wesog.com/api/v1/mcp",
+      "headers": { "X-API-Key": "YOUR_KEY" }
+    }
+  }
+}
+```
+
+## Qué puede y qué no puede hacer el agente
+
+- Ve lo que **tú** ves y hace lo que **tú** puedes hacer: nada más. Si perteneces a varias organizaciones, la conexión es tuya y funciona en cada una con tu rol en ella.
+- Antes de **borrar, rechazar, detener o compartir** algo, te pide confirmación; crear una alerta o activar un workflow también necesita tu visto bueno.
+- Cada búsqueda que hace cuenta para las búsquedas de tu plan.
+- Mantén la clave (si usas una) tan privada como una contraseña. Con una clave, el agente actúa como esa clave.
+
+## Cosas que puedes pedir
+
+*«Busca fotos de la final de Madrid de la semana pasada y haz una selección de 12.»* · *«¿Cuáles de mis workflows han fallado hoy?»* · *«Avísame cuando lleguen fotos nuevas de la semana de la moda.»* · *«Mueve las fotos aprobadas a la carpeta Publicadas.»*
+
+Para programas que no son asistentes de IA, usa directamente la [API](/es/new/quickstart).

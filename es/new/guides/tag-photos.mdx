@@ -1,0 +1,110 @@
+---
+title: "Etiquetar fotos"
+description: "Obtén una descripción, palabras clave, el texto de la imagen (OCR) y las personas que aparecen en una foto."
+icon: "tags"
+noindex: true
+---
+
+Las herramientas de IA trabajan sobre **un archivo por llamada** y te dan el resultado en la respuesta (o, si tarda, en un `run_id` que sondeas). Son la forma más rápida de añadir datos a una foto que no quieres guardar en Wesog.
+
+| Herramienta (`slug`) | Te da |
+|---|---|
+| `image_tag` | Todo a la vez: descripción, palabras clave, texto de la imagen, personas, colores, lugar... Elige lo que quieres con `caption`, `keywords`, `ocr`, `colors`, `celebrity`. |
+| `caption` | Una descripción de la imagen. |
+| `ocr` | El texto que aparece en la imagen. |
+| `keywords` | Palabras clave de una foto. |
+| `image_celebrity_recognition` | Los personajes públicos de la foto. |
+| `video_celebrity_recognition` | Los personajes públicos de un vídeo, con los momentos en que aparecen. |
+
+`GET /tools` lista las herramientas de tu plan con los campos que admite cada una. Cada herramienta tiene además su propia referencia en `https://api.wesog.com/api/tools/{slug}/docs`.
+
+## Etiquetar una foto a partir de su dirección
+
+<CodeGroup>
+```bash cURL
+curl -X POST 'https://api.wesog.com/api/v1/tools/image_tag' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"image_url": "https://example.com/photos/runway.jpg", "lang": "en", "caption": true, "keywords": true, "ocr": true}'
+```
+
+```python Python
+import os, requests
+
+r = requests.post(
+    "https://api.wesog.com/api/v1/tools/image_tag",
+    headers={"X-API-Key": os.environ["WESOG_API_KEY"]},
+    json={"image_url": "https://example.com/photos/runway.jpg", "lang": "en",
+          "caption": True, "keywords": True, "ocr": True},
+)
+r.raise_for_status()
+print(r.status_code, r.json())
+```
+
+```javascript JavaScript
+const r = await fetch("https://api.wesog.com/api/v1/tools/image_tag", {
+  method: "POST",
+  headers: { "X-API-Key": process.env.WESOG_API_KEY, "Content-Type": "application/json" },
+  body: JSON.stringify({ image_url: "https://example.com/photos/runway.jpg", lang: "en", caption: true, keywords: true, ocr: true }),
+});
+console.log(r.status, await r.json());
+```
+</CodeGroup>
+
+La dirección debe ser pública. Usa `image` o `image_url`, no los dos.
+
+## Etiquetar un archivo de tu ordenador
+
+Envía el archivo como `multipart/form-data` en el campo `image`:
+
+<CodeGroup>
+```bash cURL
+curl -X POST 'https://api.wesog.com/api/v1/tools/caption' \
+  -H "X-API-Key: $WESOG_API_KEY" \
+  -F 'image=@/path/to/photo.jpg' \
+  -F 'lang=en'
+```
+
+```python Python
+with open("photo.jpg", "rb") as f:
+    r = requests.post("https://api.wesog.com/api/v1/tools/caption",
+                      headers={"X-API-Key": os.environ["WESOG_API_KEY"]},
+                      files={"image": f}, data={"lang": "en"})
+print(r.json())
+```
+
+```javascript JavaScript
+import { openAsBlob } from "node:fs";
+
+const form = new FormData();
+form.append("image", await openAsBlob("photo.jpg"), "photo.jpg");
+form.append("lang", "en");
+const r = await fetch("https://api.wesog.com/api/v1/tools/caption", {
+  method: "POST",
+  headers: { "X-API-Key": process.env.WESOG_API_KEY },
+  body: form,
+});
+console.log(await r.json());
+```
+</CodeGroup>
+
+## El contexto mejora el resultado
+
+`image_tag` y `caption` aceptan lo que ya sabes de la foto: `event`, `city`, `country` y `date` (`YYYY-MM-DD`). Con ellos, la descripción nombra el evento y el lugar en lugar de adivinarlos.
+
+## Respuestas lentas
+
+La llamada espera 5 segundos por defecto (cámbialo con `timeout_ms`). Si la herramienta no ha terminado, recibes `202` y un `run_id`; sondea `GET /tools/runs/{run_id}` hasta que `status` sea `succeeded`. Consulta [Asincronía y sondeo](/es/new/concepts/async).
+
+## Muchas fotos
+
+Haz una llamada por foto, unas pocas a la vez (respeta los [Límites](/es/new/concepts/rate-limits)). Para etiquetar una carpeta entera o todo lo que subas, usa mejor un [workflow](/es/new/guides/run-workflow): funciona solo según llegan los archivos.
+
+## Referencia de cada herramienta
+
+<CardGroup cols={2}>
+  <Card title="Image tag" href="/new/platform-api/tool-image-tag" icon="tags">Descripción, texto, palabras clave y colores combinados.</Card>
+  <Card title="Caption" href="/new/platform-api/tool-caption" icon="closed-captioning">Describe una imagen.</Card>
+  <Card title="OCR" href="/new/platform-api/tool-ocr" icon="font">Lee el texto.</Card>
+  <Card title="Celebrity recognition" href="/new/platform-api/tool-image-celebrity-recognition" icon="face-smile">Personajes públicos en fotos y vídeos.</Card>
+</CardGroup>
