@@ -1,6 +1,6 @@
 ---
 title: "Upload and manage the Library"
-description: "Upload files, list and organise folders, copy and move them."
+description: "Upload files, organise folders, change their data and delete or restore them."
 icon: "folder-open"
 noindex: true
 ---
@@ -90,6 +90,23 @@ requests.post(f"{BASE}/storage/upload/multipart/complete", headers=h,
 
 The data of the files (and their search) follows them.
 
-## Change data, delete and restore
+## Change the data of a file
 
-Changing the caption or keywords of a file, deleting it and restoring it from the trash are done in the app today. API keys can **list** the trash (`GET /trash/library`) but cannot change or delete files yet.
+`PATCH /library/tables/{source_table}/rows/{row_id}` changes the caption, keywords, headline, place... Send only what changes. `source_table` and `row_id` are the `source_table` and `entity_id` of a search result (or of the upload answer).
+
+```bash
+curl -X PATCH 'https://api.wesog.com/api/v1/library/tables/storage_image/rows/1048223' \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"caption": "Rafael Nadal celebrates a point during the final in Madrid.", "keyword": ["tennis", "Nadal"]}'
+```
+
+The answer is the file as it is now. The names of the fields are the ones `GET` returns for that file (for example `caption`, `headline`, `description`, `keyword`, `city`, `country`, `event`, `author`); an unknown name is refused with `unknown_library_fields` and the list of names.
+
+## Delete and restore
+
+`POST /trash/library/resources` with `{"resource_id": 1048223}` (the `entity_id`) moves a file to the trash: it disappears from search at once and stays recoverable for **30 days**.
+
+- `GET /trash/library` lists the trash.
+- `POST /trash/library/{trash_id}/restore` puts the file back.
+
+<Note>Editing, deleting and restoring need a key with the **`library` scope selected**. A key with no scopes ("full access") cannot do them: create or edit the key and tick `library`. Deleting is safe to repeat with an `Idempotency-Key`. Emptying the trash for good is done in the app.</Note>

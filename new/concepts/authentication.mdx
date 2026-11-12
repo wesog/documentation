@@ -29,9 +29,9 @@ A key with **no scopes** can call everything its organization role allows. You c
 |---|---|
 | `search` | Searching your Library and opening a result. |
 | `read` | Everything that only reads (`GET`), plus searching. |
-| `library` | Files, folders, uploads and the list of the trash. |
+| `library` | Files, folders, uploads, the trash, and (only if selected) editing data, deleting and restoring files. |
 | `tools` | Only the AI tools: list them, run one, read or cancel a run. |
-| `workflows` | Workflows and their runs, and also the AI tools (as before `tools` existed). |
+| `workflows` | Workflows and their runs, starting and stopping them (only if selected), and also the AI tools (as before `tools` existed). |
 | `mcp` | The agent connection for ChatGPT, Claude or your own agent. |
 
 Each operation of the [API reference](/new/openapi/introduction) lists the scopes that open it. A call outside the key's scopes answers `403` with the code `api_key_scope_denied`.

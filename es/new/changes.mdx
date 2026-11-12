@@ -43,3 +43,7 @@ Las operaciones que crean o lanzan algo aceptan `Idempotency-Key`. Mira [Idempot
 ### Salida de las herramientas: sin campos vacíos
 
 Los campos sin valor (`null`) y las copias en mayúsculas de un campo (`Title` junto a `title`) ya no se envían.
+
+### Editar, borrar, restaurar y lanzar con una clave
+
+Una clave con el scope `library` marcado ya puede editar los datos de un archivo, borrarlo y restaurarlo; una clave con el scope `workflows` marcado puede iniciar y parar workflows lanzados. Las claves sin scopes (acceso completo) siguen sin poder: marca el scope.

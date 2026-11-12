@@ -121,8 +121,10 @@ curl "https://api.wesog.com/api/v1/workflow-instances/$INSTANCE_ID/api/requests/
 
 `results` contiene los datos que el workflow produjo para ese archivo (sus campos dependen del workflow). Si un archivo falla, solo ese tiene `status: "failed"` con un `error`; los demás continúan.
 
-## Vigilar un workflow
+## Iniciar, parar y vigilar un workflow
 
-`GET /workflows/{workflow_id}/executions` lista las últimas ejecuciones de un workflow y sus estados. Iniciar y parar un workflow lanzado se hace en la aplicación.
+Un workflow que toma sus archivos de una carpeta, de un FTP o de subidas nuevas funciona solo una vez iniciado: `POST /workflow-instances/{instance_id}/launch` con `{"launch_mode": "start"}` (o `"stop"`). Para esto la clave necesita el **scope `workflows` marcado**; una clave sin scopes no puede iniciar workflows.
+
+`GET /workflows/{workflow_id}/executions` lista las últimas ejecuciones de un workflow y sus estados.
 
 Consulta [Asincronía y sondeo](/es/new/concepts/async) para saber cómo esperar y [Errores](/es/new/concepts/errors) para ver cómo es un fallo.

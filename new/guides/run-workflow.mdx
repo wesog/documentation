@@ -121,8 +121,10 @@ curl "https://api.wesog.com/api/v1/workflow-instances/$INSTANCE_ID/api/requests/
 
 `results` holds the data the workflow produced for that file (its fields depend on the workflow). If a file fails, only that one has `status: "failed"` with an `error`; the others continue.
 
-## Watch a workflow
+## Start, stop and watch a workflow
 
-`GET /workflows/{workflow_id}/executions` lists the latest runs of a workflow and their states. Starting and stopping a launched workflow is done in the app.
+A workflow that takes its files from a folder, an FTP or new uploads works on its own once started: `POST /workflow-instances/{instance_id}/launch` with `{"launch_mode": "start"}` (or `"stop"`). This needs a key with the **`workflows` scope selected**; a key with no scopes cannot start workflows.
+
+`GET /workflows/{workflow_id}/executions` lists the latest runs of a workflow and their states.
 
 See [Async and polling](/new/concepts/async) for how to wait, and [Errors](/new/concepts/errors) for what a failure looks like.

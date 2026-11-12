@@ -43,3 +43,7 @@ The operations that create or launch something accept `Idempotency-Key`. See [Id
 ### Tool output: no empty fields
 
 Fields without a value (`null`) and the title-case copies of a field (`Title` next to `title`) are not sent any more.
+
+### Edit, delete, restore and launch with a key
+
+A key with the `library` scope selected can now edit the data of a file, delete it and restore it; a key with the `workflows` scope selected can start and stop launched workflows. Keys with no scopes (full access) still cannot: tick the scope.

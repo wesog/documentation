@@ -1,6 +1,6 @@
 ---
 title: "Subir y gestionar la Biblioteca"
-description: "Sube archivos, lista y organiza carpetas, cópialos y muévelos."
+description: "Sube archivos, organiza carpetas, cambia sus datos y bórralos o restáuralos."
 icon: "folder-open"
 noindex: true
 ---
@@ -90,6 +90,23 @@ requests.post(f"{BASE}/storage/upload/multipart/complete", headers=h,
 
 Los datos de los archivos (y su búsqueda) los acompañan.
 
-## Cambiar datos, borrar y restaurar
+## Cambiar los datos de un archivo
 
-Cambiar la descripción o las palabras clave de un archivo, borrarlo y restaurarlo de la papelera se hace hoy en la aplicación. Las claves API pueden **listar** la papelera (`GET /trash/library`), pero todavía no pueden modificar ni borrar archivos.
+`PATCH /library/tables/{source_table}/rows/{row_id}` cambia la descripción, las palabras clave, el titular, el lugar... Envía solo lo que cambia. `source_table` y `row_id` son el `source_table` y el `entity_id` de un resultado de búsqueda (o de la respuesta de la subida).
+
+```bash
+curl -X PATCH 'https://api.wesog.com/api/v1/library/tables/storage_image/rows/1048223' \
+  -H "X-API-Key: $WESOG_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"caption": "Rafael Nadal celebrates a point during the final in Madrid.", "keyword": ["tennis", "Nadal"]}'
+```
+
+La respuesta es el archivo tal como queda. Los nombres de los campos son los que devuelve `GET` para ese archivo (por ejemplo `caption`, `headline`, `description`, `keyword`, `city`, `country`, `event`, `author`); un nombre desconocido se rechaza con `unknown_library_fields` y la lista de nombres.
+
+## Borrar y restaurar
+
+`POST /trash/library/resources` con `{"resource_id": 1048223}` (el `entity_id`) manda un archivo a la papelera: desaparece de la búsqueda al instante y se puede recuperar durante **30 días**.
+
+- `GET /trash/library` lista la papelera.
+- `POST /trash/library/{trash_id}/restore` devuelve el archivo a su sitio.
+
+<Note>Editar, borrar y restaurar necesitan una clave con el **scope `library` marcado**. Una clave sin scopes («acceso completo») no puede: crea o edita la clave y marca `library`. Borrar se puede repetir sin riesgo con una `Idempotency-Key`. Vaciar la papelera del todo se hace en la aplicación.</Note>
