@@ -92,6 +92,21 @@ console.log(await r.json());
 
 `image_tag` y `caption` aceptan lo que ya sabes de la foto: `event`, `city`, `country` y `date` (`YYYY-MM-DD`). Con ellos, la descripción nombra el evento y el lugar en lugar de adivinarlos.
 
+## Qué devuelve cada herramienta
+
+La salida tiene la misma forma clara en todas. Los campos que son datos de trabajo no se envían (vectores de caras, un valor repetido con varios nombres, el eco de lo que enviaste).
+
+| Herramienta | Campos principales |
+|---|---|
+| `caption` | `caption`, `city`, `country`, `date`, `event`, `location`, `celebrities`, `faces_locations` |
+| `ocr` | `text`, `name` |
+| `keywords` | `keywords` (lista) |
+| `image_tag` | los que pidas: `caption`, `keywords`, `ocr`, `colors`, `celebrities`, `people`, `city`, `country`, `event`, `date`... más tamaño y orientación |
+| `image_celebrity_recognition` | `celebrities`, `faces` |
+| `video_celebrity_recognition` | `celebrity_recognition_timeline`, `people` |
+
+Si usabas una versión anterior de la salida, mira [Cambios](/es/new/changes).
+
 ## Respuestas lentas
 
 La llamada espera 5 segundos por defecto (cámbialo con `timeout_ms`). Si la herramienta no ha terminado, recibes `202` y un `run_id`; sondea `GET /tools/runs/{run_id}` hasta que `status` sea `succeeded`. Consulta [Asincronía y sondeo](/es/new/concepts/async).

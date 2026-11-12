@@ -1,0 +1,41 @@
+---
+title: "Changes"
+description: "What changed in the API and when, so you can update your integration."
+icon: "clock-rotate-left"
+noindex: true
+---
+
+## November 2026
+
+### AI tool output: one clear shape
+
+For calls made with an API key, the output of the AI tools (`/tools/{tool}` and `/tools/runs/{run_id}`) no longer carries working data and uses plain names. **If your code reads these fields, update it:**
+
+| Before | Now |
+|---|---|
+| `face_embeddings` and any other vector | Not sent. |
+| `city_out`, `city_final` (also `country`, `date`, `event`, `location`) | `city` (and `country`, `date`, `event`, `location`) with the final value. |
+| `city_from_metadata` (and the other `*_from_metadata`) | Not sent. |
+| `nombre` | Not sent (use `name`). |
+| `image`, `video`, `lang`, `use_wesog_celebs` (echo of your input) | Not sent. |
+| `auto_ocr` | `text` |
+| `auto_keywords` | `keywords` |
+| `celebs`, `celebrity_recognition` | `celebrities` |
+
+The web app is not affected.
+
+### New `tools` scope for API keys
+
+A key can be limited to the AI tools only. Keys with the `workflows` scope keep working with the tools, nothing to change.
+
+### Same error format everywhere
+
+All errors have `code`, `message` and `request_id` (and `errors` for a refused body). `detail` is still there. See [Errors](/new/concepts/errors).
+
+### Idempotency-Key
+
+The operations that create or launch something accept `Idempotency-Key`. See [Idempotency](/new/concepts/idempotency).
+
+### Search with an API key
+
+`POST /library/search` ignores the internal switches it used to accept, and returns `next_offset` to page.

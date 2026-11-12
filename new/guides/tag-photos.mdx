@@ -92,6 +92,21 @@ console.log(await r.json());
 
 `image_tag` and `caption` accept what you already know about the photo: `event`, `city`, `country` and `date` (`YYYY-MM-DD`). With them the caption names the event and the place instead of guessing.
 
+## What each tool returns
+
+The output is the same clear shape for every tool. Fields that are working data are not sent (face vectors, a value repeated under several names, the echo of your input).
+
+| Tool | Main fields |
+|---|---|
+| `caption` | `caption`, `city`, `country`, `date`, `event`, `location`, `celebrities`, `faces_locations` |
+| `ocr` | `text`, `name` |
+| `keywords` | `keywords` (list) |
+| `image_tag` | the ones you asked for: `caption`, `keywords`, `ocr`, `colors`, `celebrities`, `people`, `city`, `country`, `event`, `date`... plus size and orientation |
+| `image_celebrity_recognition` | `celebrities`, `faces` |
+| `video_celebrity_recognition` | `celebrity_recognition_timeline`, `people` |
+
+If you used an earlier version of the output, see [Changes](/new/changes).
+
 ## Slow answers
 
 The call waits 5 seconds by default (change it with `timeout_ms`). If the tool is not done, you get `202` and a `run_id`; poll `GET /tools/runs/{run_id}` until `status` is `succeeded`. See [Async and polling](/new/concepts/async).

@@ -153,6 +153,7 @@
                   {
                     "group": "More",
                     "pages": [
+                      "new/changes",
                       "new/platform/intro",
                       "new/platform-api/reference-model",
                       "new/platform-api/domains",
@@ -291,6 +292,7 @@
                   {
                     "group": "Más",
                     "pages": [
+                      "es/new/changes",
                       "new/platform/intro",
                       "new/platform-api/reference-model",
                       "new/platform-api/domains",

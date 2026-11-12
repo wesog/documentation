@@ -1,0 +1,41 @@
+---
+title: "Cambios"
+description: "Qué ha cambiado en la API y cuándo, para que actualices tu integración."
+icon: "clock-rotate-left"
+noindex: true
+---
+
+## Noviembre de 2026
+
+### Salida de las herramientas de IA: una forma clara
+
+En las llamadas hechas con una clave API, la salida de las herramientas de IA (`/tools/{tool}` y `/tools/runs/{run_id}`) ya no lleva datos de trabajo y usa nombres claros. **Si tu código lee estos campos, actualízalo:**
+
+| Antes | Ahora |
+|---|---|
+| `face_embeddings` y cualquier otro vector | No se envía. |
+| `city_out`, `city_final` (también `country`, `date`, `event`, `location`) | `city` (y `country`, `date`, `event`, `location`) con el valor final. |
+| `city_from_metadata` (y el resto de `*_from_metadata`) | No se envía. |
+| `nombre` | No se envía (usa `name`). |
+| `image`, `video`, `lang`, `use_wesog_celebs` (eco de lo que enviaste) | No se envían. |
+| `auto_ocr` | `text` |
+| `auto_keywords` | `keywords` |
+| `celebs`, `celebrity_recognition` | `celebrities` |
+
+La aplicación web no cambia.
+
+### Nuevo permiso `tools` para las claves API
+
+Una clave puede limitarse solo a las herramientas de IA. Las claves con el permiso `workflows` siguen funcionando con las herramientas, no hay que cambiar nada.
+
+### El mismo formato de error en todas partes
+
+Todos los errores llevan `code`, `message` y `request_id` (y `errors` si el cuerpo se rechaza). `detail` sigue estando. Mira [Errores](/es/new/concepts/errors).
+
+### Idempotency-Key
+
+Las operaciones que crean o lanzan algo aceptan `Idempotency-Key`. Mira [Idempotencia](/es/new/concepts/idempotency).
+
+### Búsqueda con una clave API
+
+`POST /library/search` ignora los interruptores internos que antes aceptaba y devuelve `next_offset` para paginar.
